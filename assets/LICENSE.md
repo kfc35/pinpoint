@@ -1,0 +1,1 @@
+All assets in this directory and its subdirectories were created by the author [@kfc35](https://github.com/kfc35). All assets are [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/).
