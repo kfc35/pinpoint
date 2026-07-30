@@ -4,3 +4,26 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bevy = { version = "0.19.0", default-features = false, features = [
+  # ui without default_platform
+  "default_app",
+  "ui_api",
+  "ui_bevy_render",
+  "scene",
+  "picking",
+  "bevy_ui_widgets",
+  # default_platform without bevy_gilrs, multi_threaded
+  "std",
+  "bevy_winit",
+  "bevy_clipboard",
+  "default_font",
+  "webgl2",
+  "x11",
+  "wayland",
+  "custom_cursor",
+  "sysinfo_plugin",
+  # clipboard for ability to copy results
+  "system_clipboard",
+  # for persisting to local storage
+  "bevy_settings",
+  ] }
