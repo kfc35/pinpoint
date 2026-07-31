@@ -8,6 +8,7 @@ use bevy::{
 };
 
 mod menu;
+mod create;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 enum AppState {
@@ -40,6 +41,8 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Menu), menu::setup_menu)
         .add_systems(OnExit(AppState::Menu), menu::teardown_menu)
+        .add_systems(OnEnter(AppState::Create), create::setup_create)
+        .add_systems(OnExit(AppState::Create), create::teardown_create)
         .run();
 }
 
