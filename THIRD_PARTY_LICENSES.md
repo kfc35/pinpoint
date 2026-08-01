@@ -8,7 +8,41 @@ This project uses the following third-party packages and libraries:
    - https://github.com/bevyengine/bevy/blob/v0.19.0/LICENSE-MIT
    - https://github.com/bevyengine/bevy/blob/v0.19.0/LICENSE-APACHE
 
+2. rand & rand_pcg
+   - rand and rand_pcg are distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+   - https://github.com/rust-random/rand/blob/0.10.1/LICENSE-MIT
+   - https://github.com/rust-random/rand/blob/0.10.1/LICENSE-APACHE
+   - https://github.com/rust-random/rngs/blob/rand_pcg-0.10.2/rand_pcg/LICENSE-MIT
+   - https://github.com/rust-random/rngs/blob/rand_pcg-0.10.2/rand_pcg/LICENSE-APACHE
+
+3. bytemuck
+  - bytemuck is licensed under MIT, Apache 2.0, and zlib.
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-MIT
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-APACHE
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-ZLIB
+
+4. chrono
+  - web-time is dual licensed under MIT and Apache 2.0
+  - https://github.com/chronotope/chrono/blob/v0.4.45/LICENSE.txt
+
+5. chrono_tz
+  - chrono_tz is dual licensed under MIT and Apache 2.0
+  - https://github.com/chronotope/chrono-tz/blob/v0.10.4/LICENSE
+
 ## Coalesced MIT License
+
+Copyright 2018 Developers of the Rand project
+
+Copyright (c) 2014 The Rust Project Developers
+
+Copyright (c) 2019 Daniel "Lokathor" Gee.
+
+Copyright (c) 2014, Kang Seonghoon.
+
+Copyright (c) 2014--2026, Kang Seonghoon and
+contributors.
+
+Copyright (c) 2016-2024 Benjamin Sago & the chronotope maintainers
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -206,3 +240,17 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    of your accepting any such warranty or additional liability.
 
 END OF TERMS AND CONDITIONS
+
+## zlib License
+
+Copyright (c) 2019 Daniel "Lokathor" Gee.
+
+This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.

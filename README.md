@@ -14,3 +14,12 @@ This game is heavily inspired by / attributes its main idea to Wavelength, the p
 
 ### Game Engine
 This app is powered by Bevy Engine, which is free and open-source forever! It is dual licensed under MIT or Apache-2.0. Thank you to all the contributors on the project.
+
+### Literally Random Utilities
+Thanks to the rust-random team and their contributors for giving me the ability to randomize games with reproducibility without much of a headache.
+
+### bytemuck
+Thanks to Lokathor and the bytemuck contributors for making it easy for me to make the rng seed.
+
+### chrono and chrono_tz
+Thanks to chronotope team and contributors for giving me the time utils I need to ensure the game works on web.
