@@ -17,9 +17,9 @@ This project uses the following third-party packages and libraries:
 
 3. bytemuck
   - bytemuck is licensed under MIT, Apache 2.0, and zlib.
-  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-MIT
-  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-APACHE
-  - https://github.com/Lokathor/bytemuck/blob/v1.25.0/LICENSE-ZLIB
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-MIT
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-APACHE
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-ZLIB
 
 4. chrono
   - web-time is dual licensed under MIT and Apache 2.0
@@ -28,6 +28,11 @@ This project uses the following third-party packages and libraries:
 5. chrono_tz
   - chrono_tz is dual licensed under MIT and Apache 2.0
   - https://github.com/chronotope/chrono-tz/blob/v0.10.4/LICENSE
+
+6. age
+  - age is dual licensed under MIT and Apache 2.0
+  - https://github.com/str4d/rage/blob/v0.12.1/LICENSE-MIT
+  - https://github.com/str4d/rage/blob/v0.12.1/LICENSE-APACHE
 
 ## Coalesced MIT License
 
@@ -43,6 +48,8 @@ Copyright (c) 2014--2026, Kang Seonghoon and
 contributors.
 
 Copyright (c) 2016-2024 Benjamin Sago & the chronotope maintainers
+
+Copyright (c) 2019 Jack Grigg
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
