@@ -4,18 +4,28 @@ use bevy::{
     image::{ImagePlugin, ImageSamplerDescriptor},
     prelude::*,
     text::FontSourceTemplate,
+    ui_widgets::Activate,
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
+use chrono::Utc;
 
-mod menu;
 mod create;
+mod menu;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
-enum AppState {
+pub(crate) enum AppState {
     #[default]
     Menu,
     Create,
     // Play,
+}
+
+#[derive(Resource)]
+pub(crate) struct StartDateTime {
+    /// Current date as "%Y/%m/%d"
+    date: String,
+    /// Current time as "%H:%M:%S%.3f"
+    time: String,
 }
 
 pub const MIDDLE_BLUE_COLOR: Color = Color::srgb(0. / 255., 149. / 255., 233. / 255.);
@@ -41,13 +51,23 @@ fn main() {
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Menu), menu::setup_menu)
         .add_systems(OnExit(AppState::Menu), menu::teardown_menu)
-        .add_systems(OnEnter(AppState::Create), create::setup_create)
+        .add_systems(
+            OnEnter(AppState::Create),
+            (create::init_created_round, create::setup_create).chain(),
+        )
         .add_systems(OnExit(AppState::Create), create::teardown_create)
         .run();
 }
 
 pub fn setup(mut commands: Commands) {
     commands.spawn(Camera2d);
+
+    // The game will change categories every day in Eastern time.
+    let date_time = Utc::now().with_timezone(&chrono_tz::US::Eastern);
+    let date = format!("{}", date_time.format("%Y/%m/%d"));
+    let time = format!("{}", date_time.format("%H/%M/%S%.3f"));
+
+    commands.insert_resource(StartDateTime { date, time });
 }
 
 pub fn pinpoint_font() -> impl Scene {
@@ -58,9 +78,20 @@ pub fn pinpoint_font() -> impl Scene {
     }
 }
 
+/// Helper to create an observer that changes the app state on activate of a button.
+pub fn on_activate_change_state(next: AppState) -> impl Scene {
+    bsn! {
+        on(move |_: On<Activate>, mut next_state: ResMut<NextState<AppState>>| {
+            next_state.set(next);
+        })
+    }
+}
+
 /// Helper to attach an observer to an entity for the given Pointer Event `E` that changes:
-/// the `BorderColor` of this entity to the provided color and the `texture_atlas` of the
-/// `ImageNode` on this entity and its direct child to use the provided index.
+/// - the `BorderColor` of this entity to the provided color
+/// - the `texture_atlas` of the `ImageNode` on this entity and its
+///   direct child to use the provided index.
+/// - the cursor to be the provided `system_cursor_icon`.
 pub fn on_handler_style_button_image<E>(
     border_color: bevy::color::Color,
     texture_atlas_index: usize,

@@ -1,8 +1,8 @@
 use bevy::{prelude::*, ui_widgets::Button, window::SystemCursorIcon};
 
 use crate::{
-    DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR,
-    on_handler_style_button_image, pinpoint_font,
+    AppState, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR,
+    on_activate_change_state, on_handler_style_button_image, pinpoint_font,
 };
 
 /// Marker component for the menu
@@ -67,12 +67,18 @@ fn buttons() -> impl Scene {
             width: percent(100),
         }
         Children [
-            button("button/create.png", UVec2::new(192, 32), 20, 50),
+            button("button/create.png", UVec2::new(192, 32), 20, 50, AppState::Create),
         ]
     }
 }
 
-fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl Scene {
+fn button(
+    path: &'static str,
+    tile_size: UVec2,
+    height: i32,
+    width: i32,
+    next_state_on_activate: AppState,
+) -> impl Scene {
     bsn! {
         Button
         Node {
@@ -85,6 +91,7 @@ fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl
         on_handler_style_button_image::<Press>(DARK_RED_COLOR, 2, SystemCursorIcon::Pointer)
         on_handler_style_button_image::<Release>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
         on_handler_style_button_image::<Out>(DARK_BLUE_COLOR, 0, SystemCursorIcon::Default)
+        on_activate_change_state(next_state_on_activate)
         Children [
             // Unsure how to do this by just having to modify the texture_atlas of the ImageNode
             Node {
