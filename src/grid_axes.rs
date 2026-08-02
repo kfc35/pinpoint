@@ -149,7 +149,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 10] = [
+const AXIS_SPECTRA: [AxisSpectrum; 12] = [
     // Seasons
     AxisSpectrum("Spring-y", "Summer-y"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -165,6 +165,9 @@ const AXIS_SPECTRA: [AxisSpectrum; 10] = [
     // Moments
     AxisSpectrum("Unpleasant", "Enjoyable"),
     AxisSpectrum("Rare", "Common"),
+    // Moments
+    AxisSpectrum("Breakfast", "Dinner"),
+    AxisSpectrum("Diet", "Indulgent"),
 ];
 
 const AXES: [Axes; 5] = [

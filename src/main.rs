@@ -3,6 +3,7 @@ use bevy::{
     asset::{AssetMetaCheck, AssetPlugin},
     image::{ImagePlugin, ImageSamplerDescriptor},
     prelude::*,
+    settings::{SettingsGroup, SettingsPlugin},
     text::FontSourceTemplate,
     ui_widgets::Activate,
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
@@ -14,6 +15,9 @@ mod grid_axes;
 pub(crate) use grid_axes::axes_descriptions;
 mod menu;
 
+pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
+
+/// States that the app can transition between that trigger the whole screen to change.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub(crate) enum AppState {
     #[default]
@@ -22,12 +26,26 @@ pub(crate) enum AppState {
     // Play,
 }
 
+/// Data about the date and time that this game was initialized.
+/// Used to determine what [`grid_axes::Axes`] are used for this session.
 #[derive(Resource)]
 pub(crate) struct StartDateTime {
     /// Current date as "%Y/%m/%d"
     date: String,
     /// Current time as "%H:%M:%S%.3f"
     time: String,
+}
+
+/// The user's name provided for this session.
+/// The string within this resource is always valid.
+#[derive(Resource, Clone, Default, Deref, DerefMut, SettingsGroup)]
+pub(crate) struct Username(String);
+
+impl Username {
+    /// Returns whether the name is valid (at least 1 character, alphamumeric, max 10 characters)
+    pub(crate) fn is_valid(name: &String) -> bool {
+        name.chars().all(char::is_alphanumeric) && name.len() <= 10 && !name.is_empty()
+    }
 }
 
 pub const MIDDLE_BLUE_COLOR: Color = Color::srgb(0. / 255., 149. / 255., 233. / 255.);
@@ -50,6 +68,9 @@ fn main() {
                 }),
         )
         .init_state::<AppState>()
+        .init_resource::<Username>()
+        .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
+        .add_plugins(menu::MenuPlugin)
         .add_systems(Startup, setup)
         .add_systems(OnEnter(AppState::Menu), menu::setup_menu)
         .add_systems(OnExit(AppState::Menu), menu::teardown_menu)
@@ -72,6 +93,7 @@ pub fn setup(mut commands: Commands) {
     commands.insert_resource(StartDateTime { date, time });
 }
 
+/// Utility shorthand for the font.
 pub fn pinpoint_font() -> impl Scene {
     bsn! {
         TextFont {
@@ -80,21 +102,30 @@ pub fn pinpoint_font() -> impl Scene {
     }
 }
 
-/// Helper to create an observer that changes the app state on activate of a button.
+/// Utility to create an observer that changes the app state on activate of a button.
+/// All buttons that activate checks that a username is valid.
 pub(crate) fn on_activate_change_state(next: AppState) -> impl Scene {
     bsn! {
-        on(move |_: On<Activate>, mut next_state: ResMut<NextState<AppState>>,
+        on(move |_: On<Activate>,
+            mut next_state: ResMut<NextState<AppState>>,
+            username: Res<Username>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
-            mut commands: Commands,| {
-            for window in window_q.iter_mut() {
-                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+            mut commands: Commands| {
+            if Username::is_valid(&username.0) {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+                }
+                next_state.set(next);
             }
-            next_state.set(next);
+            else {
+
+                // Pop up error modal that they must fill in a user name before proceeding.
+            }
         })
     }
 }
 
-/// Helper to attach an observer to an entity for the given Pointer Event `E` that changes:
+/// Utility to attach an observer to an entity for the given Pointer Event `E` that changes:
 /// - the `BorderColor` of this entity to the provided color
 /// - the `texture_atlas` of the `ImageNode` on this entity and its
 ///   direct child to use the provided index.
@@ -135,6 +166,7 @@ where
     }
 }
 
+/// Utility to return an [`ImageNode`].
 pub(crate) fn image_node_with_texture_atlas(
     path: &'static str,
     tile_size: UVec2,
@@ -156,4 +188,33 @@ pub(crate) fn image_node_with_texture_atlas(
             })
         })
     }
+}
+
+/// Observer to style text inputs
+fn on_pointer_over_text_cursor(
+    mut event: On<Pointer<Over>>,
+    mut window_q: Query<Entity, With<PrimaryWindow>>,
+    mut commands: Commands,
+) {
+    for window in window_q.iter_mut() {
+        commands
+            .entity(window)
+            .insert(CursorIcon::System(SystemCursorIcon::Text));
+    }
+
+    event.propagate(false);
+}
+
+/// Observer to unstyle cursor
+fn on_pointer_out_default_cursor(
+    mut event: On<Pointer<Out>>,
+    mut window_q: Query<Entity, With<PrimaryWindow>>,
+    mut commands: Commands,
+) {
+    for window in window_q.iter_mut() {
+        commands
+            .entity(window)
+            .insert(CursorIcon::System(SystemCursorIcon::Default));
+    }
+    event.propagate(false);
 }
