@@ -81,7 +81,12 @@ pub fn pinpoint_font() -> impl Scene {
 /// Helper to create an observer that changes the app state on activate of a button.
 pub fn on_activate_change_state(next: AppState) -> impl Scene {
     bsn! {
-        on(move |_: On<Activate>, mut next_state: ResMut<NextState<AppState>>| {
+        on(move |_: On<Activate>, mut next_state: ResMut<NextState<AppState>>,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,
+            mut commands: Commands,| {
+            for window in window_q.iter_mut() {
+                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+            }
             next_state.set(next);
         })
     }

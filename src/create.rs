@@ -7,9 +7,13 @@ use rand::{RngExt, SeedableRng};
 #[derive(Component, Clone, Default)]
 pub struct AppCreate;
 
-/// Marker component for the location square
+/// Marker component for the location grid
 #[derive(Component, Clone, Default)]
-pub struct LocationSquare;
+pub struct LocationGrid;
+
+/// Marker component for the pin
+#[derive(Component, Clone, Default)]
+pub struct Pin;
 
 /// A round of Pinpoint that can be shared with friends.
 /// It can be deserialized
@@ -77,7 +81,8 @@ pub fn init_created_round(
         return;
     }
 
-    let location: UVec2 = rng.random();
+    let location: UVec2 = UVec2::new(rng.random_range(0..=100), rng.random_range(0..=100));
+    println!("location: {location:?}");
     let round = CreatedRound {
         date: start_date_time.date.clone(),
         create_time: start_date_time.time.clone(),
@@ -89,49 +94,70 @@ pub fn init_created_round(
 
 // TODO we should hook an observer to change the layout depending on if
 // height is larger or width is larger
-pub fn setup_create(mut commands: Commands, created_round: ResMut<CreatedRound>) {
-    commands.spawn_scene(setup_create_vertical());
+pub fn setup_create(mut commands: Commands, created_round: Res<CreatedRound>) {
+    commands.spawn_scene(setup_create_vertical(&created_round));
 }
 
-fn setup_create_vertical() -> impl Scene {
+fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
     bsn! {
         AppCreate
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
             align_items: AlignItems::Center,
+            row_gap: px(20),
             width: percent(100),
             height: percent(100),
         }
         Children [
-            // The middle portion of the children must be a square grid, minimum
-            // 300 by 300 grid
-            Node
+            Node {
+                width: percent(100),
+            }
             Children [
+                Node {
+                    margin: percent(5),
+                    width: percent(100),
+                }
                 Text::new("Type In Your Clue for the given pin")
                 TextFont {
                     font_size: px(16),
                 }
-                pinpoint_font(),
+                TextLayout::justify(Justify::Center)
+                pinpoint_font()
+            ],
 
-                LocationSquare
+            LocationGrid
+            Node
+            Outline::new(px(5), Val::ZERO, Color::WHITE)
+            BorderColor::all(Color::WHITE)
+            Children [
                 Node {
                     min_width: px(300),
                     min_height: px(300),
-                    // TODO this has to change depending on orientation.
-                    width: percent(100),
                 }
                 ImageNode {
                     image: "game_area/grid.png"
-                }
-                Children [
-                    // Location of pin must be a child.
+                },
 
-                    // Should be able to switch views between 2d grid
-                    // and two spectrums
-                ]
-            ]
+                Pin
+                Node {
+                    position_type: PositionType::Absolute,
+                    left: percent(created_round.location.x as f32 -5.),
+                    bottom: percent(created_round.location.y as f32 - 5.),
+                }
+                ZIndex(1)
+                Children [
+                    Node {
+                        width: px(30),
+                        height: px(30),
+                    }
+                    ImageNode {
+                        image: "game_area/crosshair.png"
+                    }
+                ],
+                // Should be able to switch views between 2d grid
+                // and two spectrums
+            ],
         ]
     }
 }
