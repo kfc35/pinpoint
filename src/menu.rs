@@ -2,7 +2,8 @@ use bevy::{prelude::*, ui_widgets::Button, window::SystemCursorIcon};
 
 use crate::{
     AppState, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR,
-    on_activate_change_state, on_handler_style_button_image, pinpoint_font,
+    image_node_with_texture_atlas, on_activate_change_state, on_handler_style_button_image,
+    pinpoint_font,
 };
 
 /// Marker component for the menu
@@ -98,20 +99,7 @@ fn button(
                 height: percent(100),
                 width: percent(100),
             }
-            template(move |context| {
-                // button assets should always be exported as 1 column and have 3 rows.
-                let layout = TextureAtlasLayout::from_grid(tile_size, 1, 3, None, None);
-                let layout_handle = context.resource_mut::<Assets<TextureAtlasLayout>>().add(layout);
-                let texture_atlas = TextureAtlas {
-                    layout: layout_handle,
-                    index: 0,
-                };
-                Ok(ImageNode {
-                    image: context.resource::<AssetServer>().load(path),
-                    texture_atlas: Some(texture_atlas),
-                    ..Default::default()
-                })
-            })
+            image_node_with_texture_atlas(path, tile_size, 3, 0)
         ]
     }
 }

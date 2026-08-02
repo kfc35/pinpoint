@@ -10,6 +10,8 @@ use bevy::{
 use chrono::Utc;
 
 mod create;
+mod grid_axes;
+pub(crate) use grid_axes::{Axes, get_axes};
 mod menu;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
@@ -79,7 +81,7 @@ pub fn pinpoint_font() -> impl Scene {
 }
 
 /// Helper to create an observer that changes the app state on activate of a button.
-pub fn on_activate_change_state(next: AppState) -> impl Scene {
+pub(crate) fn on_activate_change_state(next: AppState) -> impl Scene {
     bsn! {
         on(move |_: On<Activate>, mut next_state: ResMut<NextState<AppState>>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
@@ -129,6 +131,29 @@ where
                     && let Some(atlas) = &mut image_node.texture_atlas {
                         atlas.index = texture_atlas_index;
                 }
+        })
+    }
+}
+
+pub(crate) fn image_node_with_texture_atlas(
+    path: &'static str,
+    tile_size: UVec2,
+    num_rows: u32,
+    index: usize,
+) -> impl Scene {
+    bsn! {
+        template(move |context| {
+            let layout = TextureAtlasLayout::from_grid(tile_size, 1, num_rows, None, None);
+            let layout_handle = context.resource_mut::<Assets<TextureAtlasLayout>>().add(layout);
+            let texture_atlas = TextureAtlas {
+                layout: layout_handle,
+                index,
+            };
+            Ok(ImageNode {
+                image: context.resource::<AssetServer>().load(path),
+                texture_atlas: Some(texture_atlas),
+                ..Default::default()
+            })
         })
     }
 }
