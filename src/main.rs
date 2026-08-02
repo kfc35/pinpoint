@@ -3,9 +3,9 @@ use bevy::{
     asset::{AssetMetaCheck, AssetPlugin},
     image::{ImagePlugin, ImageSamplerDescriptor},
     prelude::*,
-    settings::{SettingsGroup, SettingsPlugin},
+    reflect::{Reflect, std_traits::ReflectDefault},
+    settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup, SettingsPlugin},
     text::FontSourceTemplate,
-    ui_widgets::Activate,
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 use chrono::Utc;
@@ -38,13 +38,16 @@ pub(crate) struct StartDateTime {
 
 /// The user's name provided for this session.
 /// The string within this resource is always valid.
-#[derive(Resource, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct Username(String);
 
 impl Username {
-    /// Returns whether the name is valid (at least 1 character, alphamumeric, max 10 characters)
+    /// Returns whether the name is valid (at least 1 character, alphamumeric incl. underscore, max 10 characters)
     pub(crate) fn is_valid(name: &String) -> bool {
-        name.chars().all(char::is_alphanumeric) && name.len() <= 10 && !name.is_empty()
+        name.len() <= 10
+            && !name.is_empty()
+            && name.chars().all(|c| char::is_alphanumeric(c) || c == '_')
     }
 }
 
@@ -82,7 +85,7 @@ fn main() {
         .run();
 }
 
-pub fn setup(mut commands: Commands) {
+fn setup(mut commands: Commands, mut username: ResMut<Username>) {
     commands.spawn(Camera2d);
 
     // The game will change categories every day in Eastern time.
@@ -91,37 +94,20 @@ pub fn setup(mut commands: Commands) {
     let time = format!("{}", date_time.format("%H/%M/%S%.3f"));
 
     commands.insert_resource(StartDateTime { date, time });
+
+    // This can happen if the user manually edits the settings file.
+    if !Username::is_valid(&username.0) {
+        username.0.clear();
+        commands.queue(SaveSettingsSync::IfChanged);
+    }
 }
 
 /// Utility shorthand for the font.
-pub fn pinpoint_font() -> impl Scene {
+pub(crate) fn pinpoint_font() -> impl Scene {
     bsn! {
         TextFont {
             font: FontSourceTemplate::Handle("font/Pinpoint.ttf"),
         }
-    }
-}
-
-/// Utility to create an observer that changes the app state on activate of a button.
-/// All buttons that activate checks that a username is valid.
-pub(crate) fn on_activate_change_state(next: AppState) -> impl Scene {
-    bsn! {
-        on(move |_: On<Activate>,
-            mut next_state: ResMut<NextState<AppState>>,
-            username: Res<Username>,
-            mut window_q: Query<Entity, With<PrimaryWindow>>,
-            mut commands: Commands| {
-            if Username::is_valid(&username.0) {
-                for window in window_q.iter_mut() {
-                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
-                }
-                next_state.set(next);
-            }
-            else {
-
-                // Pop up error modal that they must fill in a user name before proceeding.
-            }
-        })
     }
 }
 
@@ -130,7 +116,7 @@ pub(crate) fn on_activate_change_state(next: AppState) -> impl Scene {
 /// - the `texture_atlas` of the `ImageNode` on this entity and its
 ///   direct child to use the provided index.
 /// - the cursor to be the provided `system_cursor_icon`.
-pub fn on_handler_style_button_image<E>(
+pub(crate) fn on_handler_style_button_image<E>(
     border_color: bevy::color::Color,
     texture_atlas_index: usize,
     system_cursor_icon: SystemCursorIcon,
@@ -191,7 +177,7 @@ pub(crate) fn image_node_with_texture_atlas(
 }
 
 /// Observer to style text inputs
-fn on_pointer_over_text_cursor(
+pub(crate) fn on_pointer_over_text_cursor(
     mut event: On<Pointer<Over>>,
     mut window_q: Query<Entity, With<PrimaryWindow>>,
     mut commands: Commands,
@@ -206,7 +192,7 @@ fn on_pointer_over_text_cursor(
 }
 
 /// Observer to unstyle cursor
-fn on_pointer_out_default_cursor(
+pub(crate) fn on_pointer_out_default_cursor(
     mut event: On<Pointer<Out>>,
     mut window_q: Query<Entity, With<PrimaryWindow>>,
     mut commands: Commands,

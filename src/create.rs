@@ -1,4 +1,9 @@
-use bevy::{prelude::*, reflect::Reflect, settings::SettingsGroup, ui_widgets::Slider};
+use bevy::{
+    prelude::*,
+    reflect::{Reflect, std_traits::ReflectDefault},
+    settings::{ReflectSettingsGroup, SettingsGroup, SettingsPlugin},
+    ui_widgets::Slider,
+};
 
 use crate::{StartDateTime, axes_descriptions, pinpoint_font};
 use rand::{RngExt, SeedableRng};
@@ -37,7 +42,7 @@ pub struct ShareableCreatedRound {
 
 /// A round of Pinpoint that is saved on the creator's end.
 #[derive(Reflect, Resource, SettingsGroup, Clone, Hash, PartialEq, Eq)]
-#[reflect(Resource)]
+// #[reflect(Resource, Default, SettingsGroup)]
 pub struct CreatedRound {
     /// The date of this round
     date: String,
