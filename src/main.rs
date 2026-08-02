@@ -11,7 +11,7 @@ use chrono::Utc;
 
 mod create;
 mod grid_axes;
-pub(crate) use grid_axes::{Axes, get_axes};
+pub(crate) use grid_axes::axes_descriptions;
 mod menu;
 
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]

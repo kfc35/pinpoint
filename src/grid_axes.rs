@@ -1,3 +1,8 @@
+///! Module dealing with the assigned axes for a given day of Pinpoint.
+use bevy::prelude::*;
+
+use crate::{image_node_with_texture_atlas, pinpoint_font};
+
 /// Contains the axes for a given day of Pinpoint.
 #[derive(Clone, Copy, PartialEq)]
 pub(crate) struct Axes {
@@ -31,8 +36,117 @@ impl AxisSpectrum {
 }
 
 /// Returns the Axes for a given day.
-pub(crate) fn get_axes(_date: &String) -> Axes {
+fn get_axes(_date: &String) -> Axes {
     AXES[0]
+}
+
+/// Returns the axes as a compass scene
+pub(crate) fn axes_descriptions(date: &String) -> impl Scene {
+    let axes = get_axes(date);
+    bsn! {
+        Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            border: px(2),
+        }
+        BorderColor::all(Color::WHITE)
+        Children [
+            axis_vertical_desc(axes.vertical().first(), 0),
+            axis_horizontal_desc(axes.horizontal().first(), axes.horizontal().second()),
+            axis_vertical_desc(axes.vertical().second(), 1),
+        ]
+    }
+}
+
+fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> {
+    if image_index == 0 {
+        // Pointing Up
+        Box::new(bsn! {
+            Node {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(100)
+                padding: px(5),
+                row_gap: px(5),
+            }
+            Children [
+                axis_text(axis),
+                arrow_image_node(image_index),
+            ]
+        })
+    } else {
+        Box::new(bsn! {
+            Node {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(100)
+                padding: px(5),
+                row_gap: px(5),
+            }
+            Children [
+                // Ordering of children is different.
+                arrow_image_node(image_index),
+                axis_text(axis),
+            ]
+        })
+    }
+}
+
+fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> impl Scene {
+    bsn! {
+        Node {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            width: percent(100)
+            padding: px(5),
+            column_gap: px(5),
+        }
+        Children [
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+            }
+            Children [
+                axis_text(left_axis),
+                arrow_image_node(2),
+            ],
+
+            Node {
+                flex_direction: FlexDirection::Row,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+            }
+            Children [
+                arrow_image_node(3),
+                axis_text(right_axis),
+            ],
+        ]
+    }
+}
+
+fn axis_text(axis: &'static str) -> impl Scene {
+    bsn! {
+        Text::new(axis)
+        TextFont {
+            font_size: px(16),
+        }
+        pinpoint_font()
+    }
+}
+
+fn arrow_image_node(image_index: usize) -> impl Scene {
+    bsn! {
+        Node {
+            min_width: px(15),
+            min_height: px(15),
+        }
+        image_node_with_texture_atlas("game_area/arrows.png", UVec2::splat(15), 4, image_index)
+    }
 }
 
 const AXIS_SPECTRA: [AxisSpectrum; 10] = [

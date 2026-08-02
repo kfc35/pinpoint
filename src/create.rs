@@ -1,6 +1,6 @@
 use bevy::{prelude::*, reflect::Reflect, settings::SettingsGroup, ui_widgets::Slider};
 
-use crate::{Axes, StartDateTime, get_axes, image_node_with_texture_atlas, pinpoint_font};
+use crate::{StartDateTime, axes_descriptions, pinpoint_font};
 use rand::{RngExt, SeedableRng};
 
 /// Marker component for the menu
@@ -95,11 +95,10 @@ pub fn init_created_round(
 // TODO we should hook an observer to change the layout depending on if
 // height is larger or width is larger
 pub fn setup_create(mut commands: Commands, created_round: Res<CreatedRound>) {
-    let axes = get_axes(&created_round.date);
-    commands.spawn_scene(setup_create_vertical(&created_round, axes));
+    commands.spawn_scene(setup_create_vertical(&created_round));
 }
 
-fn setup_create_vertical(created_round: &CreatedRound, axes: Axes) -> impl Scene {
+fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
     bsn! {
         AppCreate
         Node {
@@ -116,10 +115,9 @@ fn setup_create_vertical(created_round: &CreatedRound, axes: Axes) -> impl Scene
             }
             Children [
                 Node {
-                    margin: percent(5),
                     width: percent(100),
                 }
-                Text::new("Type in a clue that would make players drop their pin in the given location.")
+                Text::new("Type in your clue")
                 TextFont {
                     font_size: px(16),
                 }
@@ -160,56 +158,9 @@ fn setup_create_vertical(created_round: &CreatedRound, axes: Axes) -> impl Scene
                 // and two spectrums
             ],
 
-            axes_descriptions(axes),
+            axes_descriptions(&created_round.date),
 
             // Text Input
-        ]
-    }
-}
-
-fn axes_descriptions(axes: Axes) -> impl Scene {
-    bsn! {
-        Node {
-            flex_direction: FlexDirection::Column
-        }
-        Children [
-            {
-                [
-                    axes.vertical().first(),
-                    axes.vertical().second(),
-                    axes.horizontal().first(),
-                    axes.horizontal().second()
-                ]
-                .into_iter()
-                .enumerate()
-                .map(|(index, axis)| axis_desc(axis, index))
-                .collect::<Vec<_>>()
-            }
-        ]
-    }
-}
-
-fn axis_desc(axis: &'static str, image_index: usize) -> impl Scene {
-    bsn! {
-        Node {
-            flex_direction: FlexDirection::Row,
-            border: px(2),
-            column_gap: px(5),
-            padding: px(5),
-        }
-        BorderColor::all(Color::WHITE)
-        Children [
-            Node {
-                min_width: px(15),
-                min_height: px(15),
-            }
-            image_node_with_texture_atlas("game_area/arrows.png", UVec2::splat(15), 4, image_index),
-
-            Text::new(axis)
-            TextFont {
-                font_size: px(16),
-            }
-            pinpoint_font(),
         ]
     }
 }
