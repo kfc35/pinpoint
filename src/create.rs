@@ -150,8 +150,8 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
                     // the bullseye center is at 21 x 21, so we want the bottom
                     // left of the crosshair below and to the left of where the
                     // center should go by 21 / 280 = 7.5%
-                    left: percent(50. as f32 - 7.5),
-                    bottom: percent(50. as f32 - 7.5),
+                    left: percent(created_round.location.x as f32 - 7.5),
+                    bottom: percent(created_round.location.y as f32 - 7.5),
                 }
                 ZIndex(1)
                 Children [
