@@ -27,6 +27,7 @@ pub struct UsernameRequirements;
 pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
     commands.spawn_scene(bsn! {
         AppMenu
+        Visibility::Inherited
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
@@ -59,8 +60,12 @@ pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
     });
 }
 
-pub fn teardown_menu(mut commands: Commands, app_menu_q: Single<Entity, With<AppMenu>>) {
-    commands.entity(app_menu_q.entity()).despawn();
+pub fn show_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
+    *app_menu_q.into_inner() = Visibility::Inherited;
+}
+
+pub fn hide_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
+    *app_menu_q.into_inner() = Visibility::Hidden;
 }
 
 fn logo() -> impl Scene {

@@ -74,14 +74,15 @@ fn main() {
         .init_resource::<Username>()
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
         .add_plugins(menu::MenuPlugin)
-        .add_systems(Startup, setup)
-        .add_systems(OnEnter(AppState::Menu), menu::setup_menu)
-        .add_systems(OnExit(AppState::Menu), menu::teardown_menu)
         .add_systems(
-            OnEnter(AppState::Create),
-            (create::init_created_round, create::setup_create).chain(),
+            Startup,
+            (setup, create::init_created_round, create::setup_create).chain(),
         )
-        .add_systems(OnExit(AppState::Create), create::teardown_create)
+        .add_systems(Startup, menu::setup_menu.after(setup))
+        .add_systems(OnEnter(AppState::Menu), menu::show_menu)
+        .add_systems(OnExit(AppState::Menu), menu::hide_menu)
+        .add_systems(OnEnter(AppState::Create), create::show_create)
+        .add_systems(OnExit(AppState::Create), create::hide_create)
         .run();
 }
 

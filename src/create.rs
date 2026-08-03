@@ -42,7 +42,7 @@ pub struct ShareableCreatedRound {
 
 /// A round of Pinpoint that is saved on the creator's end.
 #[derive(Reflect, Resource, SettingsGroup, Clone, Hash, PartialEq, Eq)]
-// #[reflect(Resource, Default, SettingsGroup)]
+#[reflect(Resource, SettingsGroup)]
 pub struct CreatedRound {
     /// The date of this round
     date: String,
@@ -87,7 +87,6 @@ pub fn init_created_round(
     }
 
     let location: UVec2 = UVec2::new(rng.random_range(0..=100), rng.random_range(0..=100));
-    println!("location: {location:?}");
     let round = CreatedRound {
         date: start_date_time.date.clone(),
         create_time: start_date_time.time.clone(),
@@ -97,15 +96,22 @@ pub fn init_created_round(
     commands.insert_resource(round);
 }
 
-// TODO we should hook an observer to change the layout depending on if
-// height is larger or width is larger
 pub fn setup_create(mut commands: Commands, created_round: Res<CreatedRound>) {
     commands.spawn_scene(setup_create_vertical(&created_round));
+}
+
+pub fn show_create(app_create_q: Single<&mut Visibility, With<AppCreate>>) {
+    *app_create_q.into_inner() = Visibility::Inherited;
+}
+
+pub fn hide_create(app_create_q: Single<&mut Visibility, With<AppCreate>>) {
+    *app_create_q.into_inner() = Visibility::Hidden;
 }
 
 fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
     bsn! {
         AppCreate
+        Visibility::Hidden
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
@@ -169,8 +175,4 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
 
         ]
     }
-}
-
-pub fn teardown_create(mut commands: Commands, app_create_q: Single<Entity, With<AppCreate>>) {
-    commands.entity(app_create_q.entity()).despawn();
 }

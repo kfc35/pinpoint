@@ -8,6 +8,8 @@ age = "0.12.1"
 bevy = { version = "0.19.0", default-features = false, features = [
   # ui without default_platform
   "default_app",
+  # TODO remove debug after we are done dev'ing.
+  "debug",
   "ui_api",
   "ui_bevy_render",
   "scene",
