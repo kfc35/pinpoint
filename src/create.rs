@@ -1,24 +1,30 @@
 use bevy::{
+    input_focus::tab_navigation::TabIndex,
     prelude::*,
-    reflect::{Reflect, std_traits::ReflectDefault},
-    settings::{ReflectSettingsGroup, SettingsGroup, SettingsPlugin},
-    ui_widgets::Slider,
+    reflect::Reflect,
+    settings::{ReflectSettingsGroup, SettingsGroup},
+    text::{EditableText, TextCursorStyle},
 };
 
-use crate::{StartDateTime, axes_descriptions, pinpoint_font};
+use crate::{
+    StartDateTime, axes_descriptions, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
+    pinpoint_font,
+};
 use rand::{RngExt, SeedableRng};
 
-/// Marker component for the menu
+// Marker Components
+
 #[derive(Component, Clone, Default)]
 pub struct AppCreate;
 
-/// Marker component for the location grid
 #[derive(Component, Clone, Default)]
 pub struct LocationGrid;
 
-/// Marker component for the pin
 #[derive(Component, Clone, Default)]
 pub struct Pin;
+
+#[derive(Component, Clone, Default)]
+pub struct ClueInput;
 
 /// A round of Pinpoint that can be shared with friends.
 /// It can be deserialized
@@ -121,29 +127,15 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
             height: percent(100),
         }
         Children [
-            Node {
-                width: percent(100),
-            }
-            Children [
-                Node {
-                    width: percent(100),
-                }
-                Text::new("Type in your clue")
-                TextFont {
-                    font_size: px(16),
-                }
-                TextLayout::justify(Justify::Center)
-                pinpoint_font()
-            ],
-
             LocationGrid
-            Node
-            Outline::new(px(5), Val::ZERO, Color::WHITE)
+            Node {
+                border: px(5),
+            }
             BorderColor::all(Color::WHITE)
             Children [
                 Node {
-                    min_width: px(300),
-                    min_height: px(300),
+                    min_width: px(280),
+                    min_height: px(280),
                 }
                 ImageNode {
                     image: "game_area/grid.png"
@@ -152,27 +144,86 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
                 Pin
                 Node {
                     position_type: PositionType::Absolute,
-                    left: percent(created_round.location.x as f32 -5.),
-                    bottom: percent(created_round.location.y as f32 - 5.),
+                    // We subtract 7.5 so that the pin center is exactly where
+                    // we want it to be.
+                    // 42 (size of crosshair) / 2 = 21.
+                    // the bullseye center is at 21 x 21, so we want the bottom
+                    // left of the crosshair below and to the left of where the
+                    // center should go by 21 / 280 = 7.5%
+                    left: percent(50. as f32 - 7.5),
+                    bottom: percent(50. as f32 - 7.5),
                 }
                 ZIndex(1)
                 Children [
                     Node {
-                        width: px(30),
-                        height: px(30),
+                        width: px(42),
+                        height: px(42),
                     }
                     ImageNode {
                         image: "game_area/crosshair.png"
                     }
                 ],
-                // Should be able to switch views between 2d grid
-                // and two spectrums
             ],
 
             axes_descriptions(&created_round.date),
 
             // Text Input
+            clue_input(),
 
+        ]
+    }
+}
+
+fn clue_input() -> impl Scene {
+    bsn! {
+        Node {
+            flex_direction: FlexDirection::Column,
+            row_gap: percent(5),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceBetween,
+        }
+        Children [
+            Node {
+                width: percent(100),
+            }
+            Children [
+                Node {
+                    width: percent(100),
+                }
+                Text::new("Type in Your Clue")
+                TextFont {
+                    font_size: px(16),
+                }
+                TextLayout::justify(Justify::Center)
+                pinpoint_font()
+            ],
+
+            ClueInput
+            Node {
+                min_width: px(280),
+                border: px(5),
+                border_radius: BorderRadius::all(px(10)),
+            }
+            // While EditableText is weird in Bevy 0.19,
+            // Allow for new lines so that rendering for
+            // viewport can be avoided via user circumvention.
+            template_value(EditableText {
+                max_characters: Some(50),
+                visible_lines: Some(3.),
+                allow_newlines: true,
+                ..default()
+            })
+            TextFont {
+                font_size: FontSize::Rem(1.)
+            }
+            pinpoint_font()
+            TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
+            TabIndex(0)
+            TextCursorStyle::default()
+            BackgroundColor(Color::BLACK)
+            BorderColor::all(Color::BLACK)
+            on(on_pointer_over_text_cursor)
+            on(on_pointer_out_default_cursor),
         ]
     }
 }
