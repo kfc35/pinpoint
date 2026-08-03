@@ -1,16 +1,18 @@
 use bevy::{
     input_focus::{FocusCause, InputFocus, tab_navigation::TabIndex},
+    picking::hover::Hovered,
     prelude::*,
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle},
+    ui::InteractionDisabled,
     ui_widgets::{Activate, Button},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
 use crate::{
-    AppState, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Username,
-    image_node_with_texture_atlas, on_handler_style_button_image, on_pointer_out_default_cursor,
-    on_pointer_over_text_cursor, pinpoint_font,
+    AppState, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Username,
+    change_image_node_index, image_node_with_texture_atlas, on_handler_style_button_image,
+    on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
 };
 
 // Marker Components
@@ -23,6 +25,9 @@ pub struct UsernameInput;
 
 #[derive(Component, Clone, Default)]
 pub struct UsernameRequirements;
+
+#[derive(Component, Clone, Default)]
+pub struct NeedsValidUsername;
 
 pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
     commands.spawn_scene(bsn! {
@@ -96,22 +101,29 @@ fn menu(username: &Username) -> impl Scene {
         Children [
             invited_you_to_play_text("TenChars!!"),
 
-            button("button/create.png", UVec2::new(192, 32), 15, 50)
+            needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), 15, 50, 4)
             on_activate_change_state(AppState::Create),
 
             Node {
                 padding: px(3),
             }
-            button("button/load.png", UVec2::new(128, 32), 15, 50),
+            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), 15, 50, 4),
 
-            button("button/how_to.png", UVec2::new(170, 32), 15, 50),
+            button("button/how_to.png", UVec2::new(170, 32), 15, 50, 0, 3),
 
             username_input_col(username),
         ]
     }
 }
 
-fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl Scene {
+fn button(
+    path: &'static str,
+    tile_size: UVec2,
+    height: i32,
+    width: i32,
+    starting_index: usize,
+    num_rows: u32,
+) -> impl Scene {
     bsn! {
         Button
         Node {
@@ -120,7 +132,9 @@ fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl
             width: percent(width),
             min_width: px(280),
         }
-        BorderColor::all(DARK_BLUE_COLOR)
+        template_value({
+            BorderColor::all(DARK_BLUE_COLOR)
+        })
         on_handler_style_button_image::<Over>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
         on_handler_style_button_image::<Press>(DARK_RED_COLOR, 2, SystemCursorIcon::Pointer)
         on_handler_style_button_image::<Release>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
@@ -131,8 +145,37 @@ fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl
                 height: percent(100),
                 width: percent(100),
             }
-            image_node_with_texture_atlas(path, tile_size, 3, 0)
+            image_node_with_texture_atlas(path, tile_size, starting_index, num_rows)
         ]
+    }
+}
+
+fn needs_valid_username_button(
+    username: &Username,
+    path: &'static str,
+    tile_size: UVec2,
+    height: i32,
+    width: i32,
+    num_rows: u32,
+) -> Box<dyn Scene> {
+    if Username::is_valid(&username.0) {
+        Box::new(bsn! {
+            NeedsValidUsername
+            Hovered::default()
+            on_click_if_inactive()
+            button(path, tile_size, height, width, 0, num_rows)
+        })
+    } else {
+        Box::new(bsn! {
+            NeedsValidUsername
+            Hovered::default()
+            on_click_if_inactive()
+            // The disabled state should be the last index (aka num_rows - 1)
+            button(path, tile_size, height, width, (num_rows - 1) as usize, num_rows)
+            InteractionDisabled
+            // Override border color
+            BorderColor::all(DARK_GRAY_COLOR)
+        })
     }
 }
 
@@ -241,8 +284,17 @@ fn username_directions(username: &Username) -> Box<dyn Scene> {
 
 /// System that sets the username when the editable text field is modified.
 fn on_changed_username_input(
-    mut username_input_q: Query<(&EditableText, &mut BorderColor), With<UsernameInput>>,
+    mut username_input_q: Query<
+        (&EditableText, &mut BorderColor),
+        (With<UsernameInput>, Without<NeedsValidUsername>),
+    >,
     mut username_dirs_q: Query<&mut Visibility, With<UsernameRequirements>>,
+    mut needs_valid_username_q: Query<
+        (Entity, &Hovered, &mut BorderColor),
+        (With<NeedsValidUsername>, Without<UsernameInput>),
+    >,
+    children_query: Query<&Children>,
+    mut image_q: Query<&mut ImageNode>,
     mut username: ResMut<Username>,
     mut commands: Commands,
 ) {
@@ -265,10 +317,28 @@ fn on_changed_username_input(
             return;
         };
         *visibility = Visibility::Inherited;
+
+        for (entity, _, mut border_color) in needs_valid_username_q.iter_mut() {
+            commands.entity(entity).insert(InteractionDisabled);
+            change_image_node_index(entity, 3, &children_query, &mut image_q);
+            *border_color = BorderColor::all(DARK_GRAY_COLOR);
+        }
     } else {
         username.0 = new_name;
         *border_color = BorderColor::all(Color::BLACK);
         commands.queue(SaveSettingsDeferred::default());
+
+        for (entity, is_hovered, mut border_color) in needs_valid_username_q.iter_mut() {
+            commands.entity(entity).remove::<InteractionDisabled>();
+
+            if is_hovered.get() {
+                change_image_node_index(entity, 1, &children_query, &mut image_q);
+                *border_color = BorderColor::all(DARK_ORANGE_COLOR);
+            } else {
+                change_image_node_index(entity, 0, &children_query, &mut image_q);
+                *border_color = BorderColor::all(DARK_BLUE_COLOR);
+            }
+        }
     }
 }
 
@@ -301,21 +371,27 @@ fn on_activate_change_state(next: AppState) -> impl Scene {
     bsn! {
         on(move |_: On<Activate>,
             mut next_state: ResMut<NextState<AppState>>,
-            username: Res<Username>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
-            username_input_q: Query<Entity, With<UsernameInput>>,
-            mut commands: Commands,
-            mut focus: ResMut<InputFocus>| {
-            if Username::is_valid(&username.0) {
+            mut commands: Commands,| {
                 for window in window_q.iter_mut() {
                     commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Grabbing));
                 }
                 next_state.set(next);
-            }
-            else {
-                let Ok(input_entity) = username_input_q.single_inner() else {
-                    return;
-                };
+        })
+    }
+}
+
+/// Utility to create an observer for interaction disabled buttons.
+/// Certain buttons are disabled if the username is empty
+fn on_click_if_inactive() -> impl Scene {
+    bsn! {
+        on(|event: On<Pointer<Click>>,
+            mut commands: Commands,
+            has_interaction_disabled_q: Query<Has<InteractionDisabled>>,
+            username_input_q: Query<Entity, With<UsernameInput>>,
+            mut focus: ResMut<InputFocus>| {
+            if let Ok(is_disabled) = has_interaction_disabled_q.get(event.entity) && is_disabled &&
+                let Ok(input_entity) = username_input_q.single_inner() {
                 commands.entity(input_entity)
                     .insert(BorderColor::all(DARK_RED_COLOR));
                 focus.set(input_entity, FocusCause::Navigated);

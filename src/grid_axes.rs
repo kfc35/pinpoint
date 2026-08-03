@@ -152,7 +152,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
             min_width: px(15),
             min_height: px(15),
         }
-        image_node_with_texture_atlas("game_area/arrows.png", UVec2::splat(15), 4, image_index)
+        image_node_with_texture_atlas("game_area/arrows.png", UVec2::splat(15), image_index, 4)
     }
 }
 

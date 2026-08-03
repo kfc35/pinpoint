@@ -171,6 +171,7 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl Scene {
             // Text Input
             clue_input(),
 
+
         ]
     }
 }
