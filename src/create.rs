@@ -1,8 +1,8 @@
 use bevy::{
     input_focus::tab_navigation::TabIndex,
     prelude::*,
-    reflect::Reflect,
-    settings::{ReflectSettingsGroup, SettingsGroup},
+    reflect::{Reflect, std_traits::ReflectDefault},
+    settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup},
     text::{EditableText, TextCursorStyle},
 };
 
@@ -39,7 +39,7 @@ pub struct ShareableCreatedRound {
     /// In combination with creator and date, uniquely identifies a created round.
     create_time: String,
     /// The clue the creator has given for this round.
-    pin: String,
+    clue: String,
     /// The "correct answer" of this round.
     /// This is the location the creator was given that they
     /// crafted the clue from.
@@ -47,8 +47,8 @@ pub struct ShareableCreatedRound {
 }
 
 /// A round of Pinpoint that is saved on the creator's end.
-#[derive(Reflect, Resource, SettingsGroup, Clone, Hash, PartialEq, Eq)]
-#[reflect(Resource, SettingsGroup)]
+#[derive(Reflect, Resource, Default, SettingsGroup, Clone, Hash, PartialEq, Eq)]
+#[reflect(Resource, Default, SettingsGroup)]
 pub struct CreatedRound {
     /// The date of this round
     date: String,
@@ -56,7 +56,7 @@ pub struct CreatedRound {
     /// In combination with creator and date, uniquely identifies a created round.
     create_time: String,
     /// The clue the creator has given for this round.
-    pin: Option<String>,
+    clue: Option<String>,
     /// The "correct answer" of this round.
     /// This is the location the creator was given that they
     /// crafted the clue from.
@@ -96,10 +96,11 @@ pub fn init_created_round(
     let round = CreatedRound {
         date: start_date_time.date.clone(),
         create_time: start_date_time.time.clone(),
-        pin: None,
+        clue: None,
         location,
     };
     commands.insert_resource(round);
+    commands.queue(SaveSettingsSync::Always);
 }
 
 pub fn setup_create(mut commands: Commands, created_round: Res<CreatedRound>) {

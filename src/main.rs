@@ -92,7 +92,7 @@ fn setup(mut commands: Commands, mut username: ResMut<Username>) {
     // The game will change categories every day in Eastern time.
     let date_time = Utc::now().with_timezone(&chrono_tz::US::Eastern);
     let date = format!("{}", date_time.format("%Y/%m/%d"));
-    let time = format!("{}", date_time.format("%H/%M/%S%.3f"));
+    let time = format!("{}", date_time.format("%H:%M:%S%.3f"));
 
     commands.insert_resource(StartDateTime { date, time });
 
