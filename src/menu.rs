@@ -8,7 +8,7 @@ use bevy::{
 };
 
 use crate::{
-    AppState, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Username,
+    AppState, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Username,
     image_node_with_texture_atlas, on_handler_style_button_image, on_pointer_out_default_cursor,
     on_pointer_over_text_cursor, pinpoint_font,
 };
@@ -33,14 +33,13 @@ pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
             align_content: AlignContent::Default,
             align_items: AlignItems::Center,
             width: percent(100),
-            height: percent(100),
-            row_gap: percent(5),
-            margin: UiRect::top(percent(5)),
+            height: percent(97),
+            row_gap: percent(3),
+            margin: UiRect::top(percent(3)),
         }
         Children [
             Node {
                 min_width: px(280),
-                height: percent(20),
                 width: percent(80),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
@@ -50,7 +49,7 @@ pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
             ],
 
             Node {
-                // height: percent(65),
+                height: percent(75),
                 width: percent(100),
             }
             Children [
@@ -87,30 +86,27 @@ fn menu(username: &Username) -> impl Scene {
             align_items: AlignItems::Center,
             height: percent(100),
             width: percent(100),
-            row_gap: percent(10),
+            row_gap: percent(5),
         }
         Children [
-            // TODO ensure text fits for Loading Text.
-            
-            button("button/create.png", UVec2::new(192, 32), 20, 50)
+            invited_you_to_play_text("TenChars!!"),
+
+            button("button/create.png", UVec2::new(192, 32), 15, 50)
             on_activate_change_state(AppState::Create),
 
             Node {
                 padding: px(3),
             }
-            button("button/load.png", UVec2::new(128, 32), 20, 50),
+            button("button/load.png", UVec2::new(128, 32), 15, 50),
+
+            button("button/how_to.png", UVec2::new(170, 32), 15, 50),
 
             username_input_col(username),
         ]
     }
 }
 
-fn button(
-    path: &'static str,
-    tile_size: UVec2,
-    height: i32,
-    width: i32,
-) -> impl Scene {
+fn button(path: &'static str, tile_size: UVec2, height: i32, width: i32) -> impl Scene {
     bsn! {
         Button
         Node {
@@ -275,14 +271,19 @@ fn on_changed_username_input(
 fn invited_you_to_play_text(name: &'static str) -> impl Scene {
     bsn! {
         Node {
-            width: percent(80)
+            min_width: px(280),
+            width: percent(100),
         }
         Children [
-            Text::new(format!("{} has invited you to guess their pin!", name))
-            TextFont {
-                font_size: px(24)
+            Node {
+                width: percent(100),
+                margin: UiRect::horizontal(px(5)),
             }
-            TextColor(MIDDLE_BLUE_COLOR)
+            Text::new(format!("Successfully loaded a round from {}!", name))
+            TextFont {
+                font_size: px(16.)
+            }
+            TextLayout::justify(Justify::Center)
             pinpoint_font()
         ]
     }
