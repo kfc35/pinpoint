@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
     reflect::{Reflect, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
-    text::{EditableText, TextCursorStyle},
+    text::{EditableText, EditableTextGeneration, TextCursorStyle},
     ui::InteractionDisabled,
     ui_widgets::{Activate, Button},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
@@ -33,6 +33,9 @@ pub struct Pin;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInput;
+
+#[derive(Component, Clone, Default)]
+pub struct ClueInputContainer;
 
 #[derive(Component, Clone, Default)]
 pub struct DoneButton;
@@ -192,14 +195,14 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
             axes_descriptions(&created_round.date),
 
             // Text Input
-            clue_input(created_round),
+            clue_input_container(created_round),
 
             done_button(created_round),
         ]
     }
 }
 
-fn clue_input(created_round: &CreatedRound) -> impl Scene {
+fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
     let text = if created_round.is_draft {
         Text::new("Type in Your Clue")
     } else {
@@ -239,6 +242,7 @@ fn clue_input(created_round: &CreatedRound) -> impl Scene {
                 on(on_pointer_out_default_cursor)
             })
         } else {
+            // TODO scrollbar?
             Box::new(bsn! {
                 ClueInput
                 Node {
@@ -259,6 +263,7 @@ fn clue_input(created_round: &CreatedRound) -> impl Scene {
     };
 
     bsn! {
+        ClueInputContainer
         Node {
             flex_direction: FlexDirection::Column,
             row_gap: percent(5),
@@ -314,7 +319,7 @@ fn on_changed_clue_input(
     if new_clue == created_round.clue {
         return;
     }
-    created_round.clue = new_clue;
+    created_round.clue = new_clue.replace("\n", " ");
     commands.queue(SaveSettingsDeferred::default());
 
     for readback in clue_readback_q.iter() {
@@ -419,6 +424,8 @@ fn on_click_if_inactive() -> impl Scene {
     }
 }
 
+/// Confirmation modal that pops up when the user clicks the Done button
+/// on an in-draft created round.
 fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
     let clue = created_round.clue.clone();
     bsn! {
@@ -537,22 +544,21 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                     )
                     on(|_: On<Activate>,
                         mut round: ResMut<CreatedRound>,
-                        clue_input_q: Single<Entity, With<ClueInput>>,
-                        modal_q: Single<&mut Visibility, With<ConfirmationModal>>,
+                        clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
+                        mut need_to_hide_q: Query<&mut Visibility, With<ConfirmationModal>>,
+                        done_button_q: Single<Entity, With<DoneButton>>,
+                        app_create_q: Single<Entity, With<AppCreate>>,
                         mut commands: Commands,| {
                             round.is_draft = false;
                             commands.queue(SaveSettingsSync::Always);
+                            commands.entity(clue_input_container_q.entity()).despawn();
+                            commands.entity(done_button_q.entity()).despawn();
+                            let child = commands.spawn_scene(clue_input_container(&round)).id();
+                            commands.entity(app_create_q.entity()).add_child(child);
 
-                            commands.entity(clue_input_q.entity())
-                                .remove::<EditableText>()
-                                .remove::<TabIndex>()
-                                .remove::<TextCursorStyle>()
-                                .insert(Text::new(format!("{}", round.clue.clone())));
-                            // TODO remove observers? maybe?
-
-                            // TODO assess whether we should have scroll for the text... which is annoying.
-
-                            *modal_q.into_inner() = Visibility::Hidden;
+                            for mut vis in need_to_hide_q.iter_mut() {
+                                *vis = Visibility::Hidden;
+                            }
                     }),
                 ]
             ]
