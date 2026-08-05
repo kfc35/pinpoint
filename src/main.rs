@@ -41,6 +41,16 @@ pub(crate) struct StartDateTime {
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct Username(String);
 
+/// The encrypted information of this user's created round for the day.
+/// This resource only exists after the user has created a round for a given day.
+#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[reflect(Resource, Default, SettingsGroup)]
+pub(crate) struct EncryptedShareableRound {
+    date: String,
+    #[deref]
+    token: String,
+}
+
 impl Username {
     /// Returns whether the name is valid (at least 1 character, alphamumeric incl. underscore, max 10 characters)
     pub(crate) fn is_valid(name: &String) -> bool {

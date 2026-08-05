@@ -4,14 +4,14 @@ use bevy::{
     prelude::*,
     reflect::{Reflect, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
-    text::{EditableText, EditableTextGeneration, TextCursorStyle},
+    text::{EditableText, TextCursorStyle},
     ui::InteractionDisabled,
     ui_widgets::{Activate, Button},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
 use crate::{
-    AppState, StartDateTime, axes_descriptions,
+    AppState, StartDateTime, Username, axes_descriptions,
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
         MIDDLE_BLUE_COLOR, base_button, change_image_node_index, image_node_with_texture_atlas,
@@ -87,6 +87,18 @@ pub struct CreatedRound {
 }
 
 impl ShareableCreatedRound {
+    /// Creates a shareable created round from the currently logged in user and
+    /// their created round.
+    pub fn from_current_user(username: &Username, created_round: &CreatedRound) -> Self {
+        Self {
+            creator: username.0.clone(),
+            date: created_round.date.clone(),
+            create_time: created_round.create_time.clone(),
+            clue: created_round.clue.clone(),
+            location: created_round.location,
+        }
+    }
+
     /// Returns the identifier for this created round.
     /// Used to detect whether this player has played this round already.
     pub fn get_identifier(&self) -> String {
@@ -148,6 +160,7 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
+            align_content: AlignContent::Default,
             align_items: AlignItems::Center,
             row_gap: px(20),
             width: percent(100),
@@ -358,13 +371,13 @@ fn done_button(created_round: &CreatedRound) -> impl Scene {
         if created_round.clue.is_empty() {
             Box::new(bsn! {
                 InteractionDisabled
+                base_button("button/done.png", UVec2::new(128, 32), 7, 50, 3, 4, 5)
                 // Override border color
                 BorderColor::all(DARK_GRAY_COLOR)
-                base_button("button/done.png", UVec2::new(170, 32), 15, 50, 3, 4, 5)
             })
         } else {
             Box::new(bsn! {
-                base_button("button/done.png", UVec2::new(170, 32), 15, 50, 0, 4, 5)
+                base_button("button/done.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
             })
         }
     };
@@ -372,6 +385,7 @@ fn done_button(created_round: &CreatedRound) -> impl Scene {
         if created_round.is_draft {
             Box::new(bsn! {
                 Node {
+                    // override the width because we don't care
                     width: Val::Auto,
                     max_width: px(280),
                 }
@@ -380,8 +394,6 @@ fn done_button(created_round: &CreatedRound) -> impl Scene {
             Box::new(bsn! {
                 Node {
                     display: Display::None,
-                    width: Val::Auto,
-                    max_width: px(280),
                 }
             })
         }
@@ -565,6 +577,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
         ]
     }
 }
+
 
 pub(crate) struct CreatePlugin;
 
