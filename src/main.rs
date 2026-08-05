@@ -67,7 +67,7 @@ fn main() {
         .init_state::<AppState>()
         .init_resource::<Username>()
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
-        .add_plugins(menu::MenuPlugin)
+        .add_plugins((menu::MenuPlugin, create::CreatePlugin))
         .add_systems(
             Startup,
             (setup, create::init_created_round, create::setup_create).chain(),

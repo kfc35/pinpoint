@@ -91,6 +91,7 @@ fn logo() -> impl Scene {
 }
 
 fn menu(username: &Username) -> impl Scene {
+    let (button_height, button_width) = (15, 50);
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
@@ -104,15 +105,15 @@ fn menu(username: &Username) -> impl Scene {
         Children [
             invited_you_to_play_text("TenChars!!"),
 
-            needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), 15, 50, 4)
+            needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), button_height, button_width, 4)
             on_activate_change_state(AppState::Create),
 
             Node {
                 padding: px(3),
             }
-            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), 15, 50, 4),
+            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4),
 
-            base_button("button/how_to.png", UVec2::new(170, 32), 15, 50, 0, 3),
+            base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5),
 
             username_input_col(username),
         ]
@@ -132,7 +133,7 @@ fn needs_valid_username_button(
             NeedsValidUsername
             Hovered::default()
             on_click_if_inactive()
-            base_button(path, tile_size, height, width, 0, num_rows)
+            base_button(path, tile_size, height, width, 0, num_rows, 5)
         })
     } else {
         Box::new(bsn! {
@@ -140,7 +141,7 @@ fn needs_valid_username_button(
             Hovered::default()
             on_click_if_inactive()
             // The disabled state should be the last index (aka num_rows - 1)
-            base_button(path, tile_size, height, width, (num_rows - 1) as usize, num_rows)
+            base_button(path, tile_size, height, width, (num_rows - 1) as usize, num_rows, 5)
             InteractionDisabled
             // Override border color
             BorderColor::all(DARK_GRAY_COLOR)
@@ -247,7 +248,7 @@ fn on_changed_username_input(
         (&EditableText, &mut BorderColor),
         (With<UsernameInput>, Without<NeedsValidUsername>),
     >,
-    mut username_dirs_q: Query<&mut Visibility, With<UsernameRequirements>>,
+    mut username_directions_q: Query<&mut Visibility, With<UsernameRequirements>>,
     mut needs_valid_username_q: Query<
         (Entity, &Hovered, &mut BorderColor),
         (With<NeedsValidUsername>, Without<UsernameInput>),
@@ -272,7 +273,7 @@ fn on_changed_username_input(
             username.0 = new_name;
             commands.queue(SaveSettingsDeferred::default());
         }
-        let Ok(mut visibility) = username_dirs_q.single_mut() else {
+        let Ok(mut visibility) = username_directions_q.single_mut() else {
             return;
         };
         *visibility = Visibility::Inherited;

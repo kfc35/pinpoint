@@ -13,6 +13,7 @@ pub const DARK_BLUE_COLOR: Color = Color::srgb(18. / 255., 78. / 255., 137. / 25
 pub const DARK_ORANGE_COLOR: Color = Color::srgb(247. / 255., 118. / 255., 34. / 255.);
 pub const DARK_RED_COLOR: Color = Color::srgb(158. / 255., 40. / 255., 53. / 255.);
 pub const DARK_GRAY_COLOR: Color = Color::srgb(90. / 255., 105. / 255., 136. / 255.);
+pub const DARK_GREEN_COLOR: Color = Color::srgb(38. / 255., 92. / 255., 66. / 255.);
 
 /// Base button scene for anywhere the app requires a button with
 /// an [`ImageNode`] as its content.
@@ -23,11 +24,12 @@ pub(crate) fn base_button(
     width: i32,
     starting_index: usize,
     num_rows: u32,
+    button_border_px: i32,
 ) -> impl Scene {
     bsn! {
         Button
         Node {
-            border: UiRect::all(px(5)),
+            border: UiRect::all(px(button_border_px)),
             height: percent(height),
             width: percent(width),
             min_width: px(280),
@@ -40,7 +42,6 @@ pub(crate) fn base_button(
         on_handler_style_image_node::<Release>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
         on_handler_style_image_node::<Out>(DARK_BLUE_COLOR, 0, SystemCursorIcon::Default)
         Children [
-            // Unsure how to do this by just having to modify the texture_atlas of the ImageNode
             Node {
                 height: percent(100),
                 width: percent(100),
