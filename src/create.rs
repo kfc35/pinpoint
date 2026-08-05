@@ -7,8 +7,8 @@ use bevy::{
 };
 
 use crate::{
-    StartDateTime, axes_descriptions, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
-    pinpoint_font,
+    StartDateTime, axes_descriptions,
+    ui::{on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font},
 };
 use rand::{RngExt, SeedableRng};
 
@@ -25,6 +25,9 @@ pub struct Pin;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInput;
+
+#[derive(Component, Clone, Default)]
+pub struct DoneButton;
 
 /// A round of Pinpoint that can be shared with friends.
 /// It can be deserialized
@@ -228,4 +231,12 @@ fn clue_input() -> impl Scene {
             on(on_pointer_out_default_cursor),
         ]
     }
+}
+
+fn done_button() -> impl Scene {
+    bsn! {}
+}
+
+fn confirmation_modal() -> impl Scene {
+    bsn! {}
 }

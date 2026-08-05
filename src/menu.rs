@@ -5,14 +5,17 @@ use bevy::{
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle},
     ui::InteractionDisabled,
-    ui_widgets::{Activate, Button},
+    ui_widgets::Activate,
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
 use crate::{
-    AppState, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Username,
-    change_image_node_index, image_node_with_texture_atlas, on_handler_style_button_image,
-    on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
+    AppState, Username,
+    ui::{
+        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, base_button,
+        change_image_node_index, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
+        pinpoint_font,
+    },
 };
 
 // Marker Components
@@ -109,43 +112,9 @@ fn menu(username: &Username) -> impl Scene {
             }
             needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), 15, 50, 4),
 
-            button("button/how_to.png", UVec2::new(170, 32), 15, 50, 0, 3),
+            base_button("button/how_to.png", UVec2::new(170, 32), 15, 50, 0, 3),
 
             username_input_col(username),
-        ]
-    }
-}
-
-fn button(
-    path: &'static str,
-    tile_size: UVec2,
-    height: i32,
-    width: i32,
-    starting_index: usize,
-    num_rows: u32,
-) -> impl Scene {
-    bsn! {
-        Button
-        Node {
-            border: UiRect::all(px(5)),
-            height: percent(height),
-            width: percent(width),
-            min_width: px(280),
-        }
-        template_value({
-            BorderColor::all(DARK_BLUE_COLOR)
-        })
-        on_handler_style_button_image::<Over>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
-        on_handler_style_button_image::<Press>(DARK_RED_COLOR, 2, SystemCursorIcon::Pointer)
-        on_handler_style_button_image::<Release>(DARK_ORANGE_COLOR, 1, SystemCursorIcon::Pointer)
-        on_handler_style_button_image::<Out>(DARK_BLUE_COLOR, 0, SystemCursorIcon::Default)
-        Children [
-            // Unsure how to do this by just having to modify the texture_atlas of the ImageNode
-            Node {
-                height: percent(100),
-                width: percent(100),
-            }
-            image_node_with_texture_atlas(path, tile_size, starting_index, num_rows)
         ]
     }
 }
@@ -163,7 +132,7 @@ fn needs_valid_username_button(
             NeedsValidUsername
             Hovered::default()
             on_click_if_inactive()
-            button(path, tile_size, height, width, 0, num_rows)
+            base_button(path, tile_size, height, width, 0, num_rows)
         })
     } else {
         Box::new(bsn! {
@@ -171,7 +140,7 @@ fn needs_valid_username_button(
             Hovered::default()
             on_click_if_inactive()
             // The disabled state should be the last index (aka num_rows - 1)
-            button(path, tile_size, height, width, (num_rows - 1) as usize, num_rows)
+            base_button(path, tile_size, height, width, (num_rows - 1) as usize, num_rows)
             InteractionDisabled
             // Override border color
             BorderColor::all(DARK_GRAY_COLOR)
@@ -229,16 +198,6 @@ fn username_input_col(username: &Username) -> impl Scene {
             on(on_pointer_over_text_cursor)
             on(on_pointer_out_default_cursor),
 
-            // Node {
-            // }
-            // Children [
-            //     {
-            //         let username = ctx.resource::<Username>();
-            //         if username.is_valid() {
-            //             image_node_with_texture_atlas("", UVec2::splat(32), 2, 0)
-            //         }
-            //     }
-            // ]
             username_directions(username),
         ]
     }

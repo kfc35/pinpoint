@@ -1,7 +1,7 @@
 ///! Module dealing with the assigned axes for a given day of Pinpoint.
 use bevy::prelude::*;
 
-use crate::{image_node_with_texture_atlas, pinpoint_font};
+use crate::ui::{image_node_with_texture_atlas, pinpoint_font};
 
 /// Contains the axes for a given day of Pinpoint.
 #[derive(Clone, Copy, PartialEq)]
