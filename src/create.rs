@@ -480,80 +480,18 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
 
                 Node {
                     flex_direction: FlexDirection::Row,
-                    width: percent(65),
+                    width: px(250),
                     justify_content: JustifyContent::SpaceBetween,
                     align_items: AlignItems::Center,
                 }
                 Children [
-                    Button
-                    Node {
-                        width: px(75),
-                        border: px(5),
-                    }
-                    BorderColor::all(DARK_RED_COLOR)
-                    Children [
-                        Node {
-                            height: percent(100),
-                            width: percent(100),
-                            padding: px(5),
-                        }
-                        image_node_with_texture_atlas("button/confirmation_modal.png", UVec2::new(32, 32), 1, 2)
-                    ]
-                    on(
-                        move |_: On<Pointer<Over>>,
-                        mut commands: Commands,
-                        mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                            for window in window_q.iter_mut() {
-                                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
-                            }
-                        }
-                    )
-                    on(
-                        move |_: On<Pointer<Out>>,
-                        mut commands: Commands,
-                        mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                            for window in window_q.iter_mut() {
-                                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
-                            }
-                        }
-                    )
+                    confirmation_modal_button(DARK_RED_COLOR, 1)
                     on(|_: On<Activate>,
                         modal_q: Single<&mut Visibility, With<ConfirmationModal>>| {
                             *modal_q.into_inner() = Visibility::Hidden;
                     }),
 
-                    Button
-                    Node {
-                        width: px(75),
-                        border: px(5),
-                    }
-                    BorderColor::all(DARK_GREEN_COLOR)
-                    Children [
-                        Node {
-                            height: percent(100),
-                            width: percent(100),
-                            padding: px(5),
-                        }
-                        image_node_with_texture_atlas("button/confirmation_modal.png", UVec2::new(32, 32), 0, 2)
-                    ]
-                    on(
-                        move |_: On<Pointer<Over>>,
-                        mut commands: Commands,
-                        mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                            for window in window_q.iter_mut() {
-                                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
-                            }
-                        }
-                    )
-                    on(
-                        move |_: On<Pointer<Out>>,
-                        mut commands: Commands,
-                        mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                            for window in window_q.iter_mut() {
-                                commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
-                            }
-                        }
-                    )
+                    confirmation_modal_button(DARK_GREEN_COLOR, 0)
                     on(|_: On<Activate>,
                         mut round: ResMut<CreatedRound>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
@@ -578,6 +516,42 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
     }
 }
 
+fn confirmation_modal_button(background_color: Color, image_index: usize) -> impl Scene {
+    bsn! {
+        Button
+        Node {
+            width: px(75),
+            border: px(5),
+        }
+        BorderColor::all(background_color)
+        Children [
+            Node {
+                height: percent(100),
+                width: percent(100),
+                padding: px(5),
+            }
+            image_node_with_texture_atlas("button/confirmation_modal.png", UVec2::new(32, 32), image_index, 2)
+        ]
+        on(
+            move |_: On<Pointer<Over>>,
+            mut commands: Commands,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
+                }
+            }
+        )
+        on(
+            move |_: On<Pointer<Out>>,
+            mut commands: Commands,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+                }
+            }
+        )
+    }
+}
 
 pub(crate) struct CreatePlugin;
 
