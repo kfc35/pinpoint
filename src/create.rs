@@ -11,7 +11,8 @@ use bevy::{
 };
 
 use crate::{
-    AppState, EncryptedShareableRound, SecretPassphrase, StartDateTime, Username,
+    AppState, EncryptedShareableRound, StartDateTime,
+    animation::{AnimatedImageNode, AnimationTimer},
     axes_descriptions,
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
@@ -46,6 +47,12 @@ pub struct ConfirmationModal;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueReadback;
+
+#[derive(Component, Clone, Default)]
+pub struct CreatingRoundModal;
+
+#[derive(Component, Clone, Default)]
+pub struct ShareModal;
 
 /// A round of Pinpoint that is saved on the creator's end.
 #[derive(Reflect, Resource, Default, SettingsGroup, Clone, Hash, PartialEq, Eq)]
@@ -82,6 +89,10 @@ impl CreatedRound {
 
     pub(crate) fn get_location(&self) -> UVec2 {
         return self.location;
+    }
+
+    pub(crate) fn get_is_draft(&self) -> bool {
+        return self.is_draft;
     }
 }
 
@@ -126,6 +137,8 @@ pub fn hide_create(app_create_q: Single<&mut Visibility, With<AppCreate>>) {
 fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
     bsn_list! {
         confirmation_modal(created_round),
+        creating_round_modal(),
+        share_modal(),
 
         AppCreate
         Visibility::Hidden
@@ -412,6 +425,7 @@ fn on_click_if_inactive() -> impl Scene {
 /// on an in-draft created round.
 fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
     let clue = created_round.clue.clone();
+
     bsn! {
         ConfirmationModal
         GlobalZIndex(1)
@@ -466,22 +480,15 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                     confirmation_modal_button(DARK_GREEN_COLOR, 0)
                     on(|_: On<Activate>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
-                        mut need_to_hide_q: Query<&mut Visibility, With<ConfirmationModal>>,
+                        mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<CreatingRoundModal>)>,
+                        mut need_to_show_q: Query<&mut Visibility, (With<CreatingRoundModal>, Without<ConfirmationModal>)>,
                         done_button_q: Single<Entity, With<DoneButton>>,
                         app_create_q: Single<Entity, With<AppCreate>>,
-                        (username, mut created_round, secret_passphrase, mut encrypted_shareable_round, app_type_registry):
-                        (Res<Username>, ResMut<CreatedRound>, Res<SecretPassphrase>, ResMut<EncryptedShareableRound>, Res<AppTypeRegistry>),
+                        mut created_round: ResMut<CreatedRound>,
                         mut commands: Commands,| -> Result<(), BevyError> {
                             created_round.is_draft = false;
-                            crate::playable_round::set_encrypted_shareable_round(
-                                &username,
-                                &created_round,
-                                &secret_passphrase,
-                                &mut encrypted_shareable_round,
-                                &app_type_registry,
-                            )?;
-
                             commands.queue(SaveSettingsSync::Always);
+
                             commands.entity(clue_input_container_q.entity()).despawn();
                             commands.entity(done_button_q.entity()).despawn();
                             let child = commands.spawn_scene(clue_input_container(&created_round)).id();
@@ -489,6 +496,9 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
 
                             for mut vis in need_to_hide_q.iter_mut() {
                                 *vis = Visibility::Hidden;
+                            }
+                            for mut vis in need_to_show_q.iter_mut() {
+                                *vis = Visibility::Inherited;
                             }
                             Ok(())
                     }),
@@ -532,6 +542,196 @@ fn confirmation_modal_button(background_color: Color, image_index: usize) -> imp
                 }
             }
         )
+    }
+}
+
+/// Modal that pops up while the round is being encrypted.
+fn creating_round_modal() -> impl Scene {
+    bsn! {
+        CreatingRoundModal
+        GlobalZIndex(1)
+        Visibility::Hidden
+        Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            width: percent(100),
+            height: percent(100),
+        }
+        Children [
+            Node {
+                border: px(5),
+                padding: UiRect::axes(px(10), px(10)),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(95),
+                row_gap: px(10),
+            }
+            BorderColor::all(DARK_RED_COLOR)
+            BackgroundColor(Color::BLACK)
+            Children [
+                Text::new("Encrypting the round...")
+                pinpoint_font(),
+            ]
+        ]
+    }
+}
+
+/// Modal that pops up after the round is ready to share.
+fn share_modal() -> impl Scene {
+    bsn! {
+        ShareModal
+        GlobalZIndex(1)
+        Visibility::Hidden
+        Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            width: percent(100),
+            height: percent(100),
+        }
+        Children [
+            Node {
+                border: px(5),
+                padding: UiRect::axes(px(10), px(10)),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(95),
+                row_gap: px(20),
+            }
+            BorderColor::all(DARK_GREEN_COLOR)
+            BackgroundColor(Color::BLACK)
+            Children [
+                Node {
+                    position_type: PositionType::Absolute,
+                    top: px(5),
+                    left: px(5),
+                    width: px(50),
+                    height: px(50),
+                }
+                ZIndex(1)
+                // BackgroundColor(Color::BLACK)
+                Children [
+                    confirmation_modal_button(DARK_RED_COLOR, 1)
+                    on(|_: On<Activate>,
+                        modal_q: Single<&mut Visibility, With<ShareModal>>| {
+                            *modal_q.into_inner() = Visibility::Hidden;
+                    }),
+                ],
+
+                Node {
+                    width: px(250),
+                    height: px(250),
+                }
+                Children [
+                    Node {
+                        width: percent(100),
+                        height: percent(100),
+                    }
+                    template(move |context| {
+                        let layout = TextureAtlasLayout::from_grid(UVec2::new(32, 32), 1, 5, None, None);
+                        let layout_handle = context.resource_mut::<Assets<TextureAtlasLayout>>().add(layout);
+                        let texture_atlas = TextureAtlas {
+                            layout: layout_handle,
+                            index: 0,
+                        };
+                        Ok(ImageNode {
+                            image: context.resource::<AssetServer>().load("images/ready_to_send.png"),
+                            texture_atlas: Some(texture_atlas),
+                            ..Default::default()
+                        })
+                    })
+                    AnimatedImageNode(5)
+                    AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
+                ],
+
+                Text::new("Your round is ready to share!")
+                pinpoint_font(),
+
+                base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
+                Node {
+                    width: px(250),
+                    height: px(50),
+                }
+                on(move |event: On<Pointer<Out>>,
+                    mut commands: Commands,
+                    asset_server: Res<AssetServer>,
+                    mut layouts: ResMut<Assets<TextureAtlasLayout>>,| {
+                        let layout = TextureAtlasLayout::from_grid(UVec2::new(137, 32), 1, 3, None, None);
+                        let layout_handle = layouts.add(layout);
+                        let texture_atlas = TextureAtlas {
+                            layout: layout_handle,
+                            index: 0,
+                        };
+
+                        commands.entity(event.entity).despawn_children();
+                        let new_child = commands.spawn((
+                            Node {
+                                    width: percent(100),
+                                    height: percent(100),
+                                    ..default()
+                            },
+                            ImageNode {
+                                image: asset_server.load("button/share.png"),
+                                texture_atlas: Some(texture_atlas),
+                                ..default()
+                        })).id();
+                        commands.entity(event.entity).add_child(new_child);
+                })
+                on(|event: On<Activate>,
+                    round: Res<EncryptedShareableRound>,
+                    mut clipboard: ResMut<Clipboard>,
+                    asset_server: Res<AssetServer>,
+                    mut layouts: ResMut<Assets<TextureAtlasLayout>>,
+                    mut commands: Commands,
+                    | {
+                        let link = format!("https://kfc35.github.io/pinpoint/?share={}", round.value);
+                        match clipboard.set_text(format!("Play my Daily #Pinpoint Round for {}!\n\n{link}", round.date)) {
+                            Ok(_) => {
+                                let layout = TextureAtlasLayout::from_grid(UVec2::new(160, 32), 1, 3, None, None);
+                                let layout_handle = layouts.add(layout);
+                                let texture_atlas = TextureAtlas {
+                                    layout: layout_handle,
+                                    index: 1,
+                                };
+                                commands.entity(event.entity).despawn_children();
+                                let new_child = commands.spawn((
+                                    Node {
+                                            width: percent(100),
+                                            height: percent(100),
+                                            ..default()
+                                    },
+                                    ImageNode {
+                                        image: asset_server.load("button/copied.png"),
+                                        texture_atlas: Some(texture_atlas),
+                                        ..default()
+                                })).id();
+                        commands.entity(event.entity).add_child(new_child);
+                                commands.entity(event.entity).add_child(new_child);
+                            }
+                            _ => {
+                                commands.entity(event.entity).remove::<ImageNode>();
+                                commands.entity(event.entity).insert(Text::new("Unable to Copy Results =/"));
+                            }
+                        }
+                }),
+            ]
+        ]
+    }
+}
+
+/// System to show the share modal after the round has successfully been
+pub(crate) fn show_share_modal(
+    mut need_to_hide_q: Query<&mut Visibility, (With<CreatingRoundModal>, Without<ShareModal>)>,
+    mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
+) {
+    for mut vis in need_to_hide_q.iter_mut() {
+        *vis = Visibility::Hidden;
+    }
+    for mut vis in need_to_show_q.iter_mut() {
+        *vis = Visibility::Inherited;
     }
 }
 

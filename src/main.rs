@@ -15,6 +15,7 @@ mod create;
 mod grid_axes;
 pub(crate) use grid_axes::axes_descriptions;
 
+mod animation;
 mod menu;
 mod playable_round;
 mod ui;
@@ -109,7 +110,7 @@ impl EncryptedShareableRound {
     }
 }
 
-/// System that preps the `CreatedRound` resource.
+/// System that preps the `EncryptedShareableRound` resource.
 pub(crate) fn init_encrypted_shareable_round(
     mut commands: Commands,
     start_date_time: Res<StartDateTime>,
@@ -152,7 +153,12 @@ fn main() {
         .init_resource::<Username>()
         .insert_resource(secret_passphrase)
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
-        .add_plugins((menu::MenuPlugin, create::CreatePlugin))
+        .add_plugins((
+            animation::AnimateGifPlugin,
+            menu::MenuPlugin,
+            create::CreatePlugin,
+            playable_round::EncryptedRoundCreationPlugin,
+        ))
         .add_systems(
             Startup,
             (

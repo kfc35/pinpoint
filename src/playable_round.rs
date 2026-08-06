@@ -1,4 +1,7 @@
-use crate::{EncryptedShareableRound, SecretPassphrase, Username, create::CreatedRound};
+use crate::{
+    AppState, EncryptedShareableRound, SecretPassphrase, StartDateTime, Username,
+    create::CreatedRound,
+};
 use age::secrecy::SecretString;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{prelude::*, reflect::serde::TypedReflectSerializer};
@@ -40,16 +43,16 @@ impl PlayableRound {
     }
 }
 
-/// A system that will encrypt the new [`CreatedRound`] as a `[PlayableRound]`
+/// A system that will encrypt a newly [`CreatedRound`] as a [`PlayableRound`]
 /// so that it can be shared with others.
 ///
 /// This system takes a non-trivial amount of time to execute (1-3 seconds).
 pub(crate) fn set_encrypted_shareable_round(
-    username: &Username,
-    created_round: &CreatedRound,
-    secret_passphrase: &SecretPassphrase,
-    encrypted_round: &mut EncryptedShareableRound,
-    type_registry: &AppTypeRegistry,
+    username: Res<Username>,
+    created_round: Res<CreatedRound>,
+    secret_passphrase: Res<SecretPassphrase>,
+    mut encrypted_round: ResMut<EncryptedShareableRound>,
+    type_registry: Res<AppTypeRegistry>,
 ) -> Result<(), BevyError> {
     let type_registry = type_registry.read();
     let round = PlayableRound::from_current_user(&username, &created_round);
@@ -64,4 +67,28 @@ pub(crate) fn set_encrypted_shareable_round(
     encrypted_round.date = created_round.get_date().clone();
     encrypted_round.value = value;
     Ok(())
+}
+
+pub(crate) struct EncryptedRoundCreationPlugin;
+
+impl Plugin for EncryptedRoundCreationPlugin {
+    fn build(&self, app: &mut App) {
+        app.add_systems(
+            Update,
+            (
+                set_encrypted_shareable_round,
+                crate::create::show_share_modal.run_if(in_state(AppState::Create)),
+            )
+                .chain()
+                .run_if(
+                    |start_date_time: Res<StartDateTime>,
+                     encrypted_round: Res<EncryptedShareableRound>,
+                     created_round: Res<CreatedRound>| {
+                        encrypted_round.date != start_date_time.date
+                            && !created_round.get_is_draft()
+                            && *created_round.get_date() == start_date_time.date
+                    },
+                ),
+        );
+    }
 }
