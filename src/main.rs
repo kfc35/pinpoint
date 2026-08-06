@@ -63,6 +63,11 @@ impl Username {
 /// The encrypted information of any user's created round for the day.
 /// As a [`Resource`], it contains the data for the current user's shareable round for today.
 /// The current user can also receive this data from another person.
+///
+/// The value is a [`crate::playable_round::PlayableRound`] that has been:
+/// - Serialized
+/// - Encrypted
+/// - Base64 Encoded
 #[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct EncryptedShareableRound {
@@ -105,8 +110,9 @@ impl EncryptedShareableRound {
         secret_passphrase: &SecretPassphrase,
         type_registry: &AppTypeRegistry,
     ) -> bool {
-        let decoded = self.decode(secret_passphrase, type_registry);
-        self.date == *today && self.value != "" && decoded.is_some()
+        self.date == *today
+            && self.value != ""
+            && self.decode(secret_passphrase, type_registry).is_some()
     }
 }
 
@@ -124,6 +130,7 @@ pub(crate) fn init_encrypted_shareable_round(
         return;
     }
 
+    println!("Clearing encrypted round...");
     let round = EncryptedShareableRound {
         date: "".to_string(),
         value: "".to_string(),
@@ -131,6 +138,9 @@ pub(crate) fn init_encrypted_shareable_round(
     commands.insert_resource(round);
     commands.queue(SaveSettingsSync::Always);
 }
+
+#[derive(Component, Clone, Default)]
+pub struct Modal;
 
 fn main() {
     let passphrase: &'static str = env!("SECRET_PASSPHRASE");

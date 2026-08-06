@@ -4,7 +4,7 @@ use crate::{
 };
 use age::secrecy::SecretString;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE};
-use bevy::{prelude::*, reflect::serde::TypedReflectSerializer};
+use bevy::{prelude::*, reflect::serde::TypedReflectSerializer, settings::SaveSettingsSync};
 
 /// A round of Pinpoint that can be loaded into play.
 /// It was decrypted from an [`EncryptableShareableRound`].
@@ -53,6 +53,7 @@ pub(crate) fn set_encrypted_shareable_round(
     secret_passphrase: Res<SecretPassphrase>,
     mut encrypted_round: ResMut<EncryptedShareableRound>,
     type_registry: Res<AppTypeRegistry>,
+    mut commands: Commands,
 ) -> Result<(), BevyError> {
     let type_registry = type_registry.read();
     let round = PlayableRound::from_current_user(&username, &created_round);
@@ -66,6 +67,7 @@ pub(crate) fn set_encrypted_shareable_round(
 
     encrypted_round.date = created_round.get_date().clone();
     encrypted_round.value = value;
+    commands.queue(SaveSettingsSync::Always);
     Ok(())
 }
 
@@ -77,7 +79,7 @@ impl Plugin for EncryptedRoundCreationPlugin {
             Update,
             (
                 set_encrypted_shareable_round,
-                crate::create::show_share_modal.run_if(in_state(AppState::Create)),
+                crate::create::update_create_ui_after_encryption.run_if(in_state(AppState::Create)),
             )
                 .chain()
                 .run_if(

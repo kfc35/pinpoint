@@ -11,13 +11,14 @@ use bevy::{
 };
 
 use crate::{
-    AppState, EncryptedShareableRound, StartDateTime,
+    AppState, EncryptedShareableRound, Modal, StartDateTime,
     animation::{AnimatedImageNode, AnimationTimer},
     axes_descriptions,
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
         MIDDLE_BLUE_COLOR, base_button, change_image_node_index, image_node_with_texture_atlas,
-        on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
+        on_activate_change_state, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
+        pinpoint_font,
     },
 };
 use rand::{RngExt, SeedableRng};
@@ -41,6 +42,9 @@ pub struct ClueInputContainer;
 
 #[derive(Component, Clone, Default)]
 pub struct DoneButton;
+
+#[derive(Component, Clone, Default)]
+pub struct BottomButtons;
 
 #[derive(Component, Clone, Default)]
 pub struct ConfirmationModal;
@@ -122,19 +126,34 @@ pub fn init_created_round(
     commands.queue(SaveSettingsSync::Always);
 }
 
-pub fn setup_create(mut commands: Commands, created_round: Res<CreatedRound>) {
-    commands.spawn_scene_list(setup_create_vertical(&created_round));
+pub fn setup_create(
+    mut commands: Commands,
+    start_date_time: Res<StartDateTime>,
+    created_round: Res<CreatedRound>,
+    encrypted_round: Res<EncryptedShareableRound>,
+) {
+    commands.spawn_scene_list(setup_create_vertical(
+        &created_round,
+        &start_date_time,
+        &encrypted_round,
+    ));
 }
 
 pub fn show_create(app_create_q: Single<&mut Visibility, With<AppCreate>>) {
     *app_create_q.into_inner() = Visibility::Inherited;
 }
 
-pub fn hide_create(app_create_q: Single<&mut Visibility, With<AppCreate>>) {
-    *app_create_q.into_inner() = Visibility::Hidden;
+pub fn hide_create(mut to_hide_q: Query<&mut Visibility, Or<(With<AppCreate>, With<Modal>)>>) {
+    for mut vis in to_hide_q.iter_mut() {
+        *vis = Visibility::Hidden;
+    }
 }
 
-fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
+fn setup_create_vertical(
+    created_round: &CreatedRound,
+    start_date_time: &StartDateTime,
+    encrypted_round: &EncryptedShareableRound,
+) -> impl SceneList {
     bsn_list! {
         confirmation_modal(created_round),
         creating_round_modal(),
@@ -196,6 +215,8 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
             clue_input_container(created_round),
 
             done_button(created_round),
+
+            bottom_buttons(start_date_time, encrypted_round),
         ]
     }
 }
@@ -396,6 +417,52 @@ fn done_button(created_round: &CreatedRound) -> impl Scene {
     }
 }
 
+fn bottom_buttons(
+    start_date_time: &StartDateTime,
+    encrypted_round: &EncryptedShareableRound,
+) -> impl Scene {
+    let second_button = || -> Box<dyn Scene> {
+        if encrypted_round.value != "" && encrypted_round.date == start_date_time.date {
+            // Share button
+            Box::new(bsn! {
+                base_button("button/share_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
+                create_on_activate_share_link(false)
+            })
+        } else {
+            // Help button
+            Box::new(bsn! {
+                base_button("button/question_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
+            })
+        }
+    };
+
+    bsn! {
+        BottomButtons
+        Node {
+            flex_direction: FlexDirection::Row,
+            width: px(280),
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Center,
+        }
+        Children [
+            base_button("button/back_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
+            Node {
+                width: px(50),
+                height: px(50),
+                min_width: px(50),
+            }
+            on_activate_change_state(AppState::Menu),
+
+            second_button()
+            Node {
+                width: px(50),
+                height: px(50),
+                min_width: px(50),
+            },
+        ]
+    }
+}
+
 /// Utility to create an observer for interaction disabled buttons.
 /// Certain buttons are disabled if the username is empty
 fn on_click_if_inactive() -> impl Scene {
@@ -427,6 +494,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
     let clue = created_round.clue.clone();
 
     bsn! {
+        Modal
         ConfirmationModal
         GlobalZIndex(1)
         Visibility::Hidden
@@ -513,6 +581,7 @@ fn confirmation_modal_button(background_color: Color, image_index: usize) -> imp
         Button
         Node {
             width: px(75),
+            min_width: px(75),
             border: px(5),
         }
         BorderColor::all(background_color)
@@ -548,6 +617,7 @@ fn confirmation_modal_button(background_color: Color, image_index: usize) -> imp
 /// Modal that pops up while the round is being encrypted.
 fn creating_round_modal() -> impl Scene {
     bsn! {
+        Modal
         CreatingRoundModal
         GlobalZIndex(1)
         Visibility::Hidden
@@ -581,6 +651,7 @@ fn creating_round_modal() -> impl Scene {
 /// Modal that pops up after the round is ready to share.
 fn share_modal() -> impl Scene {
     bsn! {
+        Modal
         ShareModal
         GlobalZIndex(1)
         Visibility::Hidden
@@ -612,7 +683,6 @@ fn share_modal() -> impl Scene {
                     height: px(50),
                 }
                 ZIndex(1)
-                // BackgroundColor(Color::BLACK)
                 Children [
                     confirmation_modal_button(DARK_RED_COLOR, 1)
                     on(|_: On<Activate>,
@@ -680,16 +750,25 @@ fn share_modal() -> impl Scene {
                         })).id();
                         commands.entity(event.entity).add_child(new_child);
                 })
-                on(|event: On<Activate>,
-                    round: Res<EncryptedShareableRound>,
-                    mut clipboard: ResMut<Clipboard>,
-                    asset_server: Res<AssetServer>,
-                    mut layouts: ResMut<Assets<TextureAtlasLayout>>,
-                    mut commands: Commands,
-                    | {
-                        let link = format!("https://kfc35.github.io/pinpoint/?share={}", round.value);
-                        match clipboard.set_text(format!("Play my Daily #Pinpoint Round for {}!\n\n{link}", round.date)) {
-                            Ok(_) => {
+                create_on_activate_share_link(true),
+            ]
+        ]
+    }
+}
+
+fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
+    bsn! {
+        on(move |event: On<Activate>,
+            round: Res<EncryptedShareableRound>,
+            mut clipboard: ResMut<Clipboard>,
+            asset_server: Res<AssetServer>,
+            mut layouts: ResMut<Assets<TextureAtlasLayout>>,
+            mut commands: Commands,|
+                {
+                    let link = format!("https://kfc35.github.io/pinpoint/?share={}", round.value);
+                    match clipboard.set_text(format!("Play my Daily #Pinpoint Round for {}!\n\n{link}", round.date)) {
+                        Ok(_) => {
+                            if change_icon {
                                 let layout = TextureAtlasLayout::from_grid(UVec2::new(160, 32), 1, 3, None, None);
                                 let layout_handle = layouts.add(layout);
                                 let texture_atlas = TextureAtlas {
@@ -708,24 +787,27 @@ fn share_modal() -> impl Scene {
                                         texture_atlas: Some(texture_atlas),
                                         ..default()
                                 })).id();
-                        commands.entity(event.entity).add_child(new_child);
                                 commands.entity(event.entity).add_child(new_child);
                             }
-                            _ => {
-                                commands.entity(event.entity).remove::<ImageNode>();
-                                commands.entity(event.entity).insert(Text::new("Unable to Copy Results =/"));
-                            }
                         }
-                }),
-            ]
-        ]
+                        _ => {
+                            commands.entity(event.entity).remove::<ImageNode>();
+                            commands.entity(event.entity).insert(Text::new("Unable to Copy Results =/"));
+                        }
+                    }
+                })
     }
 }
 
 /// System to show the share modal after the round has successfully been
-pub(crate) fn show_share_modal(
+pub(crate) fn update_create_ui_after_encryption(
     mut need_to_hide_q: Query<&mut Visibility, (With<CreatingRoundModal>, Without<ShareModal>)>,
     mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
+    app_create_q: Single<Entity, With<AppCreate>>,
+    start_date_time: Res<StartDateTime>,
+    encrypted_round: Res<EncryptedShareableRound>,
+    bottom_buttons_q: Single<Entity, With<BottomButtons>>,
+    mut commands: Commands,
 ) {
     for mut vis in need_to_hide_q.iter_mut() {
         *vis = Visibility::Hidden;
@@ -733,6 +815,14 @@ pub(crate) fn show_share_modal(
     for mut vis in need_to_show_q.iter_mut() {
         *vis = Visibility::Inherited;
     }
+
+    commands.entity(bottom_buttons_q.entity()).despawn();
+    let bottom_buttons_id = commands
+        .spawn_scene(bottom_buttons(&start_date_time, &encrypted_round))
+        .id();
+    commands
+        .entity(app_create_q.entity())
+        .add_child(bottom_buttons_id);
 }
 
 pub(crate) struct CreatePlugin;

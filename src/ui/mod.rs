@@ -1,9 +1,10 @@
+use crate::AppState;
 ///! A hodgepodge of ui utilities to make composing ui elements easier.
 use bevy::{
     prelude::*,
     text::FontSourceTemplate,
     ui::InteractionDisabled,
-    ui_widgets::Button,
+    ui_widgets::{Activate, Button},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
@@ -137,6 +138,23 @@ pub(crate) fn change_image_node_index(
         && let Some(atlas) = &mut image_node.texture_atlas
     {
         atlas.index = texture_atlas_index;
+    }
+}
+
+/// Utility to create an observer that changes the app state on activate of the button
+/// that this observer is attached to.
+/// All menu buttons that change state check that the username is valid.
+pub(crate) fn on_activate_change_state(next: AppState) -> impl Scene {
+    bsn! {
+        on(move |_: On<Activate>,
+            mut next_state: ResMut<NextState<AppState>>,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,
+            mut commands: Commands,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+                }
+                next_state.set(next);
+        })
     }
 }
 
