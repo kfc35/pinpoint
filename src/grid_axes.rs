@@ -43,6 +43,7 @@ fn get_axes(_date: &String) -> Axes {
 /// Returns the axes as a compass scene
 pub(crate) fn axes_descriptions(date: &String) -> impl Scene {
     let axes = get_axes(date);
+    let date = date.clone();
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
@@ -53,6 +54,15 @@ pub(crate) fn axes_descriptions(date: &String) -> impl Scene {
         }
         BorderColor::all(Color::WHITE)
         Children [
+            Node
+            Children [
+                Text::new(format!("Axes for {}", date.clone()))
+                pinpoint_font()
+                TextFont {
+                    font_size: FontSize::Rem(0.7)
+                }
+            ]
+            ,
             axis_vertical_desc(axes.vertical().first(), 0),
             axis_horizontal_desc(axes.horizontal().first(), axes.horizontal().second()),
             axis_vertical_desc(axes.vertical().second(), 1),
@@ -139,7 +149,7 @@ fn axis_text(axis: &'static str) -> impl Scene {
     bsn! {
         Text::new(axis)
         TextFont {
-            font_size: px(16),
+            font_size: FontSize::Rem(0.8),
         }
         // TextLayout::linebreak(LineBreak::AnyCharacter)
         pinpoint_font()
