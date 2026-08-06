@@ -26,3 +26,9 @@ Thanks to chronotope team and contributors for giving me the time utils I need t
 
 ### age
 Thanks to Jack Grigg (str4d) and contributors for allowing this game to have encrypted shareable rounds.
+
+### base64
+Thanks to Alice Max, Marshall Pierce, and contributors for allowing this game to be shareable with decent looking strings.
+
+### serde & serde_json
+Thanks to dtolnay and contributors for making the change-off between structs and raw strings easy.

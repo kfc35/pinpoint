@@ -191,7 +191,7 @@ fn username_input_col(username: &Username) -> impl Scene {
             }
             pinpoint_font()
             TextLayout::justify(Justify::Center)
-            EditableTextFilter::new(char::is_alphanumeric)
+            EditableTextFilter::new(|char| char.is_alphanumeric() || char == '_')
             TabIndex(0)
             TextCursorStyle::default()
             BackgroundColor(Color::BLACK)

@@ -1,20 +1,29 @@
+use age::secrecy::SecretString;
+use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{
     DefaultPlugins,
     asset::{AssetMetaCheck, AssetPlugin},
     image::{ImagePlugin, ImageSamplerDescriptor},
     prelude::*,
-    reflect::{Reflect, std_traits::ReflectDefault},
+    reflect::{Reflect, serde::TypedReflectDeserializer, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup, SettingsPlugin},
 };
 use chrono::Utc;
+use serde::de::DeserializeSeed;
 
 mod create;
 mod grid_axes;
 pub(crate) use grid_axes::axes_descriptions;
+
 mod menu;
+mod playable_round;
 mod ui;
 
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
+
+/// Used by the app to obfuscate playable rounds that people send each other.
+#[derive(Resource, Default, Deref, DerefMut)]
+pub(crate) struct SecretPassphrase(String);
 
 /// States that the app can transition between that trigger the whole screen to change.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
@@ -41,16 +50,6 @@ pub(crate) struct StartDateTime {
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct Username(String);
 
-/// The encrypted information of this user's created round for the day.
-/// This resource only exists after the user has created a round for a given day.
-#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
-#[reflect(Resource, Default, SettingsGroup)]
-pub(crate) struct EncryptedShareableRound {
-    date: String,
-    #[deref]
-    token: String,
-}
-
 impl Username {
     /// Returns whether the name is valid (at least 1 character, alphamumeric incl. underscore, max 10 characters)
     pub(crate) fn is_valid(name: &String) -> bool {
@@ -60,7 +59,82 @@ impl Username {
     }
 }
 
+/// The encrypted information of any user's created round for the day.
+/// As a [`Resource`], it contains the data for the current user's shareable round for today.
+/// The current user can also receive this data from another person.
+#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[reflect(Resource, Default, SettingsGroup)]
+pub(crate) struct EncryptedShareableRound {
+    date: String,
+    #[deref]
+    value: String,
+}
+
+impl EncryptedShareableRound {
+    fn decode(
+        &self,
+        secret_passphrase: &SecretPassphrase,
+        type_registry: &AppTypeRegistry,
+    ) -> Option<Box<dyn PartialReflect>> {
+        let type_registry = type_registry.read();
+
+        let encrypted = URL_SAFE.decode(self.value.clone()).ok()?;
+        let passphrase = SecretString::from((*secret_passphrase).clone());
+        let identity = age::scrypt::Identity::new(passphrase);
+        let decrypted = age::decrypt(&identity, &encrypted).ok()?;
+
+        let value: serde_json::Value = serde_json::from_slice(&decrypted).unwrap();
+
+        let registration = type_registry
+            .get(std::any::TypeId::of::<playable_round::PlayableRound>())
+            .unwrap();
+        let deserializer = TypedReflectDeserializer::new(registration, &type_registry);
+        let reflect_value = deserializer.deserialize(value).unwrap();
+
+        if reflect_value.represents::<playable_round::PlayableRound>() {
+            Some(reflect_value)
+        } else {
+            None
+        }
+    }
+
+    fn is_valid(
+        &self,
+        today: &String,
+        secret_passphrase: &SecretPassphrase,
+        type_registry: &AppTypeRegistry,
+    ) -> bool {
+        let decoded = self.decode(secret_passphrase, type_registry);
+        self.date == *today && self.value != "" && decoded.is_some()
+    }
+}
+
+/// System that preps the `CreatedRound` resource.
+pub(crate) fn init_encrypted_shareable_round(
+    mut commands: Commands,
+    start_date_time: Res<StartDateTime>,
+    encrypted_shareable_round: Option<ResMut<EncryptedShareableRound>>,
+    secret_passphrase: Res<SecretPassphrase>,
+    type_registry: Res<AppTypeRegistry>,
+) {
+    if let Some(round) = encrypted_shareable_round
+        && round.is_valid(&start_date_time.date, &secret_passphrase, &type_registry)
+    {
+        return;
+    }
+
+    let round = EncryptedShareableRound {
+        date: "".to_string(),
+        value: "".to_string(),
+    };
+    commands.insert_resource(round);
+    commands.queue(SaveSettingsSync::Always);
+}
+
 fn main() {
+    let passphrase: &'static str = env!("SECRET_PASSPHRASE");
+    let secret_passphrase = SecretPassphrase(passphrase.to_string());
+
     App::new()
         .add_plugins(
             DefaultPlugins
@@ -76,11 +150,18 @@ fn main() {
         )
         .init_state::<AppState>()
         .init_resource::<Username>()
+        .insert_resource(secret_passphrase)
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
         .add_plugins((menu::MenuPlugin, create::CreatePlugin))
         .add_systems(
             Startup,
-            (setup, create::init_created_round, create::setup_create).chain(),
+            (
+                setup,
+                create::init_created_round,
+                init_encrypted_shareable_round,
+                create::setup_create,
+            )
+                .chain(),
         )
         .add_systems(Startup, menu::setup_menu.after(setup))
         .add_systems(OnEnter(AppState::Menu), menu::show_menu)

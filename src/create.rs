@@ -11,7 +11,8 @@ use bevy::{
 };
 
 use crate::{
-    AppState, StartDateTime, Username, axes_descriptions,
+    AppState, EncryptedShareableRound, SecretPassphrase, StartDateTime, Username,
+    axes_descriptions,
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
         MIDDLE_BLUE_COLOR, base_button, change_image_node_index, image_node_with_texture_atlas,
@@ -46,30 +47,10 @@ pub struct ConfirmationModal;
 #[derive(Component, Clone, Default)]
 pub struct ClueReadback;
 
-/// A round of Pinpoint that can be shared with friends.
-/// It can be deserialized
-#[derive(Reflect, Resource, Clone, Hash, PartialEq, Eq)]
-#[reflect(Resource)]
-pub struct ShareableCreatedRound {
-    /// The creator of this round
-    creator: String,
-    /// The date of this round
-    date: String,
-    /// The time this round was created.
-    /// In combination with creator and date, uniquely identifies a created round.
-    create_time: String,
-    /// The clue the creator has given for this round.
-    clue: String,
-    /// The "correct answer" of this round.
-    /// This is the location the creator was given that they
-    /// crafted the clue from.
-    location: UVec2,
-}
-
 /// A round of Pinpoint that is saved on the creator's end.
 #[derive(Reflect, Resource, Default, SettingsGroup, Clone, Hash, PartialEq, Eq)]
 #[reflect(Resource, Default, SettingsGroup)]
-pub struct CreatedRound {
+pub(crate) struct CreatedRound {
     /// The date of this round
     date: String,
     /// The time this round was created.
@@ -86,30 +67,21 @@ pub struct CreatedRound {
     is_draft: bool,
 }
 
-impl ShareableCreatedRound {
-    /// Creates a shareable created round from the currently logged in user and
-    /// their created round.
-    pub fn from_current_user(username: &Username, created_round: &CreatedRound) -> Self {
-        Self {
-            creator: username.0.clone(),
-            date: created_round.date.clone(),
-            create_time: created_round.create_time.clone(),
-            clue: created_round.clue.clone(),
-            location: created_round.location,
-        }
+impl CreatedRound {
+    pub(crate) fn get_date(&self) -> &String {
+        return &self.date;
     }
 
-    /// Returns the identifier for this created round.
-    /// Used to detect whether this player has played this round already.
-    pub fn get_identifier(&self) -> String {
-        return format!("{}-{}-{}", self.date, self.create_time, self.creator);
+    pub(crate) fn get_create_time(&self) -> &String {
+        return &self.create_time;
     }
 
-    /// Returns the distance from `location` to the `guessed_location`
-    pub fn get_distance(&self, guessed_location: UVec2) -> f32 {
-        self.location
-            .as_vec2()
-            .distance_squared(guessed_location.as_vec2())
+    pub(crate) fn get_clue(&self) -> &String {
+        return &self.clue;
+    }
+
+    pub(crate) fn get_location(&self) -> UVec2 {
+        return self.location;
     }
 }
 
@@ -162,7 +134,7 @@ fn setup_create_vertical(created_round: &CreatedRound) -> impl SceneList {
             justify_content: JustifyContent::Start,
             align_content: AlignContent::Default,
             align_items: AlignItems::Center,
-            row_gap: px(20),
+            row_gap: px(15),
             width: percent(100),
             height: percent(100),
         }
@@ -464,7 +436,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
             BorderColor::all(DARK_RED_COLOR)
             BackgroundColor(Color::BLACK)
             Children [
-                Text::new("Are you sure you are done?")
+                Text::new("Are you sure?")
                 pinpoint_font(),
 
                 Text::new("You cannot edit afterwards!")
@@ -493,22 +465,32 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
 
                     confirmation_modal_button(DARK_GREEN_COLOR, 0)
                     on(|_: On<Activate>,
-                        mut round: ResMut<CreatedRound>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
                         mut need_to_hide_q: Query<&mut Visibility, With<ConfirmationModal>>,
                         done_button_q: Single<Entity, With<DoneButton>>,
                         app_create_q: Single<Entity, With<AppCreate>>,
-                        mut commands: Commands,| {
-                            round.is_draft = false;
+                        (username, mut created_round, secret_passphrase, mut encrypted_shareable_round, app_type_registry):
+                        (Res<Username>, ResMut<CreatedRound>, Res<SecretPassphrase>, ResMut<EncryptedShareableRound>, Res<AppTypeRegistry>),
+                        mut commands: Commands,| -> Result<(), BevyError> {
+                            created_round.is_draft = false;
+                            crate::playable_round::set_encrypted_shareable_round(
+                                &username,
+                                &created_round,
+                                &secret_passphrase,
+                                &mut encrypted_shareable_round,
+                                &app_type_registry,
+                            )?;
+
                             commands.queue(SaveSettingsSync::Always);
                             commands.entity(clue_input_container_q.entity()).despawn();
                             commands.entity(done_button_q.entity()).despawn();
-                            let child = commands.spawn_scene(clue_input_container(&round)).id();
+                            let child = commands.spawn_scene(clue_input_container(&created_round)).id();
                             commands.entity(app_create_q.entity()).add_child(child);
 
                             for mut vis in need_to_hide_q.iter_mut() {
                                 *vis = Visibility::Hidden;
                             }
+                            Ok(())
                     }),
                 ]
             ]
