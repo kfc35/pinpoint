@@ -3,7 +3,7 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{prelude::*, reflect::serde::TypedReflectSerializer, settings::SaveSettingsSync};
 
 /// A round of Pinpoint that can be loaded into play.
-/// It was decrypted from an [`EncryptableShareableRound`].
+/// It was decoded from an [`EncodedRound`].
 #[derive(Reflect, Clone, Hash, PartialEq, Eq)]
 pub struct PlayableRound {
     /// The creator of this round
@@ -41,7 +41,7 @@ impl PlayableRound {
 
 /// A system that will encode a newly [`CreatedRound`] as a [`PlayableRound`]
 /// so that it can be shared with others.
-pub(crate) fn set_encrypted_shareable_round(
+pub(crate) fn set_encoded_round_resource(
     username: Res<Username>,
     created_round: Res<CreatedRound>,
     mut encoded_round: ResMut<EncodedRound>,
@@ -67,7 +67,7 @@ impl Plugin for EncodedRoundCreationPlugin {
         app.add_systems(
             Update,
             (
-                set_encrypted_shareable_round,
+                set_encoded_round_resource,
                 crate::create::update_create_ui_after_encoding.run_if(in_state(AppState::Create)),
             )
                 .chain()

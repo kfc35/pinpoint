@@ -61,12 +61,13 @@ impl Username {
 
 /// The encoded information of any user's created round for the day.
 /// As a [`Resource`], it contains the data for the current user's shareable round for today.
-/// The current user can also receive this data from another person.
+/// The current user can also receive data of this type from another person,
+/// in which case it is stored under [`LoadableRounds`].
 ///
 /// The value is a [`crate::playable_round::PlayableRound`] that has been:
 /// - Serialized
 /// - Base64 Encoded
-#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup, PartialEq)]
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct EncodedRound {
     date: String,
@@ -99,8 +100,8 @@ impl EncodedRound {
     }
 }
 
-/// System that preps the `EncryptedShareableRound` resource.
-pub(crate) fn init_encrypted_shareable_round(
+/// System that preps the [`EncodedRound`] resource.
+pub(crate) fn init_encoded_round(
     mut commands: Commands,
     start_date_time: Res<StartDateTime>,
     encoded_round: Option<ResMut<EncodedRound>>,
@@ -112,13 +113,23 @@ pub(crate) fn init_encrypted_shareable_round(
         return;
     }
 
-    println!("Clearing encoded round...");
     let round = EncodedRound {
         date: "".to_string(),
         value: "".to_string(),
     };
     commands.insert_resource(round);
     commands.queue(SaveSettingsSync::Always);
+}
+
+/// The rounds that the current user can load to play.
+/// The user gets these rounds from shareable links, which contain an [`EncodedRound`].
+/// This resource will never contain any of the current user's created rounds.
+/// The current user's currently created round will be available as an [`EncodedRound`] resource.
+/// Currently, we limit loadable rounds to only contain rounds of the current day.
+#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
+#[reflect(Resource, Default, SettingsGroup)]
+pub(crate) struct LoadableRounds {
+    rounds: Vec<EncodedRound>,
 }
 
 #[derive(Component, Clone, Default)]
@@ -156,7 +167,7 @@ fn main() {
             (
                 setup,
                 create::init_created_round,
-                init_encrypted_shareable_round,
+                init_encoded_round,
                 create::setup_create,
             )
                 .chain(),
