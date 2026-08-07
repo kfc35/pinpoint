@@ -563,7 +563,11 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                     on(|_: On<Activate>,
                         mut created_round: ResMut<CreatedRound>,
                         mut commands: Commands,| {
-                            // update_create_ui_after_encoding will handle ui
+                            // TODO this should do everything now.
+                            // is_draft may not be necessary because an encoded round resource
+                            // is enough to show that it transitioned to not being a draft.
+                            // move the ui changes from `update_create_ui_after_encoding` here.
+                            // call set_encoded_round_resource from here
                             created_round.is_draft = false;
                             commands.queue(SaveSettingsSync::Always);
                     }),

@@ -22,6 +22,8 @@ pub struct PlayableRound {
 }
 
 impl PlayableRound {
+    /// Create a PlayableRound from the currently logged in user and the round
+    /// they created.
     pub fn from_current_user(username: &Username, created_round: &CreatedRound) -> Self {
         Self {
             creator: username.0.clone(),
@@ -37,18 +39,22 @@ impl PlayableRound {
         format!("{}-{}-{}", self.date, self.create_time, self.creator)
     }
 
+    /// Gets the creator of this round
     pub fn get_creator(&self) -> &String {
         &self.creator
     }
 
+    /// Gets the date of this round
     pub fn get_date(&self) -> &String {
         &self.date
     }
 
+    /// Gets the clue the creator made for this round.
     pub fn get_clue(&self) -> &String {
         &self.clue
     }
 
+    /// Gets the location (the answer) for this round.
     pub(crate) fn get_location(&self) -> UVec2 {
         self.location
     }
@@ -74,6 +80,7 @@ pub(crate) fn set_encoded_round_resource(
     Ok(())
 }
 
+/// TODO this can probably be removed.
 pub(crate) struct EncodedRoundCreationPlugin;
 
 impl Plugin for EncodedRoundCreationPlugin {
@@ -81,6 +88,7 @@ impl Plugin for EncodedRoundCreationPlugin {
         app.add_systems(
             Update,
             (
+                // TODO this doesnt need to be a system anymore because it is fast.
                 set_encoded_round_resource,
                 crate::create::update_create_ui_after_encoding.run_if(in_state(AppState::Create)),
             )
@@ -90,7 +98,6 @@ impl Plugin for EncodedRoundCreationPlugin {
                      app_type_registry: Res<AppTypeRegistry>,
                      encoded_round: Res<EncodedRound>,
                      created_round: Res<CreatedRound>| {
-                        // TODO this doesnt need to be a system anymore because it is fast.
                         (encoded_round.is_empty()
                             || encoded_round
                                 .try_decode(&app_type_registry)
