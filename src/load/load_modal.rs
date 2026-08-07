@@ -44,9 +44,10 @@ pub fn load_modal(
                 border: px(5),
                 padding: UiRect::axes(px(10), px(10)),
                 flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
+                justify_content: JustifyContent::SpaceBetween,
                 align_items: AlignItems::Center,
                 width: percent(95),
+                min_height: percent(80),
                 row_gap: px(10),
             }
             BorderColor::all(DARK_BLUE_COLOR)
@@ -173,13 +174,14 @@ fn loadable_round_to_radio_button(
 ) -> impl Scene {
     let playable_round = round.get_round_as_playable_round(app_type_registry);
     let text = if let Some(guess) = round.final_guess {
-        let distance = playable_round
-            .get_location()
-            .as_vec2()
-            .distance(guess.as_vec2());
-        format!("\t{} - {:.1}", playable_round.get_creator(), distance)
+        // let distance = playable_round
+        //     .get_location()
+        //     .as_vec2()
+        //     .distance(guess.as_vec2());
+        format!("    {}", playable_round.get_creator())
+        // format!("\t{} - {:.1}", playable_round.get_creator(), distance)
     } else {
-        format!("\t{}", playable_round.get_creator())
+        format!("    {}", playable_round.get_creator())
     };
     let checked = || -> Box<dyn Scene> {
         if is_checked {
