@@ -6,19 +6,18 @@ use bevy::{
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
     text::{EditableText, TextCursorStyle},
     ui::InteractionDisabled,
-    ui_widgets::{Activate, Button},
-    window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
+    ui_widgets::Activate,
 };
 
 use crate::{
-    AppState, EncodedRound, Modal, StartDateTime,
+    AppState, EncodedRound, StartDateTime,
     animation::{AnimatedImageNode, AnimationTimer},
     axes_descriptions,
     ui::{
-        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
-        MIDDLE_BLUE_COLOR, base_button, change_image_node_index, image_node_with_texture_atlas,
-        on_activate_change_state, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
-        pinpoint_font,
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, base_button,
+        change_image_node_index, confirmation_button, on_activate_change_state,
+        on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
     },
 };
 use rand::{RngExt, SeedableRng};
@@ -128,14 +127,12 @@ pub fn init_created_round(
 
 pub fn setup_create(
     mut commands: Commands,
-    start_date_time: Res<StartDateTime>,
     created_round: Res<CreatedRound>,
     encoded_round: Res<EncodedRound>,
     app_type_registry: Res<AppTypeRegistry>,
 ) {
     commands.spawn_scene_list(setup_create_vertical(
         &created_round,
-        &start_date_time,
         &encoded_round,
         &app_type_registry,
     ));
@@ -153,7 +150,6 @@ pub fn hide_create(mut to_hide_q: Query<&mut Visibility, Or<(With<AppCreate>, Wi
 
 fn setup_create_vertical(
     created_round: &CreatedRound,
-    start_date_time: &StartDateTime,
     encoded_round: &EncodedRound,
     app_type_registry: &AppTypeRegistry,
 ) -> impl SceneList {
@@ -556,13 +552,13 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                     align_items: AlignItems::Center,
                 }
                 Children [
-                    confirmation_modal_button(DARK_RED_COLOR, 1)
+                    confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
                     on(|_: On<Activate>,
                         modal_q: Single<&mut Visibility, With<ConfirmationModal>>| {
                             *modal_q.into_inner() = Visibility::Hidden;
                     }),
 
-                    confirmation_modal_button(DARK_GREEN_COLOR, 0)
+                    confirmation_button(DARK_GREEN_COLOR, ConfirmationButtonIndex::GreenCheckmark)
                     on(|_: On<Activate>,
                         mut created_round: ResMut<CreatedRound>,
                         mut commands: Commands,| {
@@ -573,44 +569,6 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                 ]
             ]
         ]
-    }
-}
-
-fn confirmation_modal_button(background_color: Color, image_index: usize) -> impl Scene {
-    bsn! {
-        Button
-        Node {
-            width: px(75),
-            min_width: px(75),
-            border: px(5),
-        }
-        BorderColor::all(background_color)
-        Children [
-            Node {
-                height: percent(100),
-                width: percent(100),
-                padding: px(5),
-            }
-            image_node_with_texture_atlas("button/confirmation_modal.png", UVec2::new(32, 32), image_index, 2)
-        ]
-        on(
-            move |_: On<Pointer<Over>>,
-            mut commands: Commands,
-            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                for window in window_q.iter_mut() {
-                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
-                }
-            }
-        )
-        on(
-            move |_: On<Pointer<Out>>,
-            mut commands: Commands,
-            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
-                for window in window_q.iter_mut() {
-                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
-                }
-            }
-        )
     }
 }
 
@@ -650,7 +608,7 @@ fn share_modal() -> impl Scene {
                 }
                 ZIndex(1)
                 Children [
-                    confirmation_modal_button(DARK_RED_COLOR, 1)
+                    confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
                     on(|_: On<Activate>,
                         modal_q: Single<&mut Visibility, With<ShareModal>>| {
                             *modal_q.into_inner() = Visibility::Hidden;

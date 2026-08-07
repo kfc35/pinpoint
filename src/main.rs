@@ -17,6 +17,8 @@ pub(crate) use grid_axes::axes_descriptions;
 mod animation;
 mod menu;
 mod playable_round;
+use playable_round::PlayableRound;
+mod load;
 mod ui;
 
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
@@ -62,7 +64,7 @@ impl Username {
 /// The encoded information of any user's created round for the day.
 /// As a [`Resource`], it contains the data for the current user's shareable round for today.
 /// The current user can also receive data of this type from another person,
-/// in which case it is stored under [`LoadableRounds`].
+/// in which case it is stored under [`crate::load::LoadableRounds`].
 ///
 /// The value is a [`crate::playable_round::PlayableRound`] that has been:
 /// - Serialized
@@ -76,27 +78,34 @@ pub(crate) struct EncodedRound {
 }
 
 impl EncodedRound {
-    fn decode(&self, type_registry: &AppTypeRegistry) -> Option<Box<dyn PartialReflect>> {
+    fn try_decode(&self, type_registry: &AppTypeRegistry) -> Option<PlayableRound> {
         let type_registry = type_registry.read();
 
         let decoded = URL_SAFE.decode(self.value.clone()).ok()?;
         let value: serde_json::Value = serde_json::from_slice(&decoded).unwrap();
 
         let registration = type_registry
-            .get(std::any::TypeId::of::<playable_round::PlayableRound>())
+            .get(std::any::TypeId::of::<PlayableRound>())
             .unwrap();
         let deserializer = TypedReflectDeserializer::new(registration, &type_registry);
         let reflect_value = deserializer.deserialize(value).unwrap();
 
-        if reflect_value.represents::<playable_round::PlayableRound>() {
-            Some(reflect_value)
+        if reflect_value.represents::<PlayableRound>()
+            && let Some(round) = reflect_value.try_downcast_ref::<PlayableRound>()
+        {
+            Some((*round).clone())
         } else {
             None
         }
     }
 
+    fn decode(&self, type_registry: &AppTypeRegistry) -> PlayableRound {
+        self.try_decode(type_registry)
+            .expect("EncodedRound should be valid.")
+    }
+
     fn is_valid(&self, today: &String, type_registry: &AppTypeRegistry) -> bool {
-        self.date == *today && self.value != "" && self.decode(type_registry).is_some()
+        self.date == *today && self.value != "" && self.try_decode(type_registry).is_some()
     }
 }
 
@@ -113,6 +122,7 @@ pub(crate) fn init_encoded_round(
         return;
     }
 
+    println!("Clearing Encoded Round...");
     let round = EncodedRound {
         date: "".to_string(),
         value: "".to_string(),
@@ -120,20 +130,6 @@ pub(crate) fn init_encoded_round(
     commands.insert_resource(round);
     commands.queue(SaveSettingsSync::Always);
 }
-
-/// The rounds that the current user can load to play.
-/// The user gets these rounds from shareable links, which contain an [`EncodedRound`].
-/// This resource will never contain any of the current user's created rounds.
-/// The current user's currently created round will be available as an [`EncodedRound`] resource.
-/// Currently, we limit loadable rounds to only contain rounds of the current day.
-#[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
-#[reflect(Resource, Default, SettingsGroup)]
-pub(crate) struct LoadableRounds {
-    rounds: Vec<EncodedRound>,
-}
-
-#[derive(Component, Clone, Default)]
-pub struct Modal;
 
 fn main() {
     let passphrase: &'static str = env!("SECRET_PASSPHRASE");

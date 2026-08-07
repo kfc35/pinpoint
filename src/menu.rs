@@ -5,10 +5,12 @@ use bevy::{
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle},
     ui::InteractionDisabled,
+    ui_widgets::Activate,
 };
 
 use crate::{
     AppState, Username,
+    load::LoadableRounds,
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
@@ -30,8 +32,11 @@ pub struct UsernameRequirements;
 #[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
 
-pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
-    commands.spawn_scene(bsn! {
+pub fn setup_menu(
+    mut commands: Commands,
+    username: Res<Username>,
+) {
+    commands.spawn_scene_list(bsn_list! {
         AppMenu
         Visibility::Inherited
         Node {
@@ -101,19 +106,29 @@ fn menu(username: &Username) -> impl Scene {
             row_gap: percent(5),
         }
         Children [
-            invited_you_to_play_text("TenChars!!"),
+            invited_you_to_play_text("TenChars!!")
+            ,
 
             needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), button_height, button_width, 4)
-            on_activate_change_state(AppState::Create),
+            on_activate_change_state(AppState::Create)
+            ,
 
             Node {
                 padding: px(3),
             }
-            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4),
+            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4)
+            on(|_: On<Activate>,
+                loadable_rounds: Res<LoadableRounds>,
+                app_type_registry: Res<AppTypeRegistry>,
+                mut commands: Commands| {
+                commands.spawn_scene(crate::load::load_modal(&loadable_rounds, &app_type_registry));
+            })
+            ,
 
             base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5),
 
-            username_input_col(username),
+            username_input_col(username)
+            ,
         ]
     }
 }
@@ -183,6 +198,7 @@ fn username_input_col(username: &Username) -> impl Scene {
                 border_radius: BorderRadius::all(px(10)),
                 padding: UiRect::axes(px(5), px(2)),
             }
+            // TODO Username should not by editable if there is a finalized username
             template_value(editable_text)
             TextFont {
                 font_size: FontSize::Px(16.)

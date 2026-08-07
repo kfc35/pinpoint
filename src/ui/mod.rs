@@ -8,9 +8,14 @@ use bevy::{
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
+/// Marker component for modals
+#[derive(Component, Clone, Default)]
+pub struct Modal;
+
 // Colors used for text and buttons
 pub const MIDDLE_BLUE_COLOR: Color = Color::srgb(0. / 255., 149. / 255., 233. / 255.);
 pub const DARK_BLUE_COLOR: Color = Color::srgb(18. / 255., 78. / 255., 137. / 255.);
+pub const MIDDLE_ORANGE_COLOR: Color = Color::srgb(254. / 255., 174. / 255., 52. / 255.);
 pub const DARK_ORANGE_COLOR: Color = Color::srgb(247. / 255., 118. / 255., 34. / 255.);
 pub const DARK_RED_COLOR: Color = Color::srgb(158. / 255., 40. / 255., 53. / 255.);
 pub const DARK_GRAY_COLOR: Color = Color::srgb(90. / 255., 105. / 255., 136. / 255.);
@@ -185,4 +190,52 @@ pub(crate) fn on_pointer_out_default_cursor(
             .insert(CursorIcon::System(SystemCursorIcon::Default));
     }
     event.propagate(false);
+}
+
+/// Indices for the confirmation button
+pub enum ConfirmationButtonIndex {
+    GreenCheckmark = 0,
+    RedX = 1,
+}
+
+/// Confirmation button (simple red X or green checkmark)
+pub(crate) fn confirmation_button(
+    background_color: Color,
+    image_index: ConfirmationButtonIndex,
+) -> impl Scene {
+    bsn! {
+        Button
+        Node {
+            width: px(75),
+            min_width: px(75),
+            border: px(5),
+        }
+        BorderColor::all(background_color)
+        Children [
+            Node {
+                height: percent(100),
+                width: percent(100),
+                padding: px(5),
+            }
+            image_node_with_texture_atlas("button/confirmation_modal.png", UVec2::new(32, 32), image_index as usize, 2)
+        ]
+        on(
+            move |_: On<Pointer<Over>>,
+            mut commands: Commands,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
+                }
+            }
+        )
+        on(
+            move |_: On<Pointer<Out>>,
+            mut commands: Commands,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+                }
+            }
+        )
+    }
 }

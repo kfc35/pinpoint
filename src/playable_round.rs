@@ -3,7 +3,7 @@ use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{prelude::*, reflect::serde::TypedReflectSerializer, settings::SaveSettingsSync};
 
 /// A round of Pinpoint that can be loaded into play.
-/// It was decoded from an [`EncodedRound`].
+/// It can be decoded from an [`EncodedRound`].
 #[derive(Reflect, Clone, Hash, PartialEq, Eq)]
 pub struct PlayableRound {
     /// The creator of this round
@@ -32,10 +32,16 @@ impl PlayableRound {
         }
     }
 
-    /// Returns the identifier for this created round.
-    /// Used to detect whether this player has played this round already.
-    pub fn get_identifier(&self) -> String {
-        return format!("{}-{}-{}", self.date, self.create_time, self.creator);
+    pub fn get_creator(&self) -> &String {
+        &self.creator
+    }
+
+    pub fn get_clue(&self) -> &String {
+        &self.clue
+    }
+
+    pub(crate) fn get_location(&self) -> UVec2 {
+        self.location
     }
 }
 
