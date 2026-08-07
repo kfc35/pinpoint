@@ -32,10 +32,7 @@ pub struct UsernameRequirements;
 #[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
 
-pub fn setup_menu(
-    mut commands: Commands,
-    username: Res<Username>,
-) {
+pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
     commands.spawn_scene_list(bsn_list! {
         AppMenu
         Visibility::Inherited

@@ -37,8 +37,9 @@ pub fn load_modal(
             width: percent(100),
             height: percent(100),
         }
+        GlobalZIndex(1)
+        BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
         Children [
-            GlobalZIndex(1)
             Node {
                 border: px(5),
                 padding: UiRect::axes(px(10), px(10)),
@@ -52,7 +53,11 @@ pub fn load_modal(
             BackgroundColor(Color::BLACK)
             Children [
                 Node {
-                    align_self: AlignSelf::Start
+                    position_type: PositionType::Absolute,
+                    top: px(5),
+                    left: px(5),
+                    width: px(50),
+                    height: px(50),
                 }
                 ZIndex(1)
                 Children [
@@ -64,7 +69,14 @@ pub fn load_modal(
                     }),
                 ],
 
-                load_select(&loadable_rounds,&app_type_registry),
+                load_select(&loadable_rounds,&app_type_registry)
+                Node {
+                    // the X takes up 55 px from the top
+                    // The select should be 60px from the top
+                    // The row gap is already 10px
+                    margin: UiRect::top(px(50))
+                }
+                ,
 
                 // TODO it can be disabled if there are no games to play.
                 play_button(&loadable_rounds),
@@ -223,7 +235,8 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
             Hovered::default()
             base_button("button/play.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
             Node {
-                align_self: AlignSelf::End,
+                width: px(250),
+                height: px(50),
             }
         })
     } else {
@@ -233,6 +246,10 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
             InteractionDisabled
             // Override border color
             BorderColor::all(DARK_GRAY_COLOR)
+            Node {
+                width: px(250),
+                height: px(50),
+            }
         })
     }
 }

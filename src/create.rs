@@ -518,6 +518,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
             width: percent(100),
             height: percent(100),
         }
+        BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
         Children [
             Node {
                 border: px(5),
@@ -586,6 +587,7 @@ fn share_modal() -> impl Scene {
             width: percent(100),
             height: percent(100),
         }
+        BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
         Children [
             Node {
                 border: px(5),
@@ -618,6 +620,7 @@ fn share_modal() -> impl Scene {
                 Node {
                     width: px(250),
                     height: px(250),
+                    margin: UiRect::top(px(50))
                 }
                 Children [
                     Node {
