@@ -23,10 +23,6 @@ mod ui;
 
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
 
-/// Used by the app to obfuscate playable rounds that people send each other.
-#[derive(Resource, Default, Deref, DerefMut)]
-pub(crate) struct SecretPassphrase(String);
-
 /// States that the app can transition between that trigger the whole screen to change.
 #[derive(Debug, Clone, Copy, Default, Eq, PartialEq, Hash, States)]
 pub(crate) enum AppState {
@@ -132,9 +128,6 @@ pub(crate) fn init_encoded_round(
 }
 
 fn main() {
-    let passphrase: &'static str = env!("SECRET_PASSPHRASE");
-    let secret_passphrase = SecretPassphrase(passphrase.to_string());
-
     App::new()
         .add_plugins(
             DefaultPlugins
@@ -150,7 +143,6 @@ fn main() {
         )
         .init_state::<AppState>()
         .init_resource::<Username>()
-        .insert_resource(secret_passphrase)
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
         .add_plugins((
             animation::AnimateGifPlugin,
