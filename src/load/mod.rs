@@ -20,6 +20,13 @@ pub(crate) struct LoadableRound {
 }
 
 impl LoadableRound {
+    pub(crate) fn new(round: EncodedRound) -> Self {
+        Self {
+            round,
+            final_guess: None,
+        }
+    }
+
     /// Gets this LoadableRound as a [`PlayableRound`].
     pub(crate) fn get_round_as_playable_round(
         &self,

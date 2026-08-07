@@ -9,6 +9,8 @@ use bevy::{
 };
 use chrono::Utc;
 use serde::de::DeserializeSeed;
+#[cfg(target_arch = "wasm32")]
+use web_sys::window;
 
 mod create;
 mod grid_axes;
@@ -19,6 +21,7 @@ mod menu;
 mod playable_round;
 use playable_round::PlayableRound;
 mod load;
+use load::{LoadableRound, LoadableRounds};
 mod ui;
 
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
@@ -48,6 +51,12 @@ pub(crate) struct StartDateTime {
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct Username(String);
 
+/// Text shown to the user when the menu is loaded.
+/// This text usually contains something about a game that could be loaded
+/// on startup.
+#[derive(Resource, Clone, Default, Deref, DerefMut)]
+pub(crate) struct MenuHeaderText(String);
+
 impl Username {
     /// Returns whether the name is valid (at least 1 character, alphamumeric incl. underscore, max 10 characters)
     pub(crate) fn is_valid(name: &String) -> bool {
@@ -67,17 +76,20 @@ impl Username {
 /// - Base64 Encoded
 #[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup, PartialEq)]
 #[reflect(Resource, Default, SettingsGroup)]
-pub(crate) struct EncodedRound {
-    date: String,
-    #[deref]
-    value: String,
-}
+pub(crate) struct EncodedRound(String);
 
 impl EncodedRound {
+    fn is_empty(&self) -> bool {
+        self.0 == ""
+    }
+
     fn try_decode(&self, type_registry: &AppTypeRegistry) -> Option<PlayableRound> {
+        if self.0 == "" {
+            return None;
+        }
         let type_registry = type_registry.read();
 
-        let decoded = URL_SAFE.decode(self.value.clone()).ok()?;
+        let decoded = URL_SAFE.decode(self.0.clone()).ok()?;
         let value: serde_json::Value = serde_json::from_slice(&decoded).unwrap();
 
         let registration = type_registry
@@ -101,7 +113,10 @@ impl EncodedRound {
     }
 
     fn is_valid(&self, today: &String, type_registry: &AppTypeRegistry) -> bool {
-        self.date == *today && self.value != "" && self.try_decode(type_registry).is_some()
+        self.0 != ""
+            && self
+                .try_decode(type_registry)
+                .is_some_and(|playable_round| *playable_round.get_date() == *today)
     }
 }
 
@@ -119,12 +134,59 @@ pub(crate) fn init_encoded_round(
     }
 
     println!("Clearing Encoded Round...");
-    let round = EncodedRound {
-        date: "".to_string(),
-        value: "".to_string(),
-    };
+    let round = EncodedRound("".to_string());
     commands.insert_resource(round);
     commands.queue(SaveSettingsSync::Always);
+}
+
+#[cfg(target_arch = "wasm32")]
+/// System that runs on startup on the web.
+/// If the user got to this page via clicking a share link, it parses
+fn parse_share_link(
+    start_date_time: Res<StartDateTime>,
+    app_type_registry: Res<AppTypeRegistry>,
+    mut loadable_rounds: ResMut<LoadableRounds>,
+    mut menu_header_text: ResMut<MenuHeaderText>,
+) {
+    if let Some(window) = window()
+        && let Some(document) = window.document()
+        && let Ok(url) = document.url()
+    {
+        if !url.contains("?share=") {
+            return;
+        }
+        let Some(encoded) = url.strip_prefix("https://kfc35.github.io/pinpoint/?share=") else {
+            return;
+        };
+
+        let encoded_round = EncodedRound(encoded.to_string());
+        let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
+            menu_header_text.0 =
+                "Round cannot be loaded. If this was a mistake, please double-check the URL."
+                    .to_string();
+            return;
+        };
+
+        if *playable_round.get_date() != start_date_time.date {
+            menu_header_text.0 = "Round invite expired - It's for an earlier day.".to_string();
+            return;
+        }
+
+        let identifier = playable_round.get_identifier();
+        if loadable_rounds
+            .iter()
+            .map(|round| round.get_round_as_playable_round(&app_type_registry))
+            .any(|round| round.get_identifier() == identifier)
+        {
+            menu_header_text.0 = format!(
+                "Round from {} is already loadable.",
+                playable_round.get_creator()
+            );
+            return;
+        }
+
+        loadable_rounds.push(LoadableRound::new(encoded_round));
+    }
 }
 
 fn main() {
@@ -156,6 +218,9 @@ fn main() {
                 setup,
                 create::init_created_round,
                 init_encoded_round,
+                // TODO need an init_loaded_rounds,
+                #[cfg(target_arch = "wasm32")]
+                parse_share_link,
                 create::setup_create,
             )
                 .chain(),

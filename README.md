@@ -29,3 +29,6 @@ Thanks to Alice Max, Marshall Pierce, and contributors for allowing this game to
 
 ### serde & serde_json
 Thanks to dtolnay and contributors for making the change-off between structs and raw strings easy.
+
+### wasm-bindgen / web-sys
+Thanks to Alex Crichton and contributors for making it easy to have the game work on the web.

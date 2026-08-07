@@ -41,6 +41,11 @@ This project uses the following third-party packages and libraries:
   - https://github.com/serde-rs/json/blob/v1.0.151/LICENSE-MIT
   - https://github.com/serde-rs/json/blob/v1.0.151/LICENSE-APACHE
 
+8. web-sys
+  - web-sys is dual licensed under MIT and Apache 2.0
+  - https://github.com/wasm-bindgen/wasm-bindgen/blob/0.2.126/LICENSE-MIT
+  - https://github.com/wasm-bindgen/wasm-bindgen/blob/0.2.126/LICENSE-APACHE
+
 ## Coalesced MIT License
 
 Copyright 2018 Developers of the Rand project
@@ -57,6 +62,8 @@ contributors.
 Copyright (c) 2016-2024 Benjamin Sago & the chronotope maintainers
 
 Copyright (c) 2025 Alice Maz, Marshall Pierce
+
+Copyright (c) 2014 Alex Crichton
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal

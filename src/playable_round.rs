@@ -4,7 +4,7 @@ use bevy::{prelude::*, reflect::serde::TypedReflectSerializer, settings::SaveSet
 
 /// A round of Pinpoint that can be loaded into play.
 /// It can be decoded from an [`EncodedRound`].
-#[derive(Reflect, Clone, Hash, PartialEq, Eq)]
+#[derive(Reflect, Clone, Debug, Hash, PartialEq, Eq)]
 pub struct PlayableRound {
     /// The creator of this round
     creator: String,
@@ -32,8 +32,17 @@ impl PlayableRound {
         }
     }
 
+    /// Uniquely identifies this playable round from others.
+    pub fn get_identifier(&self) -> String {
+        format!("{}-{}-{}", self.date, self.create_time, self.creator)
+    }
+
     pub fn get_creator(&self) -> &String {
         &self.creator
+    }
+
+    pub fn get_date(&self) -> &String {
+        &self.date
     }
 
     pub fn get_clue(&self) -> &String {
@@ -60,8 +69,7 @@ pub(crate) fn set_encoded_round_resource(
     let json = serde_json::to_string(&serializer).unwrap();
     let value = URL_SAFE.encode(json);
 
-    encoded_round.date = created_round.get_date().clone();
-    encoded_round.value = value;
+    encoded_round.0 = value;
     commands.queue(SaveSettingsSync::Always);
     Ok(())
 }
@@ -79,9 +87,14 @@ impl Plugin for EncodedRoundCreationPlugin {
                 .chain()
                 .run_if(
                     |start_date_time: Res<StartDateTime>,
+                     app_type_registry: Res<AppTypeRegistry>,
                      encoded_round: Res<EncodedRound>,
                      created_round: Res<CreatedRound>| {
-                        encoded_round.date != start_date_time.date
+                        // TODO this doesnt need to be a system anymore because it is fast.
+                        (encoded_round.is_empty()
+                            || encoded_round
+                                .try_decode(&app_type_registry)
+                                .is_some_and(|round| *round.get_date() != start_date_time.date))
                             && !created_round.get_is_draft()
                             && *created_round.get_date() == start_date_time.date
                     },
