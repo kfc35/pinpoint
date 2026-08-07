@@ -11,7 +11,7 @@ use bevy::{
 };
 
 use crate::{
-    AppState, EncryptedShareableRound, Modal, StartDateTime,
+    AppState, EncodedRound, Modal, StartDateTime,
     animation::{AnimatedImageNode, AnimationTimer},
     axes_descriptions,
     ui::{
@@ -44,6 +44,9 @@ pub struct ClueInputContainer;
 pub struct DoneButton;
 
 #[derive(Component, Clone, Default)]
+pub struct PrimaryButtonContainer;
+
+#[derive(Component, Clone, Default)]
 pub struct BottomButtons;
 
 #[derive(Component, Clone, Default)]
@@ -51,9 +54,6 @@ pub struct ConfirmationModal;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueReadback;
-
-#[derive(Component, Clone, Default)]
-pub struct CreatingRoundModal;
 
 #[derive(Component, Clone, Default)]
 pub struct ShareModal;
@@ -130,12 +130,14 @@ pub fn setup_create(
     mut commands: Commands,
     start_date_time: Res<StartDateTime>,
     created_round: Res<CreatedRound>,
-    encrypted_round: Res<EncryptedShareableRound>,
+    encoded_round: Res<EncodedRound>,
+    app_type_registry: Res<AppTypeRegistry>,
 ) {
     commands.spawn_scene_list(setup_create_vertical(
         &created_round,
         &start_date_time,
-        &encrypted_round,
+        &encoded_round,
+        &app_type_registry,
     ));
 }
 
@@ -152,11 +154,11 @@ pub fn hide_create(mut to_hide_q: Query<&mut Visibility, Or<(With<AppCreate>, Wi
 fn setup_create_vertical(
     created_round: &CreatedRound,
     start_date_time: &StartDateTime,
-    encrypted_round: &EncryptedShareableRound,
+    encoded_round: &EncodedRound,
+    app_type_registry: &AppTypeRegistry,
 ) -> impl SceneList {
     bsn_list! {
         confirmation_modal(created_round),
-        creating_round_modal(),
         share_modal(),
 
         AppCreate
@@ -214,14 +216,29 @@ fn setup_create_vertical(
             // Text Input
             clue_input_container(created_round),
 
-            done_button(created_round),
+            primary_button(created_round, encoded_round, app_type_registry),
 
-            bottom_buttons(start_date_time, encrypted_round),
+            bottom_buttons(),
         ]
     }
 }
 
 fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
+    bsn! {
+        ClueInputContainer
+        Node {
+            flex_direction: FlexDirection::Column,
+            row_gap: percent(5),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceBetween,
+        }
+        Children [
+            { clue_input_container_children(created_round) }
+        ]
+    }
+}
+
+fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList {
     let text = if created_round.is_draft {
         Text::new("Type in Your Clue")
     } else {
@@ -271,7 +288,7 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
                 }
                 Text::new(format!("{}", clue))
                 TextFont {
-                    font_size: FontSize::Rem(1.)
+                    font_size: FontSize::Rem(0.8)
                 }
                 pinpoint_font()
                 TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
@@ -281,32 +298,23 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
         }
     };
 
-    bsn! {
-        ClueInputContainer
+    bsn_list! {
         Node {
-            flex_direction: FlexDirection::Column,
-            row_gap: percent(5),
-            align_items: AlignItems::Center,
-            justify_content: JustifyContent::SpaceBetween,
+            width: percent(100),
         }
         Children [
             Node {
                 width: percent(100),
             }
-            Children [
-                Node {
-                    width: percent(100),
-                }
-                template_value(text)
-                TextFont {
-                    font_size: px(16),
-                }
-                TextLayout::justify(Justify::Center)
-                pinpoint_font()
-            ],
+            template_value(text)
+            TextFont {
+                font_size: FontSize::Rem(0.8)
+            }
+            TextLayout::justify(Justify::Center)
+            pinpoint_font()
+        ],
 
-            clue_input(),
-        ]
+        clue_input(),
     }
 }
 
@@ -372,7 +380,25 @@ fn on_changed_clue_input(
     }
 }
 
-fn done_button(created_round: &CreatedRound) -> impl Scene {
+fn primary_button(
+    created_round: &CreatedRound,
+    encoded_round: &EncodedRound,
+    app_type_registry: &AppTypeRegistry,
+) -> Box<dyn Scene> {
+    if encoded_round.is_valid(&created_round.date, app_type_registry) && !created_round.is_draft {
+        return Box::new(bsn! {
+            PrimaryButtonContainer
+            Node {
+                // override the width because we don't care
+                width: Val::Auto,
+                max_width: px(280),
+                height: percent(7),
+            }
+            Children [
+                share_primary_button()
+            ]
+        });
+    }
     let maybe_disabled = || -> Box<dyn Scene> {
         if created_round.clue.is_empty() {
             Box::new(bsn! {
@@ -387,55 +413,45 @@ fn done_button(created_round: &CreatedRound) -> impl Scene {
             })
         }
     };
-    let node = || -> Box<dyn Scene> {
-        if created_round.is_draft {
-            Box::new(bsn! {
-                Node {
-                    // override the width because we don't care
-                    width: Val::Auto,
-                    max_width: px(280),
-                }
-            })
-        } else {
-            Box::new(bsn! {
-                Node {
-                    display: Display::None,
-                }
-            })
+
+    Box::new(bsn! {
+        PrimaryButtonContainer
+        Node {
+            // override the width because we don't care
+            width: Val::Auto,
+            max_width: px(280),
+            height: percent(7),
         }
-    };
+        Children [
+            DoneButton
+            on_click_if_inactive()
+            Hovered::default()
+            maybe_disabled()
+            Node {
+                width: percent(100),
+                height: percent(100),
+            }
+            on(|_: On<Activate>,
+                modal_q: Single<&mut Visibility, With<ConfirmationModal>>| {
+                    *modal_q.into_inner() = Visibility::Inherited;
+            })
+        ]
+    })
+}
+
+fn share_primary_button() -> impl Scene {
     bsn! {
-        DoneButton
-        on_click_if_inactive()
-        Hovered::default()
-        node()
-        maybe_disabled()
-        on(|_: On<Activate>,
-            modal_q: Single<&mut Visibility, With<ConfirmationModal>>| {
-                *modal_q.into_inner() = Visibility::Inherited;
-        })
+        base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
+        Node {
+            width: percent(100),
+            height: percent(100),
+        }
+        on_pointer_out_back_to_share()
+        create_on_activate_share_link(true)
     }
 }
 
-fn bottom_buttons(
-    start_date_time: &StartDateTime,
-    encrypted_round: &EncryptedShareableRound,
-) -> impl Scene {
-    let second_button = || -> Box<dyn Scene> {
-        if encrypted_round.value != "" && encrypted_round.date == start_date_time.date {
-            // Share button
-            Box::new(bsn! {
-                base_button("button/share_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
-                create_on_activate_share_link(false)
-            })
-        } else {
-            // Help button
-            Box::new(bsn! {
-                base_button("button/question_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
-            })
-        }
-    };
-
+fn bottom_buttons() -> impl Scene {
     bsn! {
         BottomButtons
         Node {
@@ -453,7 +469,8 @@ fn bottom_buttons(
             }
             on_activate_change_state(AppState::Menu),
 
-            second_button()
+
+            base_button("button/question_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
             Node {
                 width: px(50),
                 height: px(50),
@@ -547,28 +564,11 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
 
                     confirmation_modal_button(DARK_GREEN_COLOR, 0)
                     on(|_: On<Activate>,
-                        clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
-                        mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<CreatingRoundModal>)>,
-                        mut need_to_show_q: Query<&mut Visibility, (With<CreatingRoundModal>, Without<ConfirmationModal>)>,
-                        done_button_q: Single<Entity, With<DoneButton>>,
-                        app_create_q: Single<Entity, With<AppCreate>>,
                         mut created_round: ResMut<CreatedRound>,
-                        mut commands: Commands,| -> Result<(), BevyError> {
+                        mut commands: Commands,| {
+                            // update_create_ui_after_encoding will handle ui
                             created_round.is_draft = false;
                             commands.queue(SaveSettingsSync::Always);
-
-                            commands.entity(clue_input_container_q.entity()).despawn();
-                            commands.entity(done_button_q.entity()).despawn();
-                            let child = commands.spawn_scene(clue_input_container(&created_round)).id();
-                            commands.entity(app_create_q.entity()).add_child(child);
-
-                            for mut vis in need_to_hide_q.iter_mut() {
-                                *vis = Visibility::Hidden;
-                            }
-                            for mut vis in need_to_show_q.iter_mut() {
-                                *vis = Visibility::Inherited;
-                            }
-                            Ok(())
                     }),
                 ]
             ]
@@ -611,40 +611,6 @@ fn confirmation_modal_button(background_color: Color, image_index: usize) -> imp
                 }
             }
         )
-    }
-}
-
-/// Modal that pops up while the round is being encrypted.
-fn creating_round_modal() -> impl Scene {
-    bsn! {
-        Modal
-        CreatingRoundModal
-        GlobalZIndex(1)
-        Visibility::Hidden
-        Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            width: percent(100),
-            height: percent(100),
-        }
-        Children [
-            Node {
-                border: px(5),
-                padding: UiRect::axes(px(10), px(10)),
-                flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::Center,
-                align_items: AlignItems::Center,
-                width: percent(95),
-                row_gap: px(10),
-            }
-            BorderColor::all(DARK_RED_COLOR)
-            BackgroundColor(Color::BLACK)
-            Children [
-                Text::new("Encrypting the round...")
-                pinpoint_font(),
-            ]
-        ]
     }
 }
 
@@ -725,41 +691,47 @@ fn share_modal() -> impl Scene {
                     width: px(250),
                     height: px(50),
                 }
-                on(move |event: On<Pointer<Out>>,
-                    mut commands: Commands,
-                    asset_server: Res<AssetServer>,
-                    mut layouts: ResMut<Assets<TextureAtlasLayout>>,| {
-                        let layout = TextureAtlasLayout::from_grid(UVec2::new(137, 32), 1, 3, None, None);
-                        let layout_handle = layouts.add(layout);
-                        let texture_atlas = TextureAtlas {
-                            layout: layout_handle,
-                            index: 0,
-                        };
-
-                        commands.entity(event.entity).despawn_children();
-                        let new_child = commands.spawn((
-                            Node {
-                                    width: percent(100),
-                                    height: percent(100),
-                                    ..default()
-                            },
-                            ImageNode {
-                                image: asset_server.load("button/share.png"),
-                                texture_atlas: Some(texture_atlas),
-                                ..default()
-                        })).id();
-                        commands.entity(event.entity).add_child(new_child);
-                })
+                on_pointer_out_back_to_share()
                 create_on_activate_share_link(true),
             ]
         ]
     }
 }
 
+fn on_pointer_out_back_to_share() -> impl Scene {
+    bsn! {
+        on(move |event: On<Pointer<Out>>,
+            mut commands: Commands,
+            asset_server: Res<AssetServer>,
+            mut layouts: ResMut<Assets<TextureAtlasLayout>>,| {
+                let layout = TextureAtlasLayout::from_grid(UVec2::new(137, 32), 1, 3, None, None);
+                let layout_handle = layouts.add(layout);
+                let texture_atlas = TextureAtlas {
+                    layout: layout_handle,
+                    index: 0,
+                };
+
+                commands.entity(event.entity).despawn_children();
+                let new_child = commands.spawn((
+                    Node {
+                            width: percent(100),
+                            height: percent(100),
+                            ..default()
+                    },
+                    ImageNode {
+                        image: asset_server.load("button/share.png"),
+                        texture_atlas: Some(texture_atlas),
+                        ..default()
+                })).id();
+                commands.entity(event.entity).add_child(new_child);
+        })
+    }
+}
+
 fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
     bsn! {
         on(move |event: On<Activate>,
-            round: Res<EncryptedShareableRound>,
+            round: Res<EncodedRound>,
             mut clipboard: ResMut<Clipboard>,
             asset_server: Res<AssetServer>,
             mut layouts: ResMut<Assets<TextureAtlasLayout>>,
@@ -799,16 +771,20 @@ fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
     }
 }
 
-/// System to show the share modal after the round has successfully been
-pub(crate) fn update_create_ui_after_encryption(
-    mut need_to_hide_q: Query<&mut Visibility, (With<CreatingRoundModal>, Without<ShareModal>)>,
+/// System to show the share modal after the round has successfully been encoded
+pub(crate) fn update_create_ui_after_encoding(
+    mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
     mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
-    app_create_q: Single<Entity, With<AppCreate>>,
-    start_date_time: Res<StartDateTime>,
-    encrypted_round: Res<EncryptedShareableRound>,
-    bottom_buttons_q: Single<Entity, With<BottomButtons>>,
+    created_round: Res<CreatedRound>,
+    clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
+    primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
     mut commands: Commands,
 ) {
+    commands
+        .entity(clue_input_container_q.entity())
+        .despawn_children()
+        .queue_spawn_related_scenes::<Children>(clue_input_container_children(&created_round));
+
     for mut vis in need_to_hide_q.iter_mut() {
         *vis = Visibility::Hidden;
     }
@@ -816,13 +792,11 @@ pub(crate) fn update_create_ui_after_encryption(
         *vis = Visibility::Inherited;
     }
 
-    commands.entity(bottom_buttons_q.entity()).despawn();
-    let bottom_buttons_id = commands
-        .spawn_scene(bottom_buttons(&start_date_time, &encrypted_round))
-        .id();
+    let new_child = commands.spawn_scene(share_primary_button()).id();
     commands
-        .entity(app_create_q.entity())
-        .add_child(bottom_buttons_id);
+        .entity(primary_button_q.entity())
+        .despawn_children()
+        .add_child(new_child);
 }
 
 pub(crate) struct CreatePlugin;

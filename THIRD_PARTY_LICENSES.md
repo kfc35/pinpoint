@@ -29,17 +29,12 @@ This project uses the following third-party packages and libraries:
   - chrono_tz is dual licensed under MIT and Apache 2.0
   - https://github.com/chronotope/chrono-tz/blob/v0.10.4/LICENSE
 
-6. age
-  - age is dual licensed under MIT and Apache 2.0
-  - https://github.com/str4d/rage/blob/v0.12.1/LICENSE-MIT
-  - https://github.com/str4d/rage/blob/v0.12.1/LICENSE-APACHE
-
-7. base64
+6. base64
   - base64 is dual licensed under MIT and Apache 2.0
   - https://github.com/marshallpierce/rust-base64/blob/v0.23.1/LICENSE-MIT
   - https://github.com/marshallpierce/rust-base64/blob/v0.23.1/LICENSE-APACHE
 
-8. serde & serde_json
+7. serde & serde_json
   - serde & serde_json are dual licensed under MIT and Apache 2.0
   - https://github.com/serde-rs/serde/blob/v1.0.229/LICENSE-MIT
   - https://github.com/serde-rs/serde/blob/v1.0.229/LICENSE-APACHE
@@ -60,8 +55,6 @@ Copyright (c) 2014--2026, Kang Seonghoon and
 contributors.
 
 Copyright (c) 2016-2024 Benjamin Sago & the chronotope maintainers
-
-Copyright (c) 2019 Jack Grigg
 
 Copyright (c) 2025 Alice Maz, Marshall Pierce
 

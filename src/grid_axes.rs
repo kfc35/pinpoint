@@ -151,7 +151,6 @@ fn axis_text(axis: &'static str) -> impl Scene {
         TextFont {
             font_size: FontSize::Rem(0.8),
         }
-        // TextLayout::linebreak(LineBreak::AnyCharacter)
         pinpoint_font()
     }
 }

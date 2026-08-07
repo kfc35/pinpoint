@@ -1,8 +1,4 @@
-use crate::{
-    AppState, EncryptedShareableRound, SecretPassphrase, StartDateTime, Username,
-    create::CreatedRound,
-};
-use age::secrecy::SecretString;
+use crate::{AppState, EncodedRound, StartDateTime, Username, create::CreatedRound};
 use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{prelude::*, reflect::serde::TypedReflectSerializer, settings::SaveSettingsSync};
 
@@ -43,15 +39,12 @@ impl PlayableRound {
     }
 }
 
-/// A system that will encrypt a newly [`CreatedRound`] as a [`PlayableRound`]
+/// A system that will encode a newly [`CreatedRound`] as a [`PlayableRound`]
 /// so that it can be shared with others.
-///
-/// This system takes a non-trivial amount of time to execute (1-3 seconds).
 pub(crate) fn set_encrypted_shareable_round(
     username: Res<Username>,
     created_round: Res<CreatedRound>,
-    secret_passphrase: Res<SecretPassphrase>,
-    mut encrypted_round: ResMut<EncryptedShareableRound>,
+    mut encoded_round: ResMut<EncodedRound>,
     type_registry: Res<AppTypeRegistry>,
     mut commands: Commands,
 ) -> Result<(), BevyError> {
@@ -59,34 +52,30 @@ pub(crate) fn set_encrypted_shareable_round(
     let round = PlayableRound::from_current_user(&username, &created_round);
     let serializer = TypedReflectSerializer::new(&round, &type_registry);
     let json = serde_json::to_string(&serializer).unwrap();
+    let value = URL_SAFE.encode(json);
 
-    let passphrase = SecretString::from((*secret_passphrase).clone());
-    let recipient = age::scrypt::Recipient::new(passphrase);
-    let encrypted = age::encrypt(&recipient, &json.into_bytes())?;
-    let value = URL_SAFE.encode(encrypted);
-
-    encrypted_round.date = created_round.get_date().clone();
-    encrypted_round.value = value;
+    encoded_round.date = created_round.get_date().clone();
+    encoded_round.value = value;
     commands.queue(SaveSettingsSync::Always);
     Ok(())
 }
 
-pub(crate) struct EncryptedRoundCreationPlugin;
+pub(crate) struct EncodedRoundCreationPlugin;
 
-impl Plugin for EncryptedRoundCreationPlugin {
+impl Plugin for EncodedRoundCreationPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
             (
                 set_encrypted_shareable_round,
-                crate::create::update_create_ui_after_encryption.run_if(in_state(AppState::Create)),
+                crate::create::update_create_ui_after_encoding.run_if(in_state(AppState::Create)),
             )
                 .chain()
                 .run_if(
                     |start_date_time: Res<StartDateTime>,
-                     encrypted_round: Res<EncryptedShareableRound>,
+                     encoded_round: Res<EncodedRound>,
                      created_round: Res<CreatedRound>| {
-                        encrypted_round.date != start_date_time.date
+                        encoded_round.date != start_date_time.date
                             && !created_round.get_is_draft()
                             && *created_round.get_date() == start_date_time.date
                     },

@@ -1,4 +1,3 @@
-use age::secrecy::SecretString;
 use base64::{Engine as _, engine::general_purpose::URL_SAFE};
 use bevy::{
     DefaultPlugins,
@@ -60,36 +59,27 @@ impl Username {
     }
 }
 
-/// The encrypted information of any user's created round for the day.
+/// The encoded information of any user's created round for the day.
 /// As a [`Resource`], it contains the data for the current user's shareable round for today.
 /// The current user can also receive this data from another person.
 ///
 /// The value is a [`crate::playable_round::PlayableRound`] that has been:
 /// - Serialized
-/// - Encrypted
 /// - Base64 Encoded
 #[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
 #[reflect(Resource, Default, SettingsGroup)]
-pub(crate) struct EncryptedShareableRound {
+pub(crate) struct EncodedRound {
     date: String,
     #[deref]
     value: String,
 }
 
-impl EncryptedShareableRound {
-    fn decode(
-        &self,
-        secret_passphrase: &SecretPassphrase,
-        type_registry: &AppTypeRegistry,
-    ) -> Option<Box<dyn PartialReflect>> {
+impl EncodedRound {
+    fn decode(&self, type_registry: &AppTypeRegistry) -> Option<Box<dyn PartialReflect>> {
         let type_registry = type_registry.read();
 
-        let encrypted = URL_SAFE.decode(self.value.clone()).ok()?;
-        let passphrase = SecretString::from((*secret_passphrase).clone());
-        let identity = age::scrypt::Identity::new(passphrase);
-        let decrypted = age::decrypt(&identity, &encrypted).ok()?;
-
-        let value: serde_json::Value = serde_json::from_slice(&decrypted).unwrap();
+        let decoded = URL_SAFE.decode(self.value.clone()).ok()?;
+        let value: serde_json::Value = serde_json::from_slice(&decoded).unwrap();
 
         let registration = type_registry
             .get(std::any::TypeId::of::<playable_round::PlayableRound>())
@@ -104,15 +94,8 @@ impl EncryptedShareableRound {
         }
     }
 
-    fn is_valid(
-        &self,
-        today: &String,
-        secret_passphrase: &SecretPassphrase,
-        type_registry: &AppTypeRegistry,
-    ) -> bool {
-        self.date == *today
-            && self.value != ""
-            && self.decode(secret_passphrase, type_registry).is_some()
+    fn is_valid(&self, today: &String, type_registry: &AppTypeRegistry) -> bool {
+        self.date == *today && self.value != "" && self.decode(type_registry).is_some()
     }
 }
 
@@ -120,18 +103,17 @@ impl EncryptedShareableRound {
 pub(crate) fn init_encrypted_shareable_round(
     mut commands: Commands,
     start_date_time: Res<StartDateTime>,
-    encrypted_shareable_round: Option<ResMut<EncryptedShareableRound>>,
-    secret_passphrase: Res<SecretPassphrase>,
+    encoded_round: Option<ResMut<EncodedRound>>,
     type_registry: Res<AppTypeRegistry>,
 ) {
-    if let Some(round) = encrypted_shareable_round
-        && round.is_valid(&start_date_time.date, &secret_passphrase, &type_registry)
+    if let Some(round) = encoded_round
+        && round.is_valid(&start_date_time.date, &type_registry)
     {
         return;
     }
 
-    println!("Clearing encrypted round...");
-    let round = EncryptedShareableRound {
+    println!("Clearing encoded round...");
+    let round = EncodedRound {
         date: "".to_string(),
         value: "".to_string(),
     };
@@ -167,7 +149,7 @@ fn main() {
             animation::AnimateGifPlugin,
             menu::MenuPlugin,
             create::CreatePlugin,
-            playable_round::EncryptedRoundCreationPlugin,
+            playable_round::EncodedRoundCreationPlugin,
         ))
         .add_systems(
             Startup,

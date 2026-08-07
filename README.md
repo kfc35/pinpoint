@@ -24,9 +24,6 @@ Thanks to Lokathor and the bytemuck contributors for making it easy for me to ma
 ### chrono and chrono_tz
 Thanks to chronotope team and contributors for giving me the time utils I need to ensure the game works on web.
 
-### age
-Thanks to Jack Grigg (str4d) and contributors for allowing this game to have encrypted shareable rounds.
-
 ### base64
 Thanks to Alice Max, Marshall Pierce, and contributors for allowing this game to be shareable with decent looking strings.
 
