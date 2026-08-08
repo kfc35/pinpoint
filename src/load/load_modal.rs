@@ -10,13 +10,21 @@ use bevy::{
     picking::hover::Hovered,
     prelude::*,
     ui::{Checked, InteractionDisabled},
-    ui_widgets::{Activate, RadioButton, RadioGroup, ValueChange},
+    ui_widgets::{
+        Activate, ControlOrientation, RadioButton, RadioGroup, Scrollbar, ScrollbarThumb,
+        ValueChange,
+    },
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
 #[derive(Component, Default, Clone)]
 struct LoadModal;
 
+/// Marker component for the radio group
+#[derive(Component, Default, Clone)]
+struct LoadRadioGroup;
+
+/// Placed on a RadioButton signifying which round in [`LoadableRounds`] is selected.
 #[derive(Component, Default, Clone)]
 struct RoundIndex(usize);
 
@@ -47,7 +55,7 @@ pub fn load_modal(
                 justify_content: JustifyContent::SpaceBetween,
                 align_items: AlignItems::Center,
                 width: percent(95),
-                min_height: percent(80),
+                height: percent(80),
                 row_gap: px(10),
             }
             BorderColor::all(DARK_BLUE_COLOR)
@@ -90,6 +98,80 @@ fn load_select(
     loadable_rounds: &LoadableRounds,
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
+    bsn! {
+        Node {
+            display: Display::Grid,
+            width: percent(90),
+            height: percent(50),
+            grid_template_columns: vec![RepeatedGridTrack::flex(1, 1.),RepeatedGridTrack::auto(1)],
+            justify_content: JustifyContent::SpaceAround,
+        }
+        on(crate::ui::handle_mouse_drag_as_scroll)
+        Children [
+            #Content
+            RadioGroup
+            LoadRadioGroup
+            Node {
+                flex_direction: FlexDirection::Column,
+                height: percent(100),
+                padding: px(5),
+                overflow: Overflow::scroll_y(),
+            }
+            BackgroundColor(Color::WHITE)
+            on(|event: On<ValueChange<Entity>>,
+                index_q: Query<(Entity, &RoundIndex), With<RadioButton>>,
+                checked_index_q: Single<(Entity, &RoundIndex), With<Checked>>,
+                mut commands: Commands| {
+                    let Ok((new_checked_entity, RoundIndex(idx))) = index_q.get(event.value) else {
+                        return;
+                    };
+                    let (checked_entity, RoundIndex(checked_index)) = checked_index_q.into_inner();
+                    if idx == checked_index {
+                        return;
+                    }
+
+                    // Update styles.
+                    commands.entity(checked_entity)
+                        .remove::<Checked>()
+                        .remove::<BackgroundColor>();
+
+                    commands.entity(new_checked_entity)
+                        .insert((Checked, BackgroundColor(Color::BLACK)));
+            })
+            Children [
+                { load_select_children(loadable_rounds, app_type_registry) }
+            ],
+
+            // Scrollbar
+            Node {
+                min_width: px(12),
+                height: percent(100),
+            }
+            // Hide it by default since users most likely do not need it.
+            // A system will update this to visible if needed.
+            Visibility::Hidden
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
+        ]
+    }
+}
+
+fn load_select_children(
+    loadable_rounds: &LoadableRounds,
+    app_type_registry: &AppTypeRegistry,
+) -> Box<dyn SceneList> {
     let (unplayed, played): (Vec<(usize, &LoadableRound)>, Vec<(usize, &LoadableRound)>) =
         loadable_rounds
             .iter()
@@ -97,73 +179,56 @@ fn load_select(
             .partition(|&(_, round)| round.final_guess.is_none());
     let unplayed_len = unplayed.len();
     let played_len = played.len();
-    bsn! {
-        RadioGroup
-        Node {
-            flex_direction: FlexDirection::Column,
-            width: percent(90)
-        }
-        BackgroundColor(Color::WHITE)
-        on(|event: On<ValueChange<Entity>>,
-            index_q: Query<(Entity, &RoundIndex), With<RadioButton>>,
-            checked_index_q: Single<(Entity, &RoundIndex), With<Checked>>,
-            mut commands: Commands| {
-                let Ok((new_checked_entity, RoundIndex(idx))) = index_q.get(event.value) else {
-                    return;
-                };
-                let (checked_entity, RoundIndex(checked_index)) = checked_index_q.into_inner();
-                if idx == checked_index {
-                    return;
-                }
 
-                // Update styles.
-                commands.entity(checked_entity)
-                    .remove::<Checked>()
-                    .remove::<BackgroundColor>();
-
-                commands.entity(new_checked_entity)
-                    .insert((Checked, BackgroundColor(Color::BLACK)));
-        })
-        Children [
-            Node {
-                width: percent(100),
+    if loadable_rounds.len() == 0 {
+        return Box::new(bsn_list! {
+            Text::new("No games to load.")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.8)
             }
-            Children [
-                Node
-                Children [
-                    Text::new(format!("Unplayed ({unplayed_len})"))
-                    pinpoint_font()
-                    TextFont {
-                        font_size: FontSize::Rem(0.8)
-                    }
-                    TextColor(Color::BLACK)
-                ],
-
-                {
-                    unplayed.iter().map(|(index, round)| loadable_round_to_radio_button(*index, round, false, app_type_registry,)).collect::<Vec<_>>()
-                }
-            ],
-
-            Node {
-                width: percent(100),
-            }
-            Children [
-                Node
-                Children [
-                    Text::new(format!("Played ({played_len})"))
-                    pinpoint_font()
-                    TextFont {
-                        font_size: FontSize::Rem(0.8)
-                    }
-                    TextColor(Color::BLACK)
-                ],
-
-                {
-                    played.iter().enumerate().map(|(played_index, (index, round))| loadable_round_to_radio_button(*index, round, played_index == 0, app_type_registry)).collect::<Vec<_>>()
-                }
-            ],
-        ]
+            TextColor(Color::BLACK),
+        });
     }
+    Box::new(bsn_list! {
+        Node {
+            width: percent(100),
+        }
+        Children [
+            Node
+            Children [
+                Text::new(format!("Unplayed ({unplayed_len})"))
+                pinpoint_font()
+                TextFont {
+                    font_size: FontSize::Rem(0.8)
+                }
+                TextColor(Color::BLACK)
+            ],
+
+            {
+                unplayed.iter().map(|(index, round)| loadable_round_to_radio_button(*index, round, false, app_type_registry,)).collect::<Vec<_>>()
+            }
+        ],
+
+        Node {
+            width: percent(100),
+        }
+        Children [
+            Node
+            Children [
+                Text::new(format!("Played ({played_len})"))
+                pinpoint_font()
+                TextFont {
+                    font_size: FontSize::Rem(0.8)
+                }
+                TextColor(Color::BLACK)
+            ],
+
+            {
+                played.iter().enumerate().map(|(played_index, (index, round))| loadable_round_to_radio_button(*index, round, played_index == 0, app_type_registry)).collect::<Vec<_>>()
+            }
+        ],
+    })
 }
 
 fn loadable_round_to_radio_button(
@@ -173,16 +238,7 @@ fn loadable_round_to_radio_button(
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
     let playable_round = round.get_round_as_playable_round(app_type_registry);
-    let text = if let Some(guess) = round.final_guess {
-        // let distance = playable_round
-        //     .get_location()
-        //     .as_vec2()
-        //     .distance(guess.as_vec2());
-        format!("    {}", playable_round.get_creator())
-        // format!("\t{} - {:.1}", playable_round.get_creator(), distance)
-    } else {
-        format!("    {}", playable_round.get_creator())
-    };
+    let text = format!("    {}", playable_round.get_creator());
     let checked = || -> Box<dyn Scene> {
         if is_checked {
             Box::new(bsn! {

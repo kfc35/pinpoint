@@ -60,15 +60,13 @@ impl PlayableRound {
     }
 }
 
-/// A system that will encode a newly [`CreatedRound`] as a [`PlayableRound`]
-/// so that it can be shared with others.
+/// Encodes a newly [`CreatedRound`] as an [`EncodedRound`] so that it can be shared with others.
 pub(crate) fn set_encoded_round_resource(
-    username: Res<Username>,
-    created_round: Res<CreatedRound>,
-    mut encoded_round: ResMut<EncodedRound>,
-    type_registry: Res<AppTypeRegistry>,
-    mut commands: Commands,
-) -> Result<(), BevyError> {
+    username: &Res<Username>,
+    created_round: &ResMut<CreatedRound>,
+    encoded_round: &mut ResMut<EncodedRound>,
+    type_registry: &Res<AppTypeRegistry>,
+) {
     let type_registry = type_registry.read();
     let round = PlayableRound::from_current_user(&username, &created_round);
     let serializer = TypedReflectSerializer::new(&round, &type_registry);
@@ -76,36 +74,4 @@ pub(crate) fn set_encoded_round_resource(
     let value = URL_SAFE.encode(json);
 
     encoded_round.0 = value;
-    commands.queue(SaveSettingsSync::Always);
-    Ok(())
-}
-
-/// TODO this can probably be removed.
-pub(crate) struct EncodedRoundCreationPlugin;
-
-impl Plugin for EncodedRoundCreationPlugin {
-    fn build(&self, app: &mut App) {
-        app.add_systems(
-            Update,
-            (
-                // TODO this doesnt need to be a system anymore because it is fast.
-                set_encoded_round_resource,
-                crate::create::update_create_ui_after_encoding.run_if(in_state(AppState::Create)),
-            )
-                .chain()
-                .run_if(
-                    |start_date_time: Res<StartDateTime>,
-                     app_type_registry: Res<AppTypeRegistry>,
-                     encoded_round: Res<EncodedRound>,
-                     created_round: Res<CreatedRound>| {
-                        (encoded_round.is_empty()
-                            || encoded_round
-                                .try_decode(&app_type_registry)
-                                .is_some_and(|round| *round.get_date() != start_date_time.date))
-                            && !created_round.get_is_draft()
-                            && *created_round.get_date() == start_date_time.date
-                    },
-                ),
-        );
-    }
 }

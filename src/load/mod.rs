@@ -7,6 +7,9 @@ use bevy::{
 mod load_modal;
 pub use load_modal::load_modal;
 
+#[cfg(target_arch = "wasm32")]
+use web_sys::window;
+
 /// A round that the current user can play / has played.
 #[derive(Reflect, Clone, Default)]
 #[reflect(Default)]
@@ -76,4 +79,55 @@ impl LoadableRound {
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct LoadableRounds {
     pub(crate) rounds: Vec<LoadableRound>,
+}
+
+#[cfg(target_arch = "wasm32")]
+/// A System that runs on startup on the web.
+/// If the user got to this page via clicking a share link, it parses the share link
+/// into a [`LoadableRound`].
+pub fn parse_share_link(
+    start_date_time: Res<StartDateTime>,
+    app_type_registry: Res<AppTypeRegistry>,
+    mut loadable_rounds: ResMut<LoadableRounds>,
+    mut menu_header_text: ResMut<MenuHeaderText>,
+) {
+    if let Some(window) = window()
+        && let Some(document) = window.document()
+        && let Ok(url) = document.url()
+    {
+        if !url.contains("?share=") {
+            return;
+        }
+        let Some(encoded) = url.strip_prefix("https://kfc35.github.io/pinpoint/?share=") else {
+            return;
+        };
+
+        let encoded_round = EncodedRound(encoded.to_string());
+        let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
+            menu_header_text.0 =
+                "Round cannot be loaded. If this was a mistake, please double-check the URL."
+                    .to_string();
+            return;
+        };
+
+        if *playable_round.get_date() != start_date_time.date {
+            menu_header_text.0 = "Round invite expired - It's for an earlier day.".to_string();
+            return;
+        }
+
+        let identifier = playable_round.get_identifier();
+        if loadable_rounds
+            .iter()
+            .map(|round| round.get_round_as_playable_round(&app_type_registry))
+            .any(|round| round.get_identifier() == identifier)
+        {
+            menu_header_text.0 = format!(
+                "Round from {} is already loadable.",
+                playable_round.get_creator()
+            );
+            return;
+        }
+
+        loadable_rounds.push(LoadableRound::new(encoded_round));
+    }
 }

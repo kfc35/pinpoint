@@ -1,10 +1,11 @@
 use crate::AppState;
 ///! A hodgepodge of ui utilities to make composing ui elements easier.
 use bevy::{
+    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
     text::FontSourceTemplate,
     ui::InteractionDisabled,
-    ui_widgets::{Activate, Button},
+    ui_widgets::{Activate, Button, Scrollbar},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
 
@@ -238,4 +239,104 @@ pub(crate) fn confirmation_button(
             }
         )
     }
+}
+
+/// System that hides the scrollbar if the scrollbar is unnecessary.
+pub fn update_scrollbar_visibility(
+    scrollpos_q: Query<(Entity, &Node, &ComputedNode, &InheritedVisibility)>,
+    mut scrollbar_q: Query<(&mut Visibility, &Scrollbar)>,
+) {
+    for (entity, node, computed_node, content_visibility) in scrollpos_q.iter() {
+        if node.overflow.y == OverflowAxis::Scroll && content_visibility.get() {
+            let max_offset = (computed_node.content_size() - computed_node.size())
+                * computed_node.inverse_scale_factor();
+            for (mut visibility, scrollbar) in scrollbar_q.iter_mut() {
+                if scrollbar.target == entity && max_offset.y <= 0. {
+                    *visibility = Visibility::Hidden;
+                } else if scrollbar.target == entity {
+                    *visibility = Visibility::Inherited;
+                }
+            }
+        }
+    }
+}
+
+/// System that interprets mouse wheel scroll as scroll.
+pub fn update_scrollbar_with_scroll(
+    accumulated_mouse_scroll: Res<AccumulatedMouseScroll>,
+    mut scroll_query: Query<(
+        &mut ScrollPosition,
+        &Node,
+        &ComputedNode,
+        &InheritedVisibility,
+    )>,
+) {
+    let scroll = match accumulated_mouse_scroll.unit {
+        MouseScrollUnit::Line => {
+            accumulated_mouse_scroll.delta.y * MouseScrollUnit::SCROLL_UNIT_CONVERSION_FACTOR
+        }
+        MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y,
+    };
+
+    for (mut scroll_pos, node, computed_node, visibility) in scroll_query.iter_mut() {
+        if handle_scroll(scroll, &mut scroll_pos, node, computed_node, visibility) {
+            break;
+        }
+    }
+}
+
+/// Observer that interprets mouse drag as scroll.
+/// Attach it to an entity who has the Scroll Area as a child.
+pub fn handle_mouse_drag_as_scroll(
+    drag: On<Pointer<Drag>>,
+    mut scroll_query: Query<(
+        &mut ScrollPosition,
+        &Node,
+        &ComputedNode,
+        &InheritedVisibility,
+    )>,
+    children_query: Query<&Children>,
+) {
+    let Ok(children) = children_query.get(drag.entity) else {
+        return;
+    };
+    for child in children.iter() {
+        let Ok((mut scroll_pos, node, computed_node, visibility)) = scroll_query.get_mut(child)
+        else {
+            continue;
+        };
+        handle_scroll(
+            -drag.delta.y,
+            &mut scroll_pos,
+            node,
+            computed_node,
+            visibility,
+        );
+    }
+}
+
+fn handle_scroll(
+    scroll: f32,
+    scroll_pos: &mut ScrollPosition,
+    node: &Node,
+    computed_node: &ComputedNode,
+    visibility: &InheritedVisibility,
+) -> bool {
+    if node.overflow.y == OverflowAxis::Scroll && visibility.get() {
+        let max_offset = (computed_node.content_size() - computed_node.size())
+            * computed_node.inverse_scale_factor();
+
+        let max = if scroll > 0. {
+            scroll_pos.y >= max_offset.y
+        } else {
+            scroll_pos.y <= 0.
+        };
+
+        if !max {
+            scroll_pos.y += scroll;
+        }
+
+        return true;
+    }
+    return false;
 }

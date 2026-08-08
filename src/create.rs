@@ -10,7 +10,7 @@ use bevy::{
 };
 
 use crate::{
-    AppState, EncodedRound, StartDateTime,
+    AppState, EncodedRound, StartDateTime, Username,
     animation::{AnimatedImageNode, AnimationTimer},
     axes_descriptions,
     ui::{
@@ -72,7 +72,8 @@ pub(crate) struct CreatedRound {
     /// This is the location the creator was given that they
     /// crafted the clue from.
     location: UVec2,
-    /// Whether this created round is still under draft or locked in (no more edits allowed).
+    /// Whether this created round is still under draft or locked (no more edits allowed).
+    /// If the draft is locked, it means the [`EncodedRound`] resource should exist with a valid round.
     /// A drafted created round is not shareable.
     is_draft: bool,
 }
@@ -561,15 +562,36 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
 
                     confirmation_button(DARK_GREEN_COLOR, ConfirmationButtonIndex::GreenCheckmark)
                     on(|_: On<Activate>,
-                        mut created_round: ResMut<CreatedRound>,
+                        (username, mut created_round, mut encoded_round, type_registry):
+                        (Res<Username>, ResMut<CreatedRound>, ResMut<EncodedRound>, Res<AppTypeRegistry>),
+                        mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
+                        mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
+                        clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
+                        primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
                         mut commands: Commands,| {
-                            // TODO this should do everything now.
-                            // is_draft may not be necessary because an encoded round resource
-                            // is enough to show that it transitioned to not being a draft.
                             // move the ui changes from `update_create_ui_after_encoding` here.
                             // call set_encoded_round_resource from here
                             created_round.is_draft = false;
+                            crate::playable_round::set_encoded_round_resource(&username, &created_round, &mut encoded_round, &type_registry);
                             commands.queue(SaveSettingsSync::Always);
+
+                            commands
+                                .entity(clue_input_container_q.entity())
+                                .despawn_children()
+                                .queue_spawn_related_scenes::<Children>(clue_input_container_children(&created_round));
+
+                            for mut vis in need_to_hide_q.iter_mut() {
+                                *vis = Visibility::Hidden;
+                            }
+                            for mut vis in need_to_show_q.iter_mut() {
+                                *vis = Visibility::Inherited;
+                            }
+
+                            let new_child = commands.spawn_scene(share_primary_button()).id();
+                            commands
+                                .entity(primary_button_q.entity())
+                                .despawn_children()
+                                .add_child(new_child);
                     }),
                 ]
             ]
@@ -735,34 +757,6 @@ fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
                     }
                 })
     }
-}
-
-/// System to show the share modal after the round has successfully been encoded
-pub(crate) fn update_create_ui_after_encoding(
-    mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
-    mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
-    created_round: Res<CreatedRound>,
-    clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
-    primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
-    mut commands: Commands,
-) {
-    commands
-        .entity(clue_input_container_q.entity())
-        .despawn_children()
-        .queue_spawn_related_scenes::<Children>(clue_input_container_children(&created_round));
-
-    for mut vis in need_to_hide_q.iter_mut() {
-        *vis = Visibility::Hidden;
-    }
-    for mut vis in need_to_show_q.iter_mut() {
-        *vis = Visibility::Inherited;
-    }
-
-    let new_child = commands.spawn_scene(share_primary_button()).id();
-    commands
-        .entity(primary_button_q.entity())
-        .despawn_children()
-        .add_child(new_child);
 }
 
 pub(crate) struct CreatePlugin;
