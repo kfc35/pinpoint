@@ -29,7 +29,7 @@ pub(crate) enum AppState {
     #[default]
     Menu,
     Create,
-    // Play,
+    Play,
 }
 
 /// Data about the date and time that this game was initialized.
@@ -164,9 +164,10 @@ fn main() {
                 setup,
                 create::init_created_round,
                 init_encoded_round,
+                load::init_loadable_rounds,
                 // TODO need an init_loaded_rounds,
                 #[cfg(target_arch = "wasm32")]
-                load::parse_share_link,
+                load::parse_window_url,
                 create::setup_create,
             )
                 .chain(),

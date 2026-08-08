@@ -1,12 +1,14 @@
-use crate::{EncodedRound, playable_round::PlayableRound};
+use crate::{EncodedRound, StartDateTime, playable_round::PlayableRound};
 use bevy::{
     prelude::*,
-    settings::{ReflectSettingsGroup, SettingsGroup},
+    settings::{ReflectSettingsGroup, SaveSettings, SaveSettingsSync, SettingsGroup},
 };
 
 mod load_modal;
 pub use load_modal::{load_modal, on_changed_url_input};
 
+#[cfg(target_arch = "wasm32")]
+use crate::MenuHeaderText;
 #[cfg(target_arch = "wasm32")]
 use web_sys::window;
 
@@ -81,53 +83,126 @@ pub(crate) struct LoadableRounds {
     pub(crate) rounds: Vec<LoadableRound>,
 }
 
+/// System that inits the [`LoadableRounds`] resource.
+pub(crate) fn init_loadable_rounds(
+    start_date_time: Res<StartDateTime>,
+    loadable_rounds: Option<ResMut<LoadableRounds>>,
+    app_type_registry: Res<AppTypeRegistry>,
+    mut commands: Commands,
+) {
+    let Some(mut loadable_rounds) = loadable_rounds else {
+        commands.init_resource::<LoadableRounds>();
+        return;
+    };
+    let length = loadable_rounds.rounds.len();
+    let new_rounds = loadable_rounds
+        .rounds
+        .clone()
+        .into_iter()
+        .filter(|round| {
+            *round
+                .get_round_as_playable_round(&app_type_registry)
+                .get_date()
+                == start_date_time.date
+        })
+        .collect::<Vec<_>>();
+    loadable_rounds.rounds = new_rounds;
+    if loadable_rounds.rounds.len() != length {
+        commands.queue(SaveSettingsSync::Always);
+    }
+}
+
+/// Attempts to load a round from a share link.
+/// Returns whether it was successful and a message that can be shown to the
+/// user depending on what happened.
+pub(crate) fn load_shared_round(
+    url: String,
+    start_date_time: &Res<StartDateTime>,
+    app_type_registry: &Res<AppTypeRegistry>,
+    loadable_rounds: &mut ResMut<LoadableRounds>,
+    my_created_round: &Res<EncodedRound>,
+    commands: &mut Commands,
+) -> (bool, String) {
+    if !url.contains("?share=") {
+        return (
+            false,
+            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
+        );
+    }
+    let Some(encoded) = url.strip_prefix("https://kfc35.github.io/pinpoint/?share=") else {
+        return (
+            false,
+            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
+        );
+    };
+
+    let encoded_round = EncodedRound(encoded.to_string());
+    let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
+        return (
+            false,
+            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
+        );
+    };
+
+    if my_created_round.0 == encoded_round.0 {
+        return (
+            false,
+            "Game cannot be added. It is your own game.".to_string(),
+        );
+    }
+
+    if *playable_round.get_date() != start_date_time.date {
+        return (
+            false,
+            "Game cannot be added. The invite expired because it is for an earlier day."
+                .to_string(),
+        );
+    }
+
+    let identifier = playable_round.get_identifier();
+    if loadable_rounds
+        .iter()
+        .map(|round| round.get_round_as_playable_round(&app_type_registry))
+        .any(|round| round.get_identifier() == identifier)
+    {
+        return (
+            false,
+            format!(
+                "Game from {} has already been added.",
+                playable_round.get_creator()
+            ),
+        );
+    }
+
+    loadable_rounds.push(LoadableRound::new(encoded_round));
+    commands.queue(SaveSettingsSync::Always);
+    (true, "Game from {} successfully added.".to_string())
+}
+
 #[cfg(target_arch = "wasm32")]
 /// A System that runs on startup on the web.
 /// If the user got to this page via clicking a share link, it parses the share link
 /// into a [`LoadableRound`].
-pub fn parse_share_link(
+pub fn parse_window_url(
     start_date_time: Res<StartDateTime>,
     app_type_registry: Res<AppTypeRegistry>,
-    mut loadable_rounds: ResMut<LoadableRounds>,
+    loadable_rounds: ResMut<LoadableRounds>,
+    my_encoded_round: Res<EncodedRound>,
     mut menu_header_text: ResMut<MenuHeaderText>,
+    mut commands: Commands,
 ) {
     if let Some(window) = window()
         && let Some(document) = window.document()
         && let Ok(url) = document.url()
     {
-        if !url.contains("?share=") {
-            return;
-        }
-        let Some(encoded) = url.strip_prefix("https://kfc35.github.io/pinpoint/?share=") else {
-            return;
-        };
-
-        let encoded_round = EncodedRound(encoded.to_string());
-        let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
-            menu_header_text.0 =
-                "Round cannot be loaded. If this was a mistake, please double-check the URL."
-                    .to_string();
-            return;
-        };
-
-        if *playable_round.get_date() != start_date_time.date {
-            menu_header_text.0 = "Round invite expired - It's for an earlier day.".to_string();
-            return;
-        }
-
-        let identifier = playable_round.get_identifier();
-        if loadable_rounds
-            .iter()
-            .map(|round| round.get_round_as_playable_round(&app_type_registry))
-            .any(|round| round.get_identifier() == identifier)
-        {
-            menu_header_text.0 = format!(
-                "Round from {} is already loadable.",
-                playable_round.get_creator()
-            );
-            return;
-        }
-
-        loadable_rounds.push(LoadableRound::new(encoded_round));
+        menu_header_text.0 = load_shared_round(
+            url,
+            &start_date_time,
+            &app_type_registry,
+            &loadable_rounds,
+            &my_encoded_round,
+            &mut commands,
+        )
+        .1;
     }
 }

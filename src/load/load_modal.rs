@@ -1,9 +1,10 @@
 use crate::{
+    AppState, EncodedRound, StartDateTime,
     load::{LoadableRound, LoadableRounds},
     ui::{
-        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR,
-        DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_ORANGE_COLOR, Modal, base_button,
-        confirmation_button, pinpoint_font,
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_ORANGE_COLOR, Modal,
+        base_button, confirmation_button, pinpoint_font,
     },
 };
 use bevy::{
@@ -33,6 +34,9 @@ pub struct LoadUrlTextInput;
 
 #[derive(Component, Default, Clone)]
 pub struct PlusButton;
+
+#[derive(Component, Default, Clone)]
+pub struct PlayButton;
 
 /// Placed on a RadioButton signifying which round in [`LoadableRounds`] is selected.
 #[derive(Component, Default, Clone)]
@@ -200,28 +204,37 @@ fn load_select_children(
 
     if loadable_rounds.len() == 0 {
         return Box::new(bsn_list! {
-            Text::new("No games to load.")
+            Text::new("No games to play")
             pinpoint_font()
             TextFont {
-                font_size: FontSize::Rem(0.8)
+                font_size: FontSize::Rem(1.2)
             }
             TextColor(Color::BLACK),
         });
     }
     Box::new(bsn_list! {
         Node {
+            flex_direction: FlexDirection::Column,
             width: percent(100),
         }
         Children [
-            Node
+            Node {
+                width: percent(100),
+                padding: px(5),
+                justify_content: JustifyContent::Start,
+                align_items: AlignItems::Center,
+            }
+            BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             Children [
+                Node {
+                    width: percent(100),
+                }
                 Text::new(format!("Unplayed ({unplayed_len})"))
                 pinpoint_font()
                 TextFont {
                     font_size: FontSize::Rem(0.8)
                 }
                 TextColor(Color::BLACK)
-                BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             ],
 
             {
@@ -241,18 +254,27 @@ fn load_select_children(
         ],
 
         Node {
+            flex_direction: FlexDirection::Column,
             width: percent(100),
         }
         Children [
-            Node
+            Node {
+                width: percent(100),
+                padding: px(5),
+                justify_content: JustifyContent::Start,
+                align_items: AlignItems::Center,
+            }
+            BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             Children [
+                Node {
+                    width: percent(100),
+                }
                 Text::new(format!("Played ({played_len})"))
                 pinpoint_font()
                 TextFont {
                     font_size: FontSize::Rem(0.8)
                 }
                 TextColor(Color::BLACK)
-                BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             ],
 
             {
@@ -279,7 +301,7 @@ fn loadable_round_to_radio_button(
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
     let playable_round = round.get_round_as_playable_round(app_type_registry);
-    let text = format!("    {}", playable_round.get_creator());
+    let text = format!("  {}", playable_round.get_creator());
     let checked = || -> Box<dyn Scene> {
         if is_checked {
             Box::new(bsn! {
@@ -297,18 +319,30 @@ fn loadable_round_to_radio_button(
         RoundIndex(index)
         Node {
             width: percent(100),
+            padding: px(5),
+            justify_content: JustifyContent::Start,
+            align_items: AlignItems::Center,
         }
         Children [
+            Node {
+                width: percent(100),
+            }
             Text::new(text)
             pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.8),
+            }
             TextColor(MIDDLE_BLUE_COLOR)
         ]
-        on_handler_style_radio_button::<Over>(MIDDLE_ORANGE_COLOR.with_alpha(0.25))
-        on_handler_style_radio_button::<Out>(Color::WHITE)
+        on_handler_style_radio_button::<Over>(MIDDLE_ORANGE_COLOR.with_alpha(0.75), SystemCursorIcon::Pointer)
+        on_handler_style_radio_button::<Out>(Color::WHITE, SystemCursorIcon::Default)
     }
 }
 
-pub(crate) fn on_handler_style_radio_button<E>(background_color: bevy::color::Color) -> impl Scene
+pub(crate) fn on_handler_style_radio_button<E>(
+    background_color: bevy::color::Color,
+    cursor: SystemCursorIcon,
+) -> impl Scene
 where
     E: core::fmt::Debug + Clone + bevy::reflect::Reflect,
 {
@@ -316,10 +350,10 @@ where
         on(
             move |event: On<Pointer<E>>,
             mut commands: Commands,
-            checked_q: Query<Has<Checked>>,
+            checked_q: Query<(),With<Checked>>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,| {
                 for window in window_q.iter_mut() {
-                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Pointer));
+                    commands.entity(window).insert(CursorIcon::System(cursor));
                 }
                 if !checked_q.contains(event.entity) {
                     commands.entity(event.entity).insert(BackgroundColor(background_color));
@@ -361,7 +395,6 @@ fn load_game_input_form() -> impl Scene {
                     width: percent(80),
                     height: percent(100),
                     border: px(5),
-                    border_radius: BorderRadius::all(px(10)),
                 }
                 // While EditableText is weird in Bevy 0.19,
                 // Allow for new lines so that rendering for
@@ -395,14 +428,55 @@ fn load_game_input_form() -> impl Scene {
                 InteractionDisabled
                 BorderColor::all(DARK_GRAY_COLOR)
                 on(|_: On<Activate>,
-                    load_url_text_q: Single<&mut EditableText, With<LoadUrlTextInput>>,
+                    load_url_text_q: Single<(Entity, &mut EditableText), With<LoadUrlTextInput>>,
                     load_select_q: Single<Entity, With<LoadSelect>>,
+                    load_radio_group_q: Single<Entity, With<LoadRadioGroup>>,
+                    checked_q: Query<&RoundIndex, With<Checked>>,
+                    play_button_q: Single<(Entity, &Hovered), With<PlayButton>>,
+                    children_query: Query<&Children>,
+                    mut image_q: Query<&mut ImageNode>,
+                    (start_date_time, app_type_registry, mut loadable_rounds, my_created_round):
+                        (Res<StartDateTime>, Res<AppTypeRegistry>, ResMut<LoadableRounds>, Res<EncodedRound>),
                     mut commands: Commands,| {
-                        let mut editable_text = load_url_text_q.into_inner();
-                        let url = editable_text.value();
+                        let (text_entity, mut editable_text) = load_url_text_q.into_inner();
+                        let url = editable_text.value().to_string();
+                        let (success, _) = crate::load::load_shared_round(url, &start_date_time, &app_type_registry, &mut loadable_rounds, &my_created_round, &mut commands);
                         editable_text.clear(); // `on_changed_url_input` will handle styling.
+                        if success {
+                            let load_select_entity = load_select_q.into_inner();
+                            commands.entity(load_select_entity)
+                                .insert(BorderColor::all(DARK_GREEN_COLOR));
+                            commands.delayed().secs(0.3).entity(load_select_entity).insert(BorderColor::all(Color::WHITE));
 
+                            // Refresh the load radio group.
+                            let rg_entity = load_radio_group_q.into_inner();
+                            let selected_index = if let Ok(index) = checked_q.single() {
+                                Some(index.0)
+                            } else {
+                                None
+                            };
+                            commands.entity(rg_entity).despawn_children();
+                            commands.entity(rg_entity).queue_spawn_related_scenes::<Children>(load_select_children(&loadable_rounds, &app_type_registry, selected_index));
 
+                            let (play_entity, hovered) = play_button_q.into_inner();
+                            if hovered.get() {
+                                    commands.entity(play_entity)
+                                    .remove::<InteractionDisabled>()
+                                    .insert(BorderColor::all(DARK_ORANGE_COLOR));
+                                crate::ui::change_image_node_index(play_entity, 1, &children_query, &mut image_q);
+                            } else {
+                                    commands.entity(play_entity)
+                                    .remove::<InteractionDisabled>()
+                                    .insert(BorderColor::all(DARK_BLUE_COLOR));
+                                crate::ui::change_image_node_index(play_entity, 0, &children_query, &mut image_q);
+                            }
+
+                        } else {
+                            // Flash the input entity
+                            commands.entity(text_entity)
+                                .insert(BackgroundColor(DARK_RED_COLOR));
+                            commands.delayed().secs(0.3).entity(text_entity).insert(BackgroundColor(Color::WHITE));
+                        }
                 }),
             ]
         ]
@@ -453,15 +527,18 @@ pub fn on_changed_url_input(
 fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
     if !loadable_rounds.rounds.is_empty() {
         Box::new(bsn! {
+            PlayButton
             Hovered::default()
             base_button("button/play.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
             Node {
                 width: percent(90),
                 height: px(50),
             }
+            on_activate_play()
         })
     } else {
         Box::new(bsn! {
+            PlayButton
             Hovered::default()
             base_button("button/play.png", UVec2::new(128, 32), 7, 50, 3, 4, 5)
             InteractionDisabled
@@ -471,6 +548,23 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
                 width: percent(90),
                 height: px(50),
             }
+            on_activate_play()
+        })
+    }
+}
+
+fn on_activate_play() -> impl Scene {
+    bsn! {
+        on(|_: On<Activate>,
+            checked_q: Single<&RoundIndex, With<Checked>>,
+            mut next_state: ResMut<NextState<AppState>>,
+            mut window_q: Query<Entity, With<PrimaryWindow>>,
+            mut commands: Commands,| {
+                for window in window_q.iter_mut() {
+                    commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
+                }
+                // TODO Set a resource for the round to be played.
+                next_state.set(AppState::Play);
         })
     }
 }
