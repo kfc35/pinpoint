@@ -21,7 +21,7 @@ use bevy::{
 };
 
 #[derive(Component, Default, Clone)]
-struct LoadModal;
+pub struct LoadModal;
 
 #[derive(Component, Default, Clone)]
 struct LoadSelect;
@@ -42,6 +42,14 @@ pub struct PlayButton;
 #[derive(Component, Default, Clone)]
 struct RoundIndex(usize);
 
+pub fn show_load_modal(to_show_q: Single<&mut Visibility, With<LoadModal>>) {
+    *to_show_q.into_inner() = Visibility::Inherited;
+}
+
+pub fn hide_load_modal(mut to_hide_q: Single<&mut Visibility, With<LoadModal>>) {
+    *to_hide_q.into_inner() = Visibility::Hidden;
+}
+
 /// Pops up the load modal containing rounds to play / way to import rounds.
 /// This is intended to be used on the menu when the load button is activated.
 pub fn load_modal(
@@ -52,6 +60,7 @@ pub fn load_modal(
         // Background Node to center the modal.
         Modal
         LoadModal
+        Visibility::Hidden
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
@@ -86,10 +95,9 @@ pub fn load_modal(
                 Children [
                     confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
                     on(|_: On<Activate>,
-                        mut commands: Commands,
-                        modal_q: Single<Entity, With<LoadModal>>| {
-                            commands.entity(modal_q.entity()).despawn();
-                    }),
+                        load_modal_q : Single<&mut Visibility, With<LoadModal>>| {
+                            hide_load_modal(load_modal_q);
+                    })
                 ]
                 ,
 

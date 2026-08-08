@@ -5,7 +5,9 @@ use bevy::{
 };
 
 mod load_modal;
-pub use load_modal::{load_modal, on_changed_url_input};
+pub use load_modal::{
+    LoadModal, hide_load_modal, load_modal, on_changed_url_input, show_load_modal,
+};
 
 #[cfg(target_arch = "wasm32")]
 use crate::MenuHeaderText;

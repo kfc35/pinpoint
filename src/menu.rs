@@ -10,7 +10,7 @@ use bevy::{
 
 use crate::{
     AppState, Username,
-    load::LoadableRounds,
+    load::{LoadModal, LoadableRounds},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
@@ -32,8 +32,15 @@ pub struct UsernameRequirements;
 #[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
 
-pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
+pub fn setup_menu(
+    mut commands: Commands,
+    username: Res<Username>,
+    loadable_rounds: Res<LoadableRounds>,
+    app_type_registry: Res<AppTypeRegistry>,
+) {
     commands.spawn_scene_list(bsn_list! {
+        crate::load::load_modal(&loadable_rounds, &app_type_registry),
+
         AppMenu
         Visibility::Inherited
         Node {
@@ -64,7 +71,7 @@ pub fn setup_menu(mut commands: Commands, username: Res<Username>) {
             Children [
                 menu(&username)
             ],
-        ]
+        ],
     });
 }
 
@@ -115,10 +122,8 @@ fn menu(username: &Username) -> impl Scene {
             }
             needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4)
             on(|_: On<Activate>,
-                loadable_rounds: Res<LoadableRounds>,
-                app_type_registry: Res<AppTypeRegistry>,
-                mut commands: Commands| {
-                commands.spawn_scene(crate::load::load_modal(&loadable_rounds, &app_type_registry));
+                load_modal_q : Single<&mut Visibility, With<LoadModal>>| {
+                crate::load::show_load_modal(load_modal_q);
             })
             ,
 
