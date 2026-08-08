@@ -125,7 +125,6 @@ fn load_select(
             height: percent(50),
             grid_template_columns: vec![RepeatedGridTrack::flex(1, 1.),RepeatedGridTrack::auto(1)],
             justify_content: JustifyContent::SpaceAround,
-            border: px(5),
         }
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
@@ -136,6 +135,7 @@ fn load_select(
                 flex_direction: FlexDirection::Column,
                 height: percent(100),
                 padding: px(5),
+                border: px(5),
                 overflow: Overflow::scroll_y(),
             }
             BackgroundColor(Color::WHITE)
@@ -429,7 +429,6 @@ fn load_game_input_form() -> impl Scene {
                 BorderColor::all(DARK_GRAY_COLOR)
                 on(|_: On<Activate>,
                     load_url_text_q: Single<(Entity, &mut EditableText), With<LoadUrlTextInput>>,
-                    load_select_q: Single<Entity, With<LoadSelect>>,
                     load_radio_group_q: Single<Entity, With<LoadRadioGroup>>,
                     checked_q: Query<&RoundIndex, With<Checked>>,
                     play_button_q: Single<(Entity, &Hovered), With<PlayButton>>,
@@ -443,11 +442,6 @@ fn load_game_input_form() -> impl Scene {
                         let (success, _) = crate::load::load_shared_round(url, &start_date_time, &app_type_registry, &mut loadable_rounds, &my_created_round, &mut commands);
                         editable_text.clear(); // `on_changed_url_input` will handle styling.
                         if success {
-                            let load_select_entity = load_select_q.into_inner();
-                            commands.entity(load_select_entity)
-                                .insert(BorderColor::all(DARK_GREEN_COLOR));
-                            commands.delayed().secs(0.3).entity(load_select_entity).insert(BorderColor::all(Color::WHITE));
-
                             // Refresh the load radio group.
                             let rg_entity = load_radio_group_q.into_inner();
                             let selected_index = if let Ok(index) = checked_q.single() {
@@ -457,6 +451,11 @@ fn load_game_input_form() -> impl Scene {
                             };
                             commands.entity(rg_entity).despawn_children();
                             commands.entity(rg_entity).queue_spawn_related_scenes::<Children>(load_select_children(&loadable_rounds, &app_type_registry, selected_index));
+                            // Flash the radio groups border.
+                            commands.entity(rg_entity)
+                                .insert(BorderColor::all(DARK_GREEN_COLOR));
+                            commands.delayed().secs(0.3).entity(rg_entity).insert(BorderColor::all(Color::WHITE));
+
 
                             let (play_entity, hovered) = play_button_q.into_inner();
                             if hovered.get() {
