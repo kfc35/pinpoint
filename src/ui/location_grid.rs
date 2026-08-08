@@ -8,6 +8,7 @@ struct Pin;
 
 const GRID_SIZE_PX: f32 = 280.;
 const CROSSHAIR_SIZE_PX: f32 = 52.;
+const ANSWER_PIN_SIZE_PX: f32 = 35.;
 
 /// Marker Component for the movable pin on a location grid.
 /// There should only ever be once of these in the whole app.
@@ -77,6 +78,30 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
             ],
         ]
     }
+}
+
+pub fn place_answer_pin(location_grid_entity: Entity, location: UVec2, commands: &mut Commands) {
+    let answer_pin = commands
+        .spawn_scene(bsn! {
+            Node {
+                position_type: PositionType::Absolute,
+                left: percent(location.x),
+                bottom: percent(location.y),
+            }
+            Pin
+            ZIndex(2)
+            Children [
+                Node {
+                    width: px(ANSWER_PIN_SIZE_PX),
+                    height: px(ANSWER_PIN_SIZE_PX),
+                }
+                ImageNode {
+                    image: "game_area/answer_pin.png"
+                }
+            ]
+        })
+        .id();
+    commands.entity(location_grid_entity).add_child(answer_pin);
 }
 
 /// Observers that move the location of the pin.

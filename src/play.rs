@@ -17,7 +17,7 @@ use crate::{
         Modal, MovablePin, PrimaryButtonContainer, YELLOW_COLOR, base_button, bottom_buttons,
         change_image_node_index, confirmation_button, location_grid, on_pointer_out_back_to_share,
         on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
-        share_primary_button, update_pin_location, update_pin_node_with_location,
+        place_answer_pin, share_primary_button, update_pin_location, update_pin_node_with_location,
     },
 };
 
@@ -80,6 +80,7 @@ pub fn init_play_round(selected_index: usize, commands: &mut Commands) {
 pub fn show_play(
     to_show_q: Single<&mut Visibility, With<AppPlay>>,
     movable_pin_q: Single<(&mut Node, &mut MovablePin)>,
+    location_grid_q: Single<Entity, With<PlayLocationGrid>>,
     play_round: Res<PlayRound>,
     loadable_rounds: Res<LoadableRounds>,
     app_type_registry: Res<AppTypeRegistry>,
@@ -89,8 +90,10 @@ pub fn show_play(
     mut commands: Commands,
 ) {
     let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
-
     let location = loadable_round.get_final_guess();
+    let playable_round = loadable_rounds
+        .get_round(play_round.loadable_rounds_index)
+        .as_playable_round(&app_type_registry);
     let (mut node, mut movable_pin) = movable_pin_q.into_inner();
     let button_container = primary_button_q.into_inner();
     match location {
@@ -107,6 +110,14 @@ pub fn show_play(
                 });
 
             commands.spawn_scene(results_modal());
+
+            place_answer_pin(
+                location_grid_q.entity(),
+                loadable_round
+                    .get_answer(&app_type_registry)
+                    .expect("final guess has been submitted so this should be ok."),
+                &mut commands,
+            );
         }
         None => {
             movable_pin.0 = true;
@@ -130,10 +141,6 @@ pub fn show_play(
                 });
         }
     };
-
-    let playable_round = loadable_rounds
-        .get_round(play_round.loadable_rounds_index)
-        .as_playable_round(&app_type_registry);
 
     let mut creator_text = creator_text_q.into_inner();
     *creator_text = Text::new(format!("Clue by {}", playable_round.get_creator()));
@@ -429,9 +436,10 @@ fn confirmation_modal() -> impl Scene {
 
                     confirmation_button(DARK_GREEN_COLOR, ConfirmationButtonIndex::GreenCheckmark)
                     on(|_: On<Activate>,
-                        (current_guess, play_round, mut loadable_rounds):
-                        (Res<CurrentGuess>, Res<PlayRound>, ResMut<LoadableRounds>),
+                        (current_guess, play_round, mut loadable_rounds, app_type_registry):
+                        (Res<CurrentGuess>, Res<PlayRound>, ResMut<LoadableRounds>, Res<AppTypeRegistry>),
                         mut need_to_hide_q: Query<&mut Visibility, (With<PlayConfirmationModal>, Without<ResultsModal>)>,
+                        location_grid_q: Single<Entity, With<PlayLocationGrid>>,
                         primary_button_q: Single<Entity, With<PlayPrimaryButtonContainer>>,
                         movable_pin_q: Single<&mut MovablePin>,
                         mut commands: Commands,| {
@@ -454,6 +462,10 @@ fn confirmation_modal() -> impl Scene {
                             for mut vis in need_to_hide_q.iter_mut() {
                                 *vis = Visibility::Hidden;
                             }
+
+                            place_answer_pin(location_grid_q.entity(),
+                                loadable_round.get_answer(&app_type_registry).expect("final guess has been submitted so this should be ok."),
+                                    &mut commands);
 
                             commands.spawn_scene(results_modal());
                     }),
