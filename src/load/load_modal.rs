@@ -558,7 +558,9 @@ fn on_activate_play() -> impl Scene {
             checked_q: Single<&RoundIndex, With<Checked>>,
             mut next_state: ResMut<NextState<AppState>>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
+            modal_q: Single<Entity, With<LoadModal>>,
             mut commands: Commands,| {
+                commands.entity(modal_q.entity()).despawn();
                 for window in window_q.iter_mut() {
                     commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
                 }
