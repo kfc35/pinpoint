@@ -19,6 +19,7 @@ mod create;
 mod load;
 mod menu;
 mod play;
+mod results;
 
 mod playable_round;
 use playable_round::PlayableRound;

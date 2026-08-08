@@ -478,8 +478,6 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
                         primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
                         mut commands: Commands,| {
-                            // move the ui changes from `update_create_ui_after_encoding` here.
-                            // call set_encoded_round_resource from here
                             created_round.is_draft = false;
                             crate::playable_round::set_encoded_round_resource(&username, &created_round, &mut encoded_round, &type_registry);
                             commands.queue(SaveSettingsSync::Always);

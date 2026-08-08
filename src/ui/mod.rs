@@ -274,11 +274,7 @@ pub(crate) fn confirmation_button(
 /// Must attach your activate handler separately.
 pub fn share_primary_button() -> impl Scene {
     bsn! {
-        base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
-        Node {
-            width: percent(100),
-            height: percent(100),
-        }
+        base_button("button/share.png", UVec2::new(137, 32), 100, 100, 0, 3, 5)
         on_pointer_out_back_to_share()
     }
 }

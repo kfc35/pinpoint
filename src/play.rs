@@ -8,14 +8,16 @@ use bevy::{
 
 use crate::{
     StartDateTime,
-    animation::{AnimatedImageNode, AnimationTimer},
+    animation::AnimationTimer,
     axes_descriptions,
     load::LoadableRounds,
     ui::{
-        DARK_COLOR, DARK_GRAY_COLOR, DARK_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer,
-        base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
-        on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
-        share_primary_button, update_pin_location, update_pin_node_with_location,
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer, base_button,
+        bottom_buttons, change_image_node_index, confirmation_button, location_grid,
+        on_pointer_out_back_to_share, on_pointer_out_default_cursor,
+        on_pointer_over_pointer_cursor, pinpoint_font, share_primary_button, update_pin_location,
+        update_pin_node_with_location,
     },
 };
 
@@ -32,7 +34,19 @@ pub struct FromCreatorText;
 pub struct PlayHeaderText;
 
 #[derive(Component, Clone, Default)]
+pub struct PlayLocationGrid;
+
+#[derive(Component, Clone, Default)]
 pub struct PlayPrimaryButtonContainer;
+
+#[derive(Component, Clone, Default)]
+pub struct PlayDoneButton;
+
+#[derive(Component, Clone, Default)]
+pub struct PlayConfirmationModal;
+
+#[derive(Component, Clone, Default)]
+pub struct ResultsModal;
 
 const DIRECTIONS_TEXT: &'static str = "Press where the clue is";
 
@@ -42,6 +56,12 @@ const DIRECTIONS_TEXT: &'static str = "Press where the clue is";
 pub struct PlayRound {
     /// The current round as an index into [`crate::load::LoadableRounds`]
     loadable_rounds_index: usize,
+}
+
+impl PlayRound {
+    pub fn get_index(&self) -> usize {
+        self.loadable_rounds_index
+    }
 }
 
 /// The current location of the guess
@@ -55,7 +75,7 @@ pub fn init_play_round(selected_index: usize, commands: &mut Commands) {
     });
 }
 
-/// System that is called when [`AppState::Play`] is entered.
+/// System that is called when [`crate::AppState::Play`] is entered.
 /// The [`PlayRound`] resource must be available before this is called.
 pub fn show_play(
     to_show_q: Single<&mut Visibility, With<AppPlay>>,
@@ -90,6 +110,21 @@ pub fn show_play(
             commands.insert_resource(CurrentGuess(None));
             node.display = Display::None;
             // TODO deactivated done button.
+            commands
+                .entity(button_container)
+                .queue_spawn_related_scenes::<Children>(bsn! {
+                    PlayDoneButton
+                    InteractionDisabled
+                    base_button("button/done.png", UVec2::new(128, 32), 100, 100, 3, 4, 5)
+                    // Override border color
+                    BorderColor::all(DARK_GRAY_COLOR)
+                    Hovered::default()
+                    on_click_if_inactive()
+                    // on(|_: On<Activate>,
+                    //     modal_q: Single<&mut Visibility, With<PlayConfirmationModal>>| {
+                    //         *modal_q.into_inner() = Visibility::Inherited;
+                    // })
+                });
         }
     };
 
@@ -106,15 +141,23 @@ pub fn show_play(
     *to_show_q.into_inner() = Visibility::Inherited;
 }
 
-/// System that is called when [`AppState::Play`] is left.
+/// System that is called when [`crate::AppState::Play`] is left.
 pub fn hide_play(
     mut to_hide_q: Query<&mut Visibility, Or<(With<AppPlay>, With<Modal>)>>,
+    primary_button_q: Single<Entity, With<PlayPrimaryButtonContainer>>,
+    results_modal_q: Query<Entity, With<ResultsModal>>,
     mut commands: Commands,
 ) {
     for mut vis in to_hide_q.iter_mut() {
         *vis = Visibility::Hidden;
     }
 
+    for entity in results_modal_q.iter() {
+        commands.entity(entity).try_despawn();
+    }
+    commands
+        .entity(primary_button_q.entity())
+        .despawn_children();
     commands.remove_resource::<PlayRound>();
     commands.remove_resource::<CurrentGuess>();
 }
@@ -125,8 +168,7 @@ pub fn setup_play_skeleton(mut commands: Commands, start_date_time: Res<StartDat
 
 pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
     bsn_list! {
-        // confirmation_modal(),
-        // share_modal(),
+        confirmation_modal(),
 
         AppPlay
         Visibility::Hidden
@@ -144,11 +186,27 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
             header_text()
             ,
 
+            PlayLocationGrid
             location_grid(None, true)
             on(|event: On<ValueChange<UVec2>>,
+                mut commands: Commands,
                 mut current_guess: ResMut<CurrentGuess>,
+                done_button_q: Single<(Entity, &Hovered, &mut BorderColor), With<PlayDoneButton>>,
+                children_query: Query<&Children>,
+                mut image_q: Query<&mut ImageNode>,
                 pin_q: Single<(&mut Node, &MovablePin)>|{
                     current_guess.0 = Some(event.value);
+                    let (entity, is_hovered, mut border_color) = done_button_q.into_inner();
+                    if is_hovered.get() {
+                        change_image_node_index(entity, 1, &children_query, &mut image_q);
+                        *border_color = BorderColor::all(DARK_ORANGE_COLOR);
+                    } else {
+                        change_image_node_index(entity, 0, &children_query, &mut image_q);
+                        *border_color = BorderColor::all(DARK_BLUE_COLOR);
+                    }
+                    commands.entity(entity)
+                        .remove::<InteractionDisabled>();
+
                     update_pin_location(event.value, pin_q);
             })
             on(on_pointer_over_pointer_cursor)
@@ -185,6 +243,23 @@ fn header_text() -> impl Scene {
             pinpoint_font()
             TextLayout::new(Justify::Left, LineBreak::WordOrCharacter),
         ]
+    }
+}
+
+fn on_click_if_inactive() -> impl Scene {
+    bsn! {
+        on(|event: On<Pointer<Click>>,
+            mut commands: Commands,
+            has_interaction_disabled_q: Query<Has<InteractionDisabled>>,
+            location_grid_q: Single<Entity, With<PlayLocationGrid>>| {
+            if let Ok(is_disabled) = has_interaction_disabled_q.get(event.entity) && is_disabled {
+                // Flash the location grid
+                commands.entity(location_grid_q.entity())
+                    .insert(Outline::new(px(5), Val::ZERO, DARK_RED_COLOR));
+                commands.delayed().secs(0.3).entity(location_grid_q.entity())
+                    .insert(Outline::new(px(5), Val::ZERO, Color::WHITE));
+            }
+        })
     }
 }
 
@@ -250,7 +325,7 @@ fn create_on_activate_share_link() -> impl Scene {
             mut commands: Commands,|
                 {
                     let encoded_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
-                    let distance = get_distance_text(encoded_round.get_guess_distance(&app_type_registry));
+                    let distance = get_share_distance_text(encoded_round.get_guess_distance(&app_type_registry));
                     let link = format!("https://kfc35.github.io/pinpoint/?share={}", encoded_round.get_encoded_value());
 
                     let playable_round = loadable_rounds.get_round(play_round.loadable_rounds_index).as_playable_round(&app_type_registry);
@@ -287,16 +362,197 @@ fn create_on_activate_share_link() -> impl Scene {
     }
 }
 
-fn get_distance_text(distance: f32) -> String {
-    if distance < 3.125 {
+fn get_share_distance_text(distance: f32) -> String {
+    if distance <= 3. {
         format!("🎯 {distance:.3} away from pin")
-    } else if distance < 6.25 {
+    } else if distance <= 6.25 {
         format!("🟩 {distance:.3} away from pin")
-    } else if distance < 12.5 {
+    } else if distance <= 12.5 {
         format!("🟨 {distance:.3} away from pin")
-    } else if distance < 25. {
+    } else if distance <= 25. {
         format!("🟧 {distance:.3} away from pin")
     } else {
         format!("🟥 {distance:.3} away from pin")
+    }
+}
+
+/// Confirmation modal that pops up when the user clicks the Done button
+/// on the play screen.
+fn confirmation_modal() -> impl Scene {
+    bsn! {
+        Modal
+        PlayConfirmationModal
+        GlobalZIndex(1)
+        Visibility::Hidden
+        Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            width: percent(100),
+            height: percent(100),
+        }
+        BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
+        Children [
+            Node {
+                border: px(5),
+                padding: UiRect::axes(px(10), px(10)),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(95),
+                row_gap: px(10),
+            }
+            BorderColor::all(DARK_RED_COLOR)
+            BackgroundColor(Color::BLACK)
+            Children [
+                Text::new("Are you sure that's the location?")
+                pinpoint_font(),
+
+                Text::new("You only have one guess!")
+                pinpoint_font(),
+
+                Children [
+                    confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
+                    on(|_: On<Activate>,
+                        modal_q: Single<&mut Visibility, With<PlayConfirmationModal>>| {
+                            *modal_q.into_inner() = Visibility::Hidden;
+                    }),
+
+                    confirmation_button(DARK_GREEN_COLOR, ConfirmationButtonIndex::GreenCheckmark)
+                    on(|_: On<Activate>,
+                        (current_guess, play_round, mut loadable_rounds):
+                        (Res<CurrentGuess>, Res<PlayRound>, ResMut<LoadableRounds>),
+                        mut need_to_hide_q: Query<&mut Visibility, (With<PlayConfirmationModal>, Without<ResultsModal>)>,
+                        primary_button_q: Single<Entity, With<PlayPrimaryButtonContainer>>,
+                        movable_pin_q: Single<&mut MovablePin>,
+                        mut commands: Commands,| {
+                            let loadable_round = loadable_rounds.get_round_mut(play_round.loadable_rounds_index);
+                            loadable_round.set_final_guess(current_guess.0.expect("There should be a current guess."));
+                            commands.queue(SaveSettingsSync::Always);
+
+                            let mut movable_pin = movable_pin_q.into_inner();
+                            movable_pin.0 = false;
+
+                            let new_child = commands.spawn_scene(bsn! {
+                                share_primary_button()
+                                create_on_activate_share_link()
+                            }).id();
+                            commands
+                                .entity(primary_button_q.entity())
+                                .despawn_children()
+                                .add_child(new_child);
+
+                            for mut vis in need_to_hide_q.iter_mut() {
+                                *vis = Visibility::Hidden;
+                            }
+
+                            commands.spawn_scene(results_modal());
+                    }),
+                ]
+            ]
+        ]
+    }
+}
+
+/// Modal that pops up when the round is over
+fn results_modal() -> impl Scene {
+    bsn! {
+        Modal
+        ResultsModal
+        GlobalZIndex(1)
+        Node {
+            flex_direction: FlexDirection::Column,
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            width: percent(100),
+            height: percent(100),
+        }
+        BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
+        Children [
+            Node {
+                border: px(5),
+                padding: UiRect::axes(px(10), px(10)),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(95),
+                row_gap: px(20),
+            }
+            BorderColor::all(DARK_GREEN_COLOR)
+            BackgroundColor(Color::BLACK)
+            Children [
+                Node {
+                    position_type: PositionType::Absolute,
+                    top: px(5),
+                    left: px(5),
+                    width: px(50),
+                    height: px(50),
+                }
+                ZIndex(1)
+                Children [
+                    confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
+                    on(|_: On<Activate>,
+                        modal_q: Single<Entity, With<ResultsModal>>,
+                        mut commands: Commands| {
+                            commands.entity(modal_q.entity()).despawn();
+                    }),
+                ],
+
+                Node {
+                    width: px(250),
+                    height: px(250),
+                    margin: UiRect::top(px(50))
+                }
+                Children [
+                    Node {
+                        width: percent(100),
+                        height: percent(100),
+                    }
+                    template(crate::results::get_result_image)
+                    template(crate::results::get_animated_image_node)
+                    AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
+                ],
+
+                get_results_text()
+                pinpoint_font(),
+
+                base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
+                Node {
+                    width: px(250),
+                    height: px(50),
+                }
+                on_pointer_out_back_to_share()
+                create_on_activate_share_link(),
+            ]
+        ]
+    }
+}
+
+fn get_results_text() -> impl Scene {
+    let distance_text = |distance: f32| {
+        if distance <= 3. {
+            format!("Bullseye! You were only {distance:.3} units away!")
+        } else if distance <= 6.25 {
+            format!("On the green! You were {distance:.3} away from pin.")
+        } else if distance <= 12.5 {
+            format!("Not Bad. You were {distance:.3} away from pin.")
+        } else if distance <= 25. {
+            format!("Barely made it... You were {distance:.3} away from pin.")
+        } else {
+            format!("You lost? You were {distance:.3} away from pin.")
+        }
+    };
+    bsn! {
+        template(move |ctx| {
+            let play_round = ctx.resource::<PlayRound>();
+            let loadable_rounds = ctx.resource::<LoadableRounds>();
+            let app_type_registry = ctx.resource::<AppTypeRegistry>();
+            let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
+            let distance = loadable_round.get_guess_distance(app_type_registry);
+            let playable_round = loadable_rounds.get_as_playable_round(play_round.loadable_rounds_index, &app_type_registry);
+            let text = format!("You finished {}'s #PinPoint Round for {}!\n\
+                {}", playable_round.get_creator(), playable_round.get_date(), distance_text(distance));
+            Ok(Text::new(text))
+        })
     }
 }
