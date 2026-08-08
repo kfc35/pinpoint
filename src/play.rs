@@ -270,7 +270,7 @@ fn clue_placeholder() -> impl Scene {
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            min_width: px(280),
+            width: px(280),
         }
         Children [
             FromCreatorText
@@ -576,7 +576,7 @@ fn get_results_text_title() -> impl Scene {
 fn get_distance_text_first_part() -> impl Scene {
     let distance_text = |distance: f32| {
         if distance <= 3. {
-            format!("Bullseye! You were only ")
+            format!("Bullseye! You were ")
         } else if distance <= 6.25 {
             format!("Nice job! You were ")
         } else if distance <= 12.5 {
@@ -640,7 +640,9 @@ fn get_distance_text_color_second_part() -> impl Scene {
 
 fn get_distance_text_third_part() -> impl Scene {
     let distance_text = |distance: f32| {
-        if distance <= 3. {
+        if distance <= 1. {
+            format!(" units away from the pin! Wow!")
+        } else if distance <= 3. {
             format!(" units away from the pin!")
         } else if distance <= 6.25 {
             format!(" units away from the pin.")

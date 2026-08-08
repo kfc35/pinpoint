@@ -310,11 +310,12 @@ fn load_select_children(
             {
                 played
                     .iter()
-                    .map(|(index, round)|
+                    .enumerate()
+                    .map(|(played_idx, (index, round))|
                         loadable_round_to_radio_button(
                             *index,
                             round,
-                            selected_index.is_some_and(|s_idx| s_idx == *index),
+                            (selected_index.is_none() && unplayed_len == 0 && played_idx == 0) || selected_index.is_some_and(|s_idx| s_idx == *index),
                             app_type_registry
                         )
                     )

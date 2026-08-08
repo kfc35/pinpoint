@@ -41,6 +41,9 @@ pub struct DoneButton;
 pub struct ConfirmationModal;
 
 #[derive(Component, Clone, Default)]
+pub struct CreatePrimaryButtonContainer;
+
+#[derive(Component, Clone, Default)]
 pub struct ClueReadback;
 
 #[derive(Component, Clone, Default)]
@@ -333,6 +336,7 @@ fn primary_button(
 ) -> Box<dyn Scene> {
     if encoded_round.is_valid(&created_round.date, app_type_registry) && !created_round.is_draft {
         return Box::new(bsn! {
+            CreatePrimaryButtonContainer
             PrimaryButtonContainer
             Node {
                 // override the width because we don't care
@@ -362,6 +366,7 @@ fn primary_button(
     };
 
     Box::new(bsn! {
+        CreatePrimaryButtonContainer
         PrimaryButtonContainer
         Node {
             // override the width because we don't care
@@ -476,7 +481,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                         mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
                         mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
-                        primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
+                        primary_button_q: Single<Entity, With<CreatePrimaryButtonContainer>>,
                         mut commands: Commands,| {
                             created_round.is_draft = false;
                             crate::playable_round::set_encoded_round_resource(&username, &created_round, &mut encoded_round, &type_registry);
@@ -606,7 +611,7 @@ fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
             mut commands: Commands,|
                 {
                     let link = format!("https://kfc35.github.io/pinpoint/?share={}", round.0);
-                    match clipboard.set_text(format!("Play My #Pinpoint Round for {}!\n\n{link}", start_date_time.date)) {
+                    match clipboard.set_text(format!("Play my #Pinpoint Round for {}!\n\n{link}", start_date_time.date)) {
                         Ok(_) => {
                             if change_icon {
                                 let layout = TextureAtlasLayout::from_grid(UVec2::new(160, 32), 1, 3, None, None);
