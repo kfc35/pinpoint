@@ -97,6 +97,7 @@ pub fn show_play(
         Some(loc) => {
             movable_pin.0 = false;
             commands.insert_resource(CurrentGuess(Some(loc)));
+            node.display = Display::default();
             update_pin_node_with_location(&mut node, loc);
             commands
                 .entity(button_container)
@@ -331,7 +332,7 @@ fn create_on_activate_share_link() -> impl Scene {
                     let link = format!("https://kfc35.github.io/pinpoint/?share={}", encoded_round.get_encoded_value());
 
                     let playable_round = loadable_rounds.get_round(play_round.loadable_rounds_index).as_playable_round(&app_type_registry);
-                    let title = format!("#Pinpoint - {} - {}", start_date_time.date, playable_round.get_creator());
+                    let title = format!("#Pinpoint - {} - Clue Giver: {}", start_date_time.date, playable_round.get_creator());
                     match clipboard.set_text(format!("{title}\n{distance}\n{link}")) {
                         Ok(_) => {
                             let layout = TextureAtlasLayout::from_grid(UVec2::new(160, 32), 1, 3, None, None);

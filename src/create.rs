@@ -606,7 +606,7 @@ fn create_on_activate_share_link(change_icon: bool) -> impl Scene {
             mut commands: Commands,|
                 {
                     let link = format!("https://kfc35.github.io/pinpoint/?share={}", round.0);
-                    match clipboard.set_text(format!("Play my Daily #Pinpoint Round for {}!\n\n{link}", start_date_time.date)) {
+                    match clipboard.set_text(format!("Play My #Pinpoint Round for {}!\n\n{link}", start_date_time.date)) {
                         Ok(_) => {
                             if change_icon {
                                 let layout = TextureAtlasLayout::from_grid(UVec2::new(160, 32), 1, 3, None, None);
