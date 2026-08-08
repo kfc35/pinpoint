@@ -11,7 +11,8 @@ use bevy::{
 
 mod location_grid;
 pub use location_grid::{
-    MovablePin, location_grid, place_answer_pin, update_pin_location, update_pin_node_with_location,
+    AnswerPin, MovablePin, location_grid, place_answer_pin,
+    update_crosshair_pin_node_with_location, update_pin_location,
 };
 
 /// Marker component for modals

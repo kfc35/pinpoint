@@ -12,12 +12,13 @@ use crate::{
     axes_descriptions,
     load::LoadableRounds,
     ui::{
-        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
-        DARK_ORANGE_COLOR, DARK_RED_COLOR, LIGHT_GREEN_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR,
-        Modal, MovablePin, PrimaryButtonContainer, YELLOW_COLOR, base_button, bottom_buttons,
-        change_image_node_index, confirmation_button, location_grid, on_pointer_out_back_to_share,
-        on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
-        place_answer_pin, share_primary_button, update_pin_location, update_pin_node_with_location,
+        AnswerPin, ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR,
+        DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, LIGHT_GREEN_COLOR, MIDDLE_GREEN_COLOR,
+        MIDDLE_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer, YELLOW_COLOR, base_button,
+        bottom_buttons, change_image_node_index, confirmation_button, location_grid,
+        on_pointer_out_back_to_share, on_pointer_out_default_cursor,
+        on_pointer_over_pointer_cursor, pinpoint_font, place_answer_pin, share_primary_button,
+        update_crosshair_pin_node_with_location, update_pin_location,
     },
 };
 
@@ -101,7 +102,7 @@ pub fn show_play(
             movable_pin.0 = false;
             commands.insert_resource(CurrentGuess(Some(loc)));
             node.display = Display::default();
-            update_pin_node_with_location(&mut node, loc);
+            update_crosshair_pin_node_with_location(&mut node, loc);
             commands
                 .entity(button_container)
                 .queue_spawn_related_scenes::<Children>(bsn! {
@@ -155,19 +156,21 @@ pub fn show_play(
 pub fn hide_play(
     mut to_hide_q: Query<&mut Visibility, Or<(With<AppPlay>, With<Modal>)>>,
     primary_button_q: Single<Entity, With<PlayPrimaryButtonContainer>>,
-    results_modal_q: Query<Entity, With<ResultsModal>>,
+    to_despawn_q: Query<Entity, Or<(With<ResultsModal>, With<AnswerPin>)>>,
+
     mut commands: Commands,
 ) {
     for mut vis in to_hide_q.iter_mut() {
         *vis = Visibility::Hidden;
     }
 
-    for entity in results_modal_q.iter() {
+    for entity in to_despawn_q.iter() {
         commands.entity(entity).try_despawn();
     }
     commands
         .entity(primary_button_q.entity())
         .despawn_children();
+
     commands.remove_resource::<PlayRound>();
     commands.remove_resource::<CurrentGuess>();
 }
@@ -197,7 +200,7 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
             ,
 
             PlayLocationGrid
-            location_grid(None, true)
+            location_grid(None, true, true)
             on(|event: On<ValueChange<UVec2>>,
                 mut commands: Commands,
                 mut current_guess: ResMut<CurrentGuess>,
@@ -217,7 +220,7 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
                     commands.entity(entity)
                         .remove::<InteractionDisabled>();
 
-                    update_pin_location(event.value, pin_q);
+                    update_pin_location(event.value, pin_q, true);
             })
             on(on_pointer_over_pointer_cursor)
             on(on_pointer_out_default_cursor)

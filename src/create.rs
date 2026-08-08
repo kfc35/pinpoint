@@ -158,7 +158,7 @@ fn setup_create_vertical(
             height: percent(100),
         }
         Children [
-            location_grid(Some(created_round.location), false),
+            location_grid(Some(created_round.location), false, true),
 
             axes_descriptions(&created_round.date),
 

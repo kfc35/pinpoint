@@ -6,6 +6,9 @@ struct LocationGrid;
 #[derive(Component, Clone, Default)]
 struct Pin;
 
+#[derive(Component, Clone, Default)]
+pub struct AnswerPin;
+
 const GRID_SIZE_PX: f32 = 280.;
 const CROSSHAIR_SIZE_PX: f32 = 52.;
 const ANSWER_PIN_SIZE_PX: f32 = 35.;
@@ -17,13 +20,20 @@ const ANSWER_PIN_SIZE_PX: f32 = 35.;
 pub struct MovablePin(pub bool);
 
 /// The scene for the location grid widget.
-pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
+pub fn location_grid(location: Option<UVec2>, is_movable: bool, use_crosshair: bool) -> impl Scene {
     let pin_node = if let Some(loc) = location {
         let mut node = Node {
             position_type: PositionType::Absolute,
             ..default()
         };
-        update_pin_node_with_location_inner(&mut node, loc, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
+
+        if use_crosshair {
+            update_pin_node_with_location_inner(&mut node, loc, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
+        } else {
+            node.left = percent(loc.x);
+            node.bottom = percent(loc.y);
+        }
+
         node
     } else {
         Node {
@@ -44,6 +54,29 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
             Box::new(bsn! {pressable_location_grid_observers()})
         } else {
             Box::new(bsn! {})
+        }
+    };
+    let image = || -> Box<dyn Scene> {
+        if use_crosshair {
+            Box::new(bsn! {
+                Node {
+                    width: px(CROSSHAIR_SIZE_PX),
+                    height: px(CROSSHAIR_SIZE_PX),
+                }
+                ImageNode {
+                    image: "game_area/crosshair.png"
+                }
+            })
+        } else {
+            Box::new(bsn! {
+                Node {
+                    width: px(ANSWER_PIN_SIZE_PX),
+                    height: px(ANSWER_PIN_SIZE_PX),
+                }
+                ImageNode {
+                    image: "game_area/answer_pin.png"
+                }
+            })
         }
     };
     bsn! {
@@ -68,13 +101,7 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
             maybe_movable()
             ZIndex(1)
             Children [
-                Node {
-                    width: px(CROSSHAIR_SIZE_PX),
-                    height: px(CROSSHAIR_SIZE_PX),
-                }
-                ImageNode {
-                    image: "game_area/crosshair.png"
-                }
+                image()
             ],
         ]
     }
@@ -88,6 +115,7 @@ pub fn place_answer_pin(location_grid_entity: Entity, location: UVec2, commands:
                 left: percent(location.x),
                 bottom: percent(location.y),
             }
+            AnswerPin
             Pin
             ZIndex(2)
             Children [
@@ -210,16 +238,25 @@ fn get_new_location(
 }
 
 /// Updates the [`MovablePin`]'s location given a new location in game logic coordinates (vals are 0..=100)
-pub fn update_pin_location(new_location: UVec2, pin_q: Single<(&mut Node, &MovablePin)>) {
+pub fn update_pin_location(
+    new_location: UVec2,
+    pin_q: Single<(&mut Node, &MovablePin)>,
+    is_crosshair: bool,
+) {
     let (mut node, movable) = pin_q.into_inner();
     if movable.0 {
         node.display = Display::default();
-        update_pin_node_with_location(&mut node, new_location);
+        if is_crosshair {
+            update_crosshair_pin_node_with_location(&mut node, new_location);
+        } else {
+            node.left = percent(new_location.x);
+            node.bottom = percent(new_location.y);
+        }
     }
 }
 
 /// Updates the [`Node`]'s left and bottom with the given the location
-pub fn update_pin_node_with_location(mut node: &mut Node, location: UVec2) {
+pub fn update_crosshair_pin_node_with_location(mut node: &mut Node, location: UVec2) {
     update_pin_node_with_location_inner(&mut node, location, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
 }
 
