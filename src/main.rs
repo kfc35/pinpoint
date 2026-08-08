@@ -171,6 +171,7 @@ fn main() {
                 #[cfg(target_arch = "wasm32")]
                 load::parse_window_url,
                 create::setup_create,
+                play::setup_play_skeleton,
             )
                 .chain(),
         )
@@ -186,6 +187,8 @@ fn main() {
         .add_systems(OnExit(AppState::Menu), menu::hide_menu)
         .add_systems(OnEnter(AppState::Create), create::show_create)
         .add_systems(OnExit(AppState::Create), create::hide_create)
+        .add_systems(OnEnter(AppState::Play), play::show_play)
+        .add_systems(OnExit(AppState::Play), play::hide_play)
         .run();
 }
 

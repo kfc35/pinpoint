@@ -308,7 +308,7 @@ fn loadable_round_to_radio_button(
     is_checked: bool,
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
-    let playable_round = round.get_round_as_playable_round(app_type_registry);
+    let playable_round = round.as_playable_round(app_type_registry);
     let text = format!("  {}", playable_round.get_creator());
     let checked = || -> Box<dyn Scene> {
         if is_checked {
@@ -563,7 +563,7 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
 fn on_activate_play() -> impl Scene {
     bsn! {
         on(|_: On<Activate>,
-            _checked_q: Single<&RoundIndex, With<Checked>>,
+            checked_q: Single<&RoundIndex, With<Checked>>,
             mut next_state: ResMut<NextState<AppState>>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
             modal_q: Single<Entity, With<LoadModal>>,
@@ -572,7 +572,9 @@ fn on_activate_play() -> impl Scene {
                 for window in window_q.iter_mut() {
                     commands.entity(window).insert(CursorIcon::System(SystemCursorIcon::Default));
                 }
-                // TODO Set a resource for the round to be played.
+
+                let round_index = checked_q.into_inner();
+                crate::play::init_play_round(round_index.0, &mut commands);
                 next_state.set(AppState::Play);
         })
     }

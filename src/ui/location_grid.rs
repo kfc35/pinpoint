@@ -9,18 +9,20 @@ struct Pin;
 const GRID_SIZE_PX: f32 = 280.;
 const CROSSHAIR_SIZE_PX: f32 = 52.;
 
-/// Marker component for a movable pin on a location grid.
+/// Marker Component for the movable pin on a location grid.
 /// There should only ever be once of these in the whole app.
+/// Contains whether this pin can move or is currently locked in place.
 #[derive(Component, Clone, Default)]
-pub struct MovablePin;
+pub struct MovablePin(pub bool);
 
+/// The scene for the location grid widget.
 pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
     let pin_node = if let Some(loc) = location {
         let mut node = Node {
             position_type: PositionType::Absolute,
             ..default()
         };
-        update_pin_node_with_location(&mut node, loc, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
+        update_pin_node_with_location_inner(&mut node, loc, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
         node
     } else {
         Node {
@@ -68,13 +70,22 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
     }
 }
 
-pub fn update_pin_location<T>(new_location: UVec2, pin_q: Single<&mut Node, With<MovablePin>>) {
-    let mut node = pin_q.into_inner();
-    node.display = Display::default();
-    update_pin_node_with_location(&mut node, new_location, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
+/// Updates the [`MovablePin`]'s location given a new location in game logic coordinates (vals are 0..=100)
+pub fn update_pin_location<T>(new_location: UVec2, pin_q: Single<(&mut Node, &MovablePin)>) {
+    let (mut node, movable) = pin_q.into_inner();
+    if movable.0 {
+        node.display = Display::default();
+        update_pin_node_with_location(&mut node, new_location);
+    }
 }
 
-fn update_pin_node_with_location(
+/// Updates the [`Node`]'s left and bottom with the given the location
+pub fn update_pin_node_with_location(mut node: &mut Node, location: UVec2) {
+    update_pin_node_with_location_inner(&mut node, location, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
+}
+
+/// Updates the [`Node`]'s left and bottom with the given the location
+fn update_pin_node_with_location_inner(
     node: &mut Node,
     location: UVec2,
     grid_size: f32,

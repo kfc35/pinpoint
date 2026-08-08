@@ -32,11 +32,12 @@ impl LoadableRound {
         }
     }
 
+    pub(crate) fn get_encoded_value(&self) -> &String {
+        &self.round.0
+    }
+
     /// Gets this LoadableRound as a [`PlayableRound`].
-    pub(crate) fn get_round_as_playable_round(
-        &self,
-        app_type_registry: &AppTypeRegistry,
-    ) -> PlayableRound {
+    pub(crate) fn as_playable_round(&self, app_type_registry: &AppTypeRegistry) -> PlayableRound {
         self.round.decode(app_type_registry)
     }
 
@@ -47,14 +48,15 @@ impl LoadableRound {
         }
     }
 
+    pub(crate) fn get_final_guess(&self) -> Option<UVec2> {
+        self.final_guess
+    }
+
     /// Fetches the location in the [`PlayableRound`] this represents.
     /// Can only access the answer after the final guess has been submitted.
     pub(crate) fn get_answer(&self, app_type_registry: &AppTypeRegistry) -> Option<UVec2> {
         if self.final_guess.is_some() {
-            Some(
-                self.get_round_as_playable_round(app_type_registry)
-                    .get_location(),
-            )
+            Some(self.as_playable_round(app_type_registry).get_location())
         } else {
             None
         }
@@ -62,13 +64,17 @@ impl LoadableRound {
 
     /// Fetches the distance from the guess the the location in [`PlayableRound`].
     /// Can only access the answer after the final guess has been submitted.
-    pub(crate) fn get_guess_distance(&self, app_type_registry: &AppTypeRegistry) -> Option<f32> {
-        if let Some(guess) = self.final_guess {
-            self.get_answer(app_type_registry)
-                .map(|location| location.as_vec2().distance(guess.as_vec2()))
-        } else {
-            None
-        }
+    /// ### Panics
+    /// Panics if the final guess has not been submitted. Only call this at the appropriate time.
+    pub(crate) fn get_guess_distance(&self, app_type_registry: &AppTypeRegistry) -> f32 {
+        self.get_answer(app_type_registry)
+            .expect("Game must be over before calling `get_guess_distance`")
+            .as_vec2()
+            .distance(
+                self.final_guess
+                    .expect("Game must be over before calling `get_guess_distance`")
+                    .as_vec2(),
+            )
     }
 }
 
@@ -106,10 +112,7 @@ pub(crate) fn init_loadable_rounds(
         .clone()
         .into_iter()
         .filter(|round| {
-            *round
-                .get_round_as_playable_round(&app_type_registry)
-                .get_date()
-                == start_date_time.date
+            *round.as_playable_round(&app_type_registry).get_date() == start_date_time.date
         })
         .collect::<Vec<_>>();
     loadable_rounds.rounds = new_rounds;
@@ -168,7 +171,7 @@ pub(crate) fn load_shared_round(
     let identifier = playable_round.get_identifier();
     if loadable_rounds
         .iter()
-        .map(|round| round.get_round_as_playable_round(&app_type_registry))
+        .map(|round| round.as_playable_round(&app_type_registry))
         .any(|round| round.get_identifier() == identifier)
     {
         return (

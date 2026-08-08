@@ -10,11 +10,21 @@ use bevy::{
 };
 
 mod location_grid;
-pub use location_grid::{MovablePin, location_grid, update_pin_location};
+pub use location_grid::{
+    MovablePin, location_grid, update_pin_location, update_pin_node_with_location,
+};
 
 /// Marker component for modals
 #[derive(Component, Clone, Default)]
 pub struct Modal;
+
+/// Marker component for a primary button container
+#[derive(Component, Clone, Default)]
+pub struct PrimaryButtonContainer;
+
+/// Marker component for buttons at the bottom of a screen
+#[derive(Component, Clone, Default)]
+pub struct BottomButtons;
 
 // Colors used for text and buttons
 pub const MIDDLE_BLUE_COLOR: Color = Color::srgb(0. / 255., 149. / 255., 233. / 255.);
@@ -241,6 +251,82 @@ pub(crate) fn confirmation_button(
                 }
             }
         )
+    }
+}
+
+/// Returns a share button as a primary button.
+/// Must attach your activate handler separately.
+pub fn share_primary_button() -> impl Scene {
+    bsn! {
+        base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
+        Node {
+            width: percent(100),
+            height: percent(100),
+        }
+        on_pointer_out_back_to_share()
+    }
+}
+
+/// Button Observer that makes the inner image node back to the "Share"
+/// button on pointer out.
+pub fn on_pointer_out_back_to_share() -> impl Scene {
+    bsn! {
+        on(move |event: On<Pointer<Out>>,
+            mut commands: Commands,
+            asset_server: Res<AssetServer>,
+            mut layouts: ResMut<Assets<TextureAtlasLayout>>,| {
+                let layout = TextureAtlasLayout::from_grid(UVec2::new(137, 32), 1, 3, None, None);
+                let layout_handle = layouts.add(layout);
+                let texture_atlas = TextureAtlas {
+                    layout: layout_handle,
+                    index: 0,
+                };
+
+                commands.entity(event.entity).despawn_children();
+                let new_child = commands.spawn((
+                    Node {
+                            width: percent(100),
+                            height: percent(100),
+                            ..default()
+                    },
+                    ImageNode {
+                        image: asset_server.load("button/share.png"),
+                        texture_atlas: Some(texture_atlas),
+                        ..default()
+                })).id();
+                commands.entity(event.entity).add_child(new_child);
+        })
+    }
+}
+
+/// Returns a scene of buttons useful for navigation among some common screens.
+/// It contains a back button and a ? (help) button.
+pub fn bottom_buttons(back_button_observer: Box<dyn Scene>) -> impl Scene {
+    bsn! {
+        BottomButtons
+        Node {
+            flex_direction: FlexDirection::Row,
+            width: px(280),
+            justify_content: JustifyContent::SpaceBetween,
+            align_items: AlignItems::Center,
+        }
+        Children [
+            base_button("button/back_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
+            Node {
+                width: px(50),
+                height: px(50),
+                min_width: px(50),
+            }
+            on_activate_change_state(AppState::Menu),
+
+            base_button("button/question_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
+            Node {
+                width: px(50),
+                height: px(50),
+                min_width: px(50),
+            }
+            back_button_observer,
+        ]
     }
 }
 

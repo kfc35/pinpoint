@@ -15,9 +15,10 @@ use crate::{
     axes_descriptions,
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
-        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, base_button,
-        change_image_node_index, confirmation_button, location_grid, on_activate_change_state,
-        on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, PrimaryButtonContainer,
+        base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
+        on_activate_change_state, on_pointer_out_back_to_share, on_pointer_out_default_cursor,
+        on_pointer_over_text_cursor, pinpoint_font, share_primary_button,
     },
 };
 use rand::{RngExt, SeedableRng};
@@ -35,12 +36,6 @@ pub struct ClueInputContainer;
 
 #[derive(Component, Clone, Default)]
 pub struct DoneButton;
-
-#[derive(Component, Clone, Default)]
-pub struct PrimaryButtonContainer;
-
-#[derive(Component, Clone, Default)]
-pub struct BottomButtons;
 
 #[derive(Component, Clone, Default)]
 pub struct ConfirmationModal;
@@ -169,7 +164,7 @@ fn setup_create_vertical(
 
             primary_button(created_round, encoded_round, app_type_registry),
 
-            bottom_buttons(),
+            bottom_buttons(Box::new(bsn!{})),
         ]
     }
 }
@@ -347,6 +342,7 @@ fn primary_button(
             }
             Children [
                 share_primary_button()
+                create_on_activate_share_link(true)
             ]
         });
     }
@@ -388,47 +384,6 @@ fn primary_button(
             })
         ]
     })
-}
-
-fn share_primary_button() -> impl Scene {
-    bsn! {
-        base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
-        Node {
-            width: percent(100),
-            height: percent(100),
-        }
-        on_pointer_out_back_to_share()
-        create_on_activate_share_link(true)
-    }
-}
-
-fn bottom_buttons() -> impl Scene {
-    bsn! {
-        BottomButtons
-        Node {
-            flex_direction: FlexDirection::Row,
-            width: px(280),
-            justify_content: JustifyContent::SpaceBetween,
-            align_items: AlignItems::Center,
-        }
-        Children [
-            base_button("button/back_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
-            Node {
-                width: px(50),
-                height: px(50),
-                min_width: px(50),
-            }
-            on_activate_change_state(AppState::Menu),
-
-
-            base_button("button/question_icon.png", UVec2::splat(32), 10, 10, 0, 3, 5)
-            Node {
-                width: px(50),
-                height: px(50),
-                min_width: px(50),
-            },
-        ]
-    }
 }
 
 /// Utility to create an observer for interaction disabled buttons.
@@ -541,7 +496,10 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                                 *vis = Visibility::Inherited;
                             }
 
-                            let new_child = commands.spawn_scene(share_primary_button()).id();
+                            let new_child = commands.spawn_scene(bsn! {
+                                share_primary_button()
+                                create_on_activate_share_link(true)
+                            }).id();
                             commands
                                 .entity(primary_button_q.entity())
                                 .despawn_children()
@@ -636,36 +594,6 @@ fn share_modal() -> impl Scene {
                 create_on_activate_share_link(true),
             ]
         ]
-    }
-}
-
-fn on_pointer_out_back_to_share() -> impl Scene {
-    bsn! {
-        on(move |event: On<Pointer<Out>>,
-            mut commands: Commands,
-            asset_server: Res<AssetServer>,
-            mut layouts: ResMut<Assets<TextureAtlasLayout>>,| {
-                let layout = TextureAtlasLayout::from_grid(UVec2::new(137, 32), 1, 3, None, None);
-                let layout_handle = layouts.add(layout);
-                let texture_atlas = TextureAtlas {
-                    layout: layout_handle,
-                    index: 0,
-                };
-
-                commands.entity(event.entity).despawn_children();
-                let new_child = commands.spawn((
-                    Node {
-                            width: percent(100),
-                            height: percent(100),
-                            ..default()
-                    },
-                    ImageNode {
-                        image: asset_server.load("button/share.png"),
-                        texture_atlas: Some(texture_atlas),
-                        ..default()
-                })).id();
-                commands.entity(event.entity).add_child(new_child);
-        })
     }
 }
 
