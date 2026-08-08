@@ -5,12 +5,11 @@ use bevy::{
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle},
     ui::InteractionDisabled,
-    ui_widgets::Activate,
 };
 
 use crate::{
     AppState, Username,
-    load::{LoadModal, LoadableRounds, on_activate_show_load_modal},
+    load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
