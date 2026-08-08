@@ -1,4 +1,4 @@
-use bevy::prelude::*;
+use bevy::{prelude::*, ui_widgets::ValueChange};
 
 #[derive(Component, Clone, Default)]
 struct LocationGrid;
@@ -38,12 +38,21 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
             Box::new(bsn! {})
         }
     };
+    let maybe_observers = || -> Box<dyn Scene> {
+        if is_movable {
+            Box::new(bsn! {pressable_location_grid_observers()})
+        } else {
+            Box::new(bsn! {})
+        }
+    };
     bsn! {
         LocationGrid
         Node {
-            border: px(5),
+            margin: px(5),
         }
-        BorderColor::all(Color::WHITE)
+        // We use outline here instead of border so that presses ignore it.
+        Outline::new(px(5), Val::ZERO, Color::WHITE)
+        maybe_observers()
         Children [
             Node {
                 width: px(GRID_SIZE_PX),
@@ -70,8 +79,113 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool) -> impl Scene {
     }
 }
 
+/// Observers that move the location of the pin.
+/// The observers emit a `ValueChange<UVec2>` with the value
+/// of the new location.
+/// Observers of the value change event should call `update_pin_location`
+/// after syncing their state.
+fn pressable_location_grid_observers() -> impl Scene {
+    bsn! {
+        on(|mut event: On<Pointer<Press>>,
+            node_q: Query<
+                (
+                    &ComputedNode,
+                    &ComputedUiRenderTargetInfo,
+                    &UiGlobalTransform,
+                ),
+                With<LocationGrid>,
+            >,
+            ui_scale: Res<UiScale>,
+            mut commands: Commands| {
+                let Some(new_location) = get_new_location(event.entity, event.pointer_location.position, node_q, ui_scale) else {
+                    return;
+                };
+                event.propagate(false);
+
+                commands.trigger(ValueChange {
+                    source: event.entity,
+                    value: new_location,
+                    is_final: true,
+                });
+        })
+        on(|mut event: On<Pointer<Drag>>,
+            node_q: Query<
+                (
+                    &ComputedNode,
+                    &ComputedUiRenderTargetInfo,
+                    &UiGlobalTransform,
+                ),
+                With<LocationGrid>,
+            >,
+            ui_scale: Res<UiScale>,
+            mut commands: Commands,| {
+                let Some(new_location) = get_new_location(event.entity, event.pointer_location.position, node_q, ui_scale) else {
+                    return;
+                };
+                event.propagate(false);
+
+                commands.trigger(ValueChange {
+                    source: event.entity,
+                    value: new_location,
+                    is_final: false,
+                });
+        })
+        on(|mut event: On<Pointer<DragEnd>>,
+            node_q: Query<
+                (
+                    &ComputedNode,
+                    &ComputedUiRenderTargetInfo,
+                    &UiGlobalTransform,
+                ),
+                With<LocationGrid>,
+            >,
+            ui_scale: Res<UiScale>,
+            mut commands: Commands,| {
+                let Some(new_location) = get_new_location(event.entity, event.pointer_location.position, node_q, ui_scale) else {
+                    return;
+                };
+                event.propagate(false);
+
+                commands.trigger(ValueChange {
+                    source: event.entity,
+                    value: new_location,
+                    is_final: true,
+                });
+        })
+    }
+}
+
+/// Utility to fetch the new pin location after a click into the [`LocationGrid`]
+fn get_new_location(
+    event_entity: Entity,
+    pointer_position: Vec2,
+    node_q: Query<
+        (
+            &ComputedNode,
+            &ComputedUiRenderTargetInfo,
+            &UiGlobalTransform,
+        ),
+        With<LocationGrid>,
+    >,
+    ui_scale: Res<UiScale>,
+) -> Option<UVec2> {
+    let Ok((node, node_target, transform)) = node_q.get(event_entity) else {
+        return None;
+    };
+    let Some(pos) = node.normalize_point(
+        *transform,
+        pointer_position * node_target.scale_factor() / ui_scale.0,
+    ) else {
+        return None;
+    };
+
+    let new_location =
+        (pos * Vec2::new(1.0, -1.0) + Vec2::splat(0.5)).clamp(Vec2::ZERO, Vec2::ONE) * 100.;
+    Some(new_location.round().as_uvec2())
+}
+
 /// Updates the [`MovablePin`]'s location given a new location in game logic coordinates (vals are 0..=100)
-pub fn update_pin_location<T>(new_location: UVec2, pin_q: Single<(&mut Node, &MovablePin)>) {
+pub fn update_pin_location(new_location: UVec2, pin_q: Single<(&mut Node, &MovablePin)>) {
     let (mut node, movable) = pin_q.into_inner();
     if movable.0 {
         node.display = Display::default();

@@ -12,7 +12,7 @@ use crate::{
     AppState, Username,
     load::{LoadModal, LoadableRounds},
     ui::{
-        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, base_button,
+        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
         on_pointer_over_text_cursor, pinpoint_font,
     },
@@ -79,8 +79,10 @@ pub fn show_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
     *app_menu_q.into_inner() = Visibility::Inherited;
 }
 
-pub fn hide_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
-    *app_menu_q.into_inner() = Visibility::Hidden;
+pub fn hide_menu(mut to_hide_q: Query<&mut Visibility, Or<(With<AppMenu>, With<Modal>)>>) {
+    for mut vis in to_hide_q.iter_mut() {
+        *vis = Visibility::Hidden;
+    }
 }
 
 fn logo() -> impl Scene {

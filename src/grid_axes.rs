@@ -149,7 +149,7 @@ fn axis_text(axis: &'static str) -> impl Scene {
     bsn! {
         Text::new(axis)
         TextFont {
-            font_size: FontSize::Rem(0.8),
+            font_size: FontSize::Rem(0.7),
         }
         pinpoint_font()
     }

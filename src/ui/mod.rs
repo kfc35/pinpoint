@@ -34,6 +34,7 @@ pub const DARK_ORANGE_COLOR: Color = Color::srgb(247. / 255., 118. / 255., 34. /
 pub const DARK_RED_COLOR: Color = Color::srgb(158. / 255., 40. / 255., 53. / 255.);
 pub const DARK_GRAY_COLOR: Color = Color::srgb(90. / 255., 105. / 255., 136. / 255.);
 pub const DARK_GREEN_COLOR: Color = Color::srgb(38. / 255., 92. / 255., 66. / 255.);
+pub const DARK_COLOR: Color = Color::srgb(38. / 255., 43. / 255., 68. / 255.);
 
 /// Base button scene for anywhere the app requires a button with
 /// an [`ImageNode`] as its content.
@@ -187,6 +188,21 @@ pub(crate) fn on_pointer_over_text_cursor(
         commands
             .entity(window)
             .insert(CursorIcon::System(SystemCursorIcon::Text));
+    }
+
+    event.propagate(false);
+}
+
+/// Observer to style widgets that only require a pointer cursor on over
+pub(crate) fn on_pointer_over_pointer_cursor(
+    mut event: On<Pointer<Over>>,
+    mut window_q: Query<Entity, With<PrimaryWindow>>,
+    mut commands: Commands,
+) {
+    for window in window_q.iter_mut() {
+        commands
+            .entity(window)
+            .insert(CursorIcon::System(SystemCursorIcon::Pointer));
     }
 
     event.propagate(false);

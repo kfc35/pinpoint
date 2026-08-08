@@ -131,8 +131,6 @@ pub(crate) fn init_encoded_round(
     {
         return;
     }
-
-    println!("Clearing Encoded Round...");
     let round = EncodedRound("".to_string());
     commands.insert_resource(round);
     commands.queue(SaveSettingsSync::Always);

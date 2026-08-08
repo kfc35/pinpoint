@@ -1,6 +1,9 @@
 use bevy::{
-    picking::hover::Hovered, prelude::*, settings::SaveSettingsSync, ui::InteractionDisabled,
-    ui_widgets::Activate,
+    picking::hover::Hovered,
+    prelude::*,
+    settings::SaveSettingsSync,
+    ui::InteractionDisabled,
+    ui_widgets::{Activate, ValueChange},
 };
 
 use crate::{
@@ -9,9 +12,10 @@ use crate::{
     axes_descriptions,
     load::LoadableRounds,
     ui::{
-        Modal, MovablePin, PrimaryButtonContainer, base_button, bottom_buttons,
-        change_image_node_index, confirmation_button, location_grid, on_pointer_out_default_cursor,
-        pinpoint_font, share_primary_button, update_pin_node_with_location,
+        DARK_COLOR, DARK_GRAY_COLOR, DARK_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer,
+        base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
+        on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
+        share_primary_button, update_pin_location, update_pin_node_with_location,
     },
 };
 
@@ -27,8 +31,10 @@ pub struct FromCreatorText;
 #[derive(Component, Clone, Default)]
 pub struct PlayHeaderText;
 
-const DIRECTIONS_TEXT: &'static str =
-    "Press where you think the pin's location is on the grid based on the clue.";
+#[derive(Component, Clone, Default)]
+pub struct PlayPrimaryButtonContainer;
+
+const DIRECTIONS_TEXT: &'static str = "Press where the clue is";
 
 /// This resource should only exist when in [`AppState::Play`].
 /// This is set by the game loader when the play button is pressed.
@@ -37,6 +43,10 @@ pub struct PlayRound {
     /// The current round as an index into [`crate::load::LoadableRounds`]
     loadable_rounds_index: usize,
 }
+
+/// The current location of the guess
+#[derive(Resource)]
+pub struct CurrentGuess(Option<UVec2>);
 
 /// Preps the `PlayRound` resource.
 pub fn init_play_round(selected_index: usize, commands: &mut Commands) {
@@ -55,7 +65,7 @@ pub fn show_play(
     app_type_registry: Res<AppTypeRegistry>,
     creator_text_q: Single<&mut Text, (With<FromCreatorText>, Without<ClueText>)>,
     clue_text_q: Single<&mut Text, (With<ClueText>, Without<FromCreatorText>)>,
-    primary_button_q: Single<Entity, With<PrimaryButtonContainer>>,
+    primary_button_q: Single<Entity, With<PlayPrimaryButtonContainer>>,
     mut commands: Commands,
 ) {
     let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
@@ -66,6 +76,7 @@ pub fn show_play(
     match location {
         Some(loc) => {
             movable_pin.0 = false;
+            commands.insert_resource(CurrentGuess(Some(loc)));
             update_pin_node_with_location(&mut node, loc);
             commands
                 .entity(button_container)
@@ -76,6 +87,8 @@ pub fn show_play(
         }
         None => {
             movable_pin.0 = true;
+            commands.insert_resource(CurrentGuess(None));
+            node.display = Display::None;
             // TODO deactivated done button.
         }
     };
@@ -85,7 +98,7 @@ pub fn show_play(
         .as_playable_round(&app_type_registry);
 
     let mut creator_text = creator_text_q.into_inner();
-    *creator_text = Text::new(format!("From {}", playable_round.get_creator()));
+    *creator_text = Text::new(format!("Clue by {}", playable_round.get_creator()));
 
     let mut clue_text = clue_text_q.into_inner();
     *clue_text = Text::new(format!("{}", playable_round.get_clue()));
@@ -103,6 +116,7 @@ pub fn hide_play(
     }
 
     commands.remove_resource::<PlayRound>();
+    commands.remove_resource::<CurrentGuess>();
 }
 
 pub fn setup_play_skeleton(mut commands: Commands, start_date_time: Res<StartDateTime>) {
@@ -116,6 +130,7 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
 
         AppPlay
         Visibility::Hidden
+        BackgroundColor({DARK_COLOR})
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
@@ -126,17 +141,31 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
             height: percent(100),
         }
         Children [
-            header_text(),
+            header_text()
+            ,
 
-            location_grid(None, true),
+            location_grid(None, true)
+            on(|event: On<ValueChange<UVec2>>,
+                mut current_guess: ResMut<CurrentGuess>,
+                pin_q: Single<(&mut Node, &MovablePin)>|{
+                    current_guess.0 = Some(event.value);
+                    update_pin_location(event.value, pin_q);
+            })
+            on(on_pointer_over_pointer_cursor)
+            on(on_pointer_out_default_cursor)
+            ,
 
-            axes_descriptions(&start_date_time.date),
+            axes_descriptions(&start_date_time.date)
+            ,
 
-            clue_placeholder(),
+            clue_placeholder()
+            ,
 
-            primary_button_placeholder(),
+            primary_button_placeholder()
+            ,
 
-            bottom_buttons(Box::new(bsn!{})),
+            bottom_buttons(Box::new(bsn!{})
+        ),
         ]
     }
 }
@@ -145,21 +174,13 @@ fn header_text() -> impl Scene {
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            min_width: px(280),
+            width: px(280),
         }
         Children [
-            FromCreatorText
-            Text::new("From PLACEHOLDER")
-            TextFont {
-                font_size: FontSize::Rem(0.5)
-            }
-            pinpoint_font()
-            TextLayout::new(Justify::Left, LineBreak::WordOrCharacter),
-
             PlayHeaderText
             Text::new(DIRECTIONS_TEXT)
             TextFont {
-                font_size: FontSize::Rem(0.5)
+                font_size: FontSize::Rem(0.6)
             }
             pinpoint_font()
             TextLayout::new(Justify::Left, LineBreak::WordOrCharacter),
@@ -170,26 +191,41 @@ fn header_text() -> impl Scene {
 fn clue_placeholder() -> impl Scene {
     bsn! {
         Node {
+            flex_direction: FlexDirection::Column,
             min_width: px(280),
-            border: px(5),
-            border_radius: BorderRadius::all(px(10)),
         }
-        BackgroundColor(Color::BLACK)
-        BorderColor::all(Color::BLACK)
         Children [
-            ClueText
-            Text::new("PLACEHOLDER")
+            FromCreatorText
+            Text::new("Clue by PLACEHOLDER")
             TextFont {
-                font_size: FontSize::Rem(0.8)
+                font_size: FontSize::Rem(0.7)
             }
             pinpoint_font()
-            TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
+            TextLayout::new(Justify::Left, LineBreak::WordOrCharacter),
+
+            Node {
+                min_width: px(280),
+                border: px(5),
+                border_radius: BorderRadius::all(px(10)),
+            }
+            BackgroundColor(Color::BLACK)
+            BorderColor::all(Color::BLACK)
+            Children [
+                ClueText
+                Text::new("PLACEHOLDER")
+                TextFont {
+                    font_size: FontSize::Rem(0.7)
+                }
+                pinpoint_font()
+                TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
+            ]
         ]
     }
 }
 
 fn primary_button_placeholder() -> impl Scene {
     bsn! {
+        PlayPrimaryButtonContainer
         PrimaryButtonContainer
         Node {
             // override the width because we don't care
