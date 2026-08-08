@@ -1,14 +1,16 @@
 use crate::{
     load::{LoadableRound, LoadableRounds},
     ui::{
-        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_RED_COLOR,
-        MIDDLE_BLUE_COLOR, MIDDLE_ORANGE_COLOR, Modal, base_button, confirmation_button,
-        pinpoint_font,
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR,
+        DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_ORANGE_COLOR, Modal, base_button,
+        confirmation_button, pinpoint_font,
     },
 };
 use bevy::{
+    input_focus::tab_navigation::TabIndex,
     picking::hover::Hovered,
     prelude::*,
+    text::{EditableText, TextCursorStyle},
     ui::{Checked, InteractionDisabled},
     ui_widgets::{
         Activate, ControlOrientation, RadioButton, RadioGroup, Scrollbar, ScrollbarThumb,
@@ -20,9 +22,17 @@ use bevy::{
 #[derive(Component, Default, Clone)]
 struct LoadModal;
 
-/// Marker component for the radio group
+#[derive(Component, Default, Clone)]
+struct LoadSelect;
+
 #[derive(Component, Default, Clone)]
 struct LoadRadioGroup;
+
+#[derive(Component, Default, Clone)]
+pub struct LoadUrlTextInput;
+
+#[derive(Component, Default, Clone)]
+pub struct PlusButton;
 
 /// Placed on a RadioButton signifying which round in [`LoadableRounds`] is selected.
 #[derive(Component, Default, Clone)]
@@ -76,7 +86,8 @@ pub fn load_modal(
                         modal_q: Single<Entity, With<LoadModal>>| {
                             commands.entity(modal_q.entity()).despawn();
                     }),
-                ],
+                ]
+                ,
 
                 load_select(&loadable_rounds,&app_type_registry)
                 Node {
@@ -87,8 +98,12 @@ pub fn load_modal(
                 }
                 ,
 
+                load_game_input_form()
+                ,
+
                 // TODO it can be disabled if there are no games to play.
-                play_button(&loadable_rounds),
+                play_button(&loadable_rounds)
+                ,
             ]
         ]
     }
@@ -99,12 +114,14 @@ fn load_select(
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
     bsn! {
+        LoadSelect
         Node {
             display: Display::Grid,
             width: percent(90),
             height: percent(50),
             grid_template_columns: vec![RepeatedGridTrack::flex(1, 1.),RepeatedGridTrack::auto(1)],
             justify_content: JustifyContent::SpaceAround,
+            border: px(5),
         }
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
@@ -139,7 +156,7 @@ fn load_select(
                         .insert((Checked, BackgroundColor(Color::BLACK)));
             })
             Children [
-                { load_select_children(loadable_rounds, app_type_registry) }
+                { load_select_children(loadable_rounds, app_type_registry, None) }
             ],
 
             // Scrollbar
@@ -171,6 +188,7 @@ fn load_select(
 fn load_select_children(
     loadable_rounds: &LoadableRounds,
     app_type_registry: &AppTypeRegistry,
+    selected_index: Option<usize>,
 ) -> Box<dyn SceneList> {
     let (unplayed, played): (Vec<(usize, &LoadableRound)>, Vec<(usize, &LoadableRound)>) =
         loadable_rounds
@@ -203,10 +221,22 @@ fn load_select_children(
                     font_size: FontSize::Rem(0.8)
                 }
                 TextColor(Color::BLACK)
+                BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             ],
 
             {
-                unplayed.iter().map(|(index, round)| loadable_round_to_radio_button(*index, round, false, app_type_registry,)).collect::<Vec<_>>()
+                unplayed
+                    .iter()
+                    .enumerate()
+                    .map(|(unplayed_idx, (index, round))|
+                        loadable_round_to_radio_button(
+                            *index,
+                            round,
+                            selected_index.is_some_and(|s_idx| s_idx == *index) || unplayed_idx == 0,
+                            app_type_registry,
+                        )
+                    )
+                    .collect::<Vec<_>>()
             }
         ],
 
@@ -222,10 +252,21 @@ fn load_select_children(
                     font_size: FontSize::Rem(0.8)
                 }
                 TextColor(Color::BLACK)
+                BackgroundColor({DARK_GRAY_COLOR.with_alpha(0.5)})
             ],
 
             {
-                played.iter().enumerate().map(|(played_index, (index, round))| loadable_round_to_radio_button(*index, round, played_index == 0, app_type_registry)).collect::<Vec<_>>()
+                played
+                    .iter()
+                    .map(|(index, round)|
+                        loadable_round_to_radio_button(
+                            *index,
+                            round,
+                            selected_index.is_some_and(|s_idx| s_idx == *index),
+                            app_type_registry
+                        )
+                    )
+                    .collect::<Vec<_>>()
             }
         ],
     })
@@ -287,13 +328,135 @@ where
     }
 }
 
+fn load_game_input_form() -> impl Scene {
+    bsn! {
+        Node {
+            width: percent(90),
+            min_width: px(280),
+            row_gap: px(5),
+            align_items: AlignItems::Center,
+            justify_content: JustifyContent::SpaceBetween,
+            flex_direction: FlexDirection::Column,
+        }
+        Children [
+            Node {
+                width: percent(100),
+            }
+            Text::new("Add Game via URL")
+            TextFont {
+                font_size: FontSize::Rem(0.75)
+            }
+            TextLayout::justify(Justify::Center)
+            pinpoint_font()
+            ,
+
+            Node {
+                flex_direction: FlexDirection::Row,
+                width: percent(100),
+                height: px(100),
+            }
+            Children[
+                LoadUrlTextInput
+                Node {
+                    width: percent(80),
+                    height: percent(100),
+                    border: px(5),
+                    border_radius: BorderRadius::all(px(10)),
+                }
+                // While EditableText is weird in Bevy 0.19,
+                // Allow for new lines so that rendering for
+                // viewport can be avoided via user circumvention.
+                template_value({
+                    let mut editable = EditableText::new("");
+                    editable.visible_lines = Some(3.);
+                    editable.allow_newlines = true;
+                    editable
+                })
+                TextFont {
+                    font_size: FontSize::Rem(0.75)
+                }
+                pinpoint_font()
+                TextColor(Color::BLACK)
+                TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
+                TabIndex(0)
+                TextCursorStyle::default()
+                BackgroundColor(Color::WHITE)
+                BorderColor::all(Color::WHITE)
+                on(crate::ui::on_pointer_over_text_cursor)
+                on(crate::ui::on_pointer_out_default_cursor), // TODO need to add system to detect change.
+
+                PlusButton
+                // start off disabled
+                crate::ui::base_button("button/plus_icon.png", UVec2::splat(32), 100, 19, 3, 4, 5)
+                Node {
+                    min_width: Val::Auto,
+                }
+                Hovered::default()
+                InteractionDisabled
+                BorderColor::all(DARK_GRAY_COLOR)
+                on(|_: On<Activate>,
+                    load_url_text_q: Single<&mut EditableText, With<LoadUrlTextInput>>,
+                    load_select_q: Single<Entity, With<LoadSelect>>,
+                    mut commands: Commands,| {
+                        let mut editable_text = load_url_text_q.into_inner();
+                        let url = editable_text.value();
+                        editable_text.clear(); // `on_changed_url_input` will handle styling.
+
+
+                }),
+            ]
+        ]
+    }
+}
+
+/// System that enables the + button if the field is not empty.
+pub fn on_changed_url_input(
+    mut clue_input_q: Query<
+        (&EditableText, &mut BorderColor),
+        (With<LoadUrlTextInput>, Without<PlusButton>),
+    >,
+    mut needs_valid_clue_input_q: Query<
+        (Entity, &Hovered, &mut BorderColor),
+        (With<PlusButton>, Without<LoadUrlTextInput>),
+    >,
+    children_query: Query<&Children>,
+    mut image_q: Query<&mut ImageNode>,
+    mut commands: Commands,
+) {
+    let Ok((editable_text, mut border_color)) = clue_input_q.single_mut() else {
+        return;
+    };
+
+    if editable_text.value().to_string().is_empty() {
+        for (entity, _, mut border_color) in needs_valid_clue_input_q.iter_mut() {
+            commands.entity(entity).insert(InteractionDisabled);
+            crate::ui::change_image_node_index(entity, 3, &children_query, &mut image_q);
+            *border_color = BorderColor::all(DARK_GRAY_COLOR);
+        }
+    } else {
+        *border_color = BorderColor::all(Color::BLACK);
+
+        for (entity, is_hovered, mut border_color) in needs_valid_clue_input_q.iter_mut() {
+            commands.entity(entity).remove::<InteractionDisabled>();
+
+            if is_hovered.get() {
+                crate::ui::change_image_node_index(entity, 1, &children_query, &mut image_q);
+                *border_color = BorderColor::all(DARK_ORANGE_COLOR);
+            } else {
+                crate::ui::change_image_node_index(entity, 0, &children_query, &mut image_q);
+                *border_color = BorderColor::all(DARK_BLUE_COLOR);
+            }
+        }
+    }
+}
+
 fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
     if !loadable_rounds.rounds.is_empty() {
         Box::new(bsn! {
             Hovered::default()
             base_button("button/play.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
             Node {
-                width: px(250),
+                width: percent(90),
                 height: px(50),
             }
         })
@@ -305,7 +468,7 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
             // Override border color
             BorderColor::all(DARK_GRAY_COLOR)
             Node {
-                width: px(250),
+                width: percent(90),
                 height: px(50),
             }
         })

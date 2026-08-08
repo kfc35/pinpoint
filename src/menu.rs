@@ -366,7 +366,8 @@ impl Plugin for MenuPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(
             Update,
-            on_changed_username_input.run_if(in_state(AppState::Menu)),
+            (on_changed_username_input, crate::load::on_changed_url_input)
+                .run_if(in_state(AppState::Menu)),
         );
     }
 }

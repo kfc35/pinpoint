@@ -5,7 +5,7 @@ use bevy::{
 };
 
 mod load_modal;
-pub use load_modal::load_modal;
+pub use load_modal::{load_modal, on_changed_url_input};
 
 #[cfg(target_arch = "wasm32")]
 use web_sys::window;
