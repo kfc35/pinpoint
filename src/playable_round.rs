@@ -4,7 +4,7 @@ use bevy::{prelude::*, reflect::serde::TypedReflectSerializer};
 
 /// A round of Pinpoint that can be loaded into play.
 /// It can be decoded from an [`EncodedRound`].
-#[derive(Reflect, Clone, Debug, Hash, PartialEq, Eq)]
+#[derive(Reflect, Clone, Hash, PartialEq, Eq)]
 pub struct PlayableRound {
     /// The creator of this round
     creator: String,

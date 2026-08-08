@@ -1,13 +1,11 @@
 use crate::{EncodedRound, StartDateTime, playable_round::PlayableRound};
 use bevy::{
     prelude::*,
-    settings::{ReflectSettingsGroup, SaveSettings, SaveSettingsSync, SettingsGroup},
+    settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup},
 };
 
 mod load_modal;
-pub use load_modal::{
-    LoadModal, hide_load_modal, load_modal, on_changed_url_input, show_load_modal,
-};
+pub use load_modal::{LoadModal, load_modal, on_changed_url_input, show_load_modal};
 
 #[cfg(target_arch = "wasm32")]
 use crate::MenuHeaderText;
@@ -83,6 +81,12 @@ impl LoadableRound {
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct LoadableRounds {
     pub(crate) rounds: Vec<LoadableRound>,
+}
+
+impl LoadableRounds {
+    pub fn get_round(&self, idx: usize) -> &LoadableRound {
+        &self.rounds[idx]
+    }
 }
 
 /// System that inits the [`LoadableRounds`] resource.

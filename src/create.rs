@@ -16,7 +16,7 @@ use crate::{
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
         DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, base_button,
-        change_image_node_index, confirmation_button, on_activate_change_state,
+        change_image_node_index, confirmation_button, location_grid, on_activate_change_state,
         on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
     },
 };
@@ -26,12 +26,6 @@ use rand::{RngExt, SeedableRng};
 
 #[derive(Component, Clone, Default)]
 pub struct AppCreate;
-
-#[derive(Component, Clone, Default)]
-pub struct LocationGrid;
-
-#[derive(Component, Clone, Default)]
-pub struct Pin;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInput;
@@ -93,10 +87,6 @@ impl CreatedRound {
 
     pub(crate) fn get_location(&self) -> UVec2 {
         return self.location;
-    }
-
-    pub(crate) fn get_is_draft(&self) -> bool {
-        return self.is_draft;
     }
 }
 
@@ -170,43 +160,7 @@ fn setup_create_vertical(
             height: percent(100),
         }
         Children [
-            LocationGrid
-            Node {
-                border: px(5),
-            }
-            BorderColor::all(Color::WHITE)
-            Children [
-                Node {
-                    min_width: px(280),
-                    min_height: px(280),
-                }
-                ImageNode {
-                    image: "game_area/grid.png"
-                },
-
-                Pin
-                Node {
-                    position_type: PositionType::Absolute,
-                    // We subtract 7.5 so that the pin center is exactly where
-                    // we want it to be.
-                    // 42 (size of crosshair) / 2 = 21.
-                    // the bullseye center is at 21 x 21, so we want the bottom
-                    // left of the crosshair below and to the left of where the
-                    // center should go by 21 / 280 = 7.5%
-                    left: percent(created_round.location.x as f32 - 7.5),
-                    bottom: percent(created_round.location.y as f32 - 7.5),
-                }
-                ZIndex(1)
-                Children [
-                    Node {
-                        width: px(42),
-                        height: px(42),
-                    }
-                    ImageNode {
-                        image: "game_area/crosshair.png"
-                    }
-                ],
-            ],
+            location_grid(Some(created_round.location), false),
 
             axes_descriptions(&created_round.date),
 

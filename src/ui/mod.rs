@@ -1,5 +1,5 @@
+///! UI utilities that make composing ui elements easier.
 use crate::AppState;
-///! A hodgepodge of ui utilities to make composing ui elements easier.
 use bevy::{
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
@@ -8,6 +8,9 @@ use bevy::{
     ui_widgets::{Activate, Button, Scrollbar},
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
+
+mod location_grid;
+pub use location_grid::{MovablePin, location_grid, update_pin_location};
 
 /// Marker component for modals
 #[derive(Component, Clone, Default)]

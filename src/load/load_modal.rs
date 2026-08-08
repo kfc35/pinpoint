@@ -46,7 +46,7 @@ pub fn show_load_modal(to_show_q: Single<&mut Visibility, With<LoadModal>>) {
     *to_show_q.into_inner() = Visibility::Inherited;
 }
 
-pub fn hide_load_modal(mut to_hide_q: Single<&mut Visibility, With<LoadModal>>) {
+pub fn hide_load_modal(to_hide_q: Single<&mut Visibility, With<LoadModal>>) {
     *to_hide_q.into_inner() = Visibility::Hidden;
 }
 
@@ -563,7 +563,7 @@ fn play_button(loadable_rounds: &LoadableRounds) -> Box<dyn Scene> {
 fn on_activate_play() -> impl Scene {
     bsn! {
         on(|_: On<Activate>,
-            checked_q: Single<&RoundIndex, With<Checked>>,
+            _checked_q: Single<&RoundIndex, With<Checked>>,
             mut next_state: ResMut<NextState<AppState>>,
             mut window_q: Query<Entity, With<PrimaryWindow>>,
             modal_q: Single<Entity, With<LoadModal>>,

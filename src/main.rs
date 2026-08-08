@@ -10,16 +10,18 @@ use bevy::{
 use chrono::Utc;
 use serde::de::DeserializeSeed;
 
-mod create;
+mod animation;
 mod grid_axes;
+mod ui;
 pub(crate) use grid_axes::axes_descriptions;
 
-mod animation;
+mod create;
+mod load;
 mod menu;
+mod play;
+
 mod playable_round;
 use playable_round::PlayableRound;
-mod load;
-mod ui;
 
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
 
@@ -110,7 +112,7 @@ impl EncodedRound {
     }
 
     fn is_valid(&self, today: &String, type_registry: &AppTypeRegistry) -> bool {
-        self.0 != ""
+        !self.is_empty()
             && self
                 .try_decode(type_registry)
                 .is_some_and(|playable_round| *playable_round.get_date() == *today)
