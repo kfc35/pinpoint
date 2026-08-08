@@ -17,8 +17,8 @@ use crate::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
         DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, PrimaryButtonContainer,
         base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
-        on_pointer_out_back_to_share, on_pointer_out_default_cursor,
-        on_pointer_over_text_cursor, pinpoint_font, share_primary_button,
+        on_pointer_out_back_to_share, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
+        pinpoint_font, share_primary_button,
     },
 };
 use rand::{RngExt, SeedableRng};

@@ -5,7 +5,13 @@ use bevy::{
 
 use crate::{animation::AnimatedImageNode, load::LoadableRounds, play::PlayRound};
 
-const RESULT_BANNERS: [(&'static str, usize); 1] = [("images/results/bullseye.png", 9)];
+const RESULT_BANNERS: [(&'static str, usize); 5] = [
+    ("images/results/bullseye.png", 9),
+    ("images/results/on_the_green.png", 11),
+    ("images/results/in_the_neighborhood.png", 8),
+    ("images/results/ehh_close_enough.png", 8),
+    ("images/results/where_am_i.png", 7),
+];
 
 /// Returns the result image after an imported round has been played.
 /// Must only be called when in [`crate::AppState::Play`].
@@ -39,8 +45,17 @@ fn get_image(context: &TemplateContext) -> (&'static str, usize) {
     let loadable_round = context
         .resource::<LoadableRounds>()
         .get_round(play_round.get_index());
-    let _distance = loadable_round.get_guess_distance(app_type_registry);
+    let distance = loadable_round.get_guess_distance(app_type_registry);
 
-    // TODO this should be based on distance.
-    RESULT_BANNERS[0]
+    if distance <= 3. {
+        RESULT_BANNERS[0]
+    } else if distance <= 6.25 {
+        RESULT_BANNERS[1]
+    } else if distance <= 12.5 {
+        RESULT_BANNERS[2]
+    } else if distance <= 25. {
+        RESULT_BANNERS[3]
+    } else {
+        RESULT_BANNERS[4]
+    }
 }

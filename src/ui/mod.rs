@@ -27,8 +27,13 @@ pub struct PrimaryButtonContainer;
 pub struct BottomButtons;
 
 // Colors used for text and buttons
+
+pub const LIGHT_GREEN_COLOR: Color = Color::srgb(99. / 255., 199. / 255., 77. / 255.);
 pub const MIDDLE_BLUE_COLOR: Color = Color::srgb(0. / 255., 149. / 255., 233. / 255.);
+pub const MIDDLE_RED_COLOR: Color = Color::srgb(255. / 255., 0. / 255., 68. / 255.);
+pub const MIDDLE_GREEN_COLOR: Color = Color::srgb(62. / 255., 137. / 255., 72. / 255.);
 pub const DARK_BLUE_COLOR: Color = Color::srgb(18. / 255., 78. / 255., 137. / 255.);
+pub const YELLOW_COLOR: Color = Color::srgb(254. / 255., 231. / 255., 97. / 255.);
 pub const MIDDLE_ORANGE_COLOR: Color = Color::srgb(254. / 255., 174. / 255., 52. / 255.);
 pub const DARK_ORANGE_COLOR: Color = Color::srgb(247. / 255., 118. / 255., 34. / 255.);
 pub const DARK_RED_COLOR: Color = Color::srgb(158. / 255., 40. / 255., 53. / 255.);

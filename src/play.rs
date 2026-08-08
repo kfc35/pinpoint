@@ -13,9 +13,9 @@ use crate::{
     load::LoadableRounds,
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
-        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_ORANGE_COLOR, Modal, MovablePin,
-        PrimaryButtonContainer, base_button, bottom_buttons, change_image_node_index,
-        confirmation_button, location_grid, on_pointer_out_back_to_share,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, LIGHT_GREEN_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR,
+        Modal, MovablePin, PrimaryButtonContainer, YELLOW_COLOR, base_button, bottom_buttons,
+        change_image_node_index, confirmation_button, location_grid, on_pointer_out_back_to_share,
         on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
         share_primary_button, update_pin_location, update_pin_node_with_location,
     },
@@ -48,7 +48,7 @@ pub struct PlayConfirmationModal;
 #[derive(Component, Clone, Default)]
 pub struct ResultsModal;
 
-const DIRECTIONS_TEXT: &'static str = "Press where the clue is";
+const DIRECTIONS_TEXT: &'static str = "Guess where the clue is";
 
 /// This resource should only exist when in [`AppState::Play`].
 /// This is set by the game loader when the play button is pressed.
@@ -578,9 +578,9 @@ fn get_distance_text_first_part() -> impl Scene {
         if distance <= 3. {
             format!("Bullseye! You were only ")
         } else if distance <= 6.25 {
-            format!("On the green! You were ")
+            format!("Nice job! You were ")
         } else if distance <= 12.5 {
-            format!("Not Bad. You were ")
+            format!("Not bad. You were ")
         } else if distance <= 25. {
             format!("Barely made it... You were ")
         } else {
@@ -609,15 +609,15 @@ fn get_distance_text_second_part() -> impl Scene {
             let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
             let distance = loadable_round.get_guess_distance(app_type_registry);
             let text_color = if distance <= 3. {
-                TextColor(DARK_GREEN_COLOR)
+                TextColor(LIGHT_GREEN_COLOR)
             } else if distance <= 6.25 {
-                TextColor(DARK_GREEN_COLOR)
+                TextColor(MIDDLE_GREEN_COLOR)
             } else if distance <= 12.5 {
-                TextColor(MIDDLE_ORANGE_COLOR)
+                TextColor(YELLOW_COLOR)
             } else if distance <= 25. {
                 TextColor(DARK_ORANGE_COLOR)
             } else {
-                TextColor(DARK_RED_COLOR)
+                TextColor(MIDDLE_RED_COLOR)
             };
             Ok(text_color)
         })
