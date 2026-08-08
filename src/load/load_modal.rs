@@ -27,7 +27,7 @@ pub struct LoadModal;
 struct LoadSelect;
 
 #[derive(Component, Default, Clone)]
-struct LoadRadioGroup;
+pub struct LoadRadioGroup;
 
 #[derive(Component, Default, Clone)]
 pub struct LoadUrlTextInput;
@@ -40,9 +40,31 @@ pub struct PlayButton;
 
 /// Placed on a RadioButton signifying which round in [`LoadableRounds`] is selected.
 #[derive(Component, Default, Clone)]
-struct RoundIndex(usize);
+pub struct RoundIndex(usize);
 
-pub fn show_load_modal(to_show_q: Single<&mut Visibility, With<LoadModal>>) {
+/// An observer that shows the load modal on activate.
+pub fn on_activate_show_load_modal(
+    _: On<Activate>,
+    to_show_q: Single<&mut Visibility, With<LoadModal>>,
+    previously_checked_q: Query<&RoundIndex, With<Checked>>,
+    radio_group_q: Single<Entity, With<LoadRadioGroup>>,
+    loadable_rounds: Res<LoadableRounds>,
+    app_type_registry: Res<AppTypeRegistry>,
+    mut commands: Commands,
+) {
+    let selected_index = previously_checked_q
+        .single()
+        .map(|round_index| round_index.0)
+        .ok();
+    commands
+        .entity(radio_group_q.entity())
+        .despawn_children()
+        .queue_spawn_related_scenes::<Children>(load_select_children(
+            &loadable_rounds,
+            &app_type_registry,
+            selected_index,
+        ));
+
     *to_show_q.into_inner() = Visibility::Inherited;
 }
 
@@ -253,7 +275,7 @@ fn load_select_children(
                         loadable_round_to_radio_button(
                             *index,
                             round,
-                            selected_index.is_some_and(|s_idx| s_idx == *index) || unplayed_idx == 0,
+                            (selected_index.is_none() && unplayed_idx == 0) || selected_index.is_some_and(|s_idx| s_idx == *index),
                             app_type_registry,
                         )
                     )

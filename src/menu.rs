@@ -10,7 +10,7 @@ use bevy::{
 
 use crate::{
     AppState, Username,
-    load::{LoadModal, LoadableRounds},
+    load::{LoadModal, LoadableRounds, on_activate_show_load_modal},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
@@ -123,10 +123,7 @@ fn menu(username: &Username) -> impl Scene {
                 padding: px(3),
             }
             needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4)
-            on(|_: On<Activate>,
-                load_modal_q : Single<&mut Visibility, With<LoadModal>>| {
-                crate::load::show_load_modal(load_modal_q);
-            })
+            on(on_activate_show_load_modal)
             ,
 
             base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5),

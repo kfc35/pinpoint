@@ -13,11 +13,11 @@ use crate::{
     load::LoadableRounds,
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
-        DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer, base_button,
-        bottom_buttons, change_image_node_index, confirmation_button, location_grid,
-        on_pointer_out_back_to_share, on_pointer_out_default_cursor,
-        on_pointer_over_pointer_cursor, pinpoint_font, share_primary_button, update_pin_location,
-        update_pin_node_with_location,
+        DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_ORANGE_COLOR, Modal, MovablePin,
+        PrimaryButtonContainer, base_button, bottom_buttons, change_image_node_index,
+        confirmation_button, location_grid, on_pointer_out_back_to_share,
+        on_pointer_out_default_cursor, on_pointer_over_pointer_cursor, pinpoint_font,
+        share_primary_button, update_pin_location, update_pin_node_with_location,
     },
 };
 
@@ -104,6 +104,8 @@ pub fn show_play(
                     share_primary_button()
                     create_on_activate_share_link()
                 });
+
+            commands.spawn_scene(results_modal());
         }
         None => {
             movable_pin.0 = true;
@@ -120,10 +122,10 @@ pub fn show_play(
                     BorderColor::all(DARK_GRAY_COLOR)
                     Hovered::default()
                     on_click_if_inactive()
-                    // on(|_: On<Activate>,
-                    //     modal_q: Single<&mut Visibility, With<PlayConfirmationModal>>| {
-                    //         *modal_q.into_inner() = Visibility::Inherited;
-                    // })
+                    on(|_: On<Activate>,
+                        modal_q: Single<&mut Visibility, With<PlayConfirmationModal>>| {
+                            *modal_q.into_inner() = Visibility::Inherited;
+                    })
                 });
         }
     };
@@ -411,6 +413,12 @@ fn confirmation_modal() -> impl Scene {
                 Text::new("You only have one guess!")
                 pinpoint_font(),
 
+                Node {
+                    flex_direction: FlexDirection::Row,
+                    width: px(250),
+                    justify_content: JustifyContent::SpaceBetween,
+                    align_items: AlignItems::Center,
+                }
                 Children [
                     confirmation_button(DARK_RED_COLOR, ConfirmationButtonIndex::RedX)
                     on(|_: On<Activate>,
@@ -513,8 +521,31 @@ fn results_modal() -> impl Scene {
                     AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
                 ],
 
-                get_results_text()
-                pinpoint_font(),
+                get_results_text_title()
+                pinpoint_font()
+                TextFont {
+                    font_size: FontSize::Rem(0.7)
+                }
+                Children [
+                    get_distance_text_first_part()
+                    pinpoint_font()
+                    TextFont {
+                        font_size: FontSize::Rem(0.7),
+                    },
+
+                    get_distance_text_second_part()
+                    get_distance_text_color_second_part()
+                    pinpoint_font()
+                    TextFont {
+                        font_size: FontSize::Rem(0.7),
+                    },
+
+                    get_distance_text_third_part()
+                    pinpoint_font()
+                    TextFont {
+                        font_size: FontSize::Rem(0.7),
+                    },
+                ],
 
                 base_button("button/share.png", UVec2::new(137, 32), 10, 80, 0, 3, 5)
                 Node {
@@ -528,18 +559,31 @@ fn results_modal() -> impl Scene {
     }
 }
 
-fn get_results_text() -> impl Scene {
+fn get_results_text_title() -> impl Scene {
+    bsn! {
+        template(move |ctx| {
+            let play_round = ctx.resource::<PlayRound>();
+            let loadable_rounds = ctx.resource::<LoadableRounds>();
+            let app_type_registry = ctx.resource::<AppTypeRegistry>();
+            let playable_round = loadable_rounds.get_as_playable_round(play_round.loadable_rounds_index, &app_type_registry);
+            let text = format!("You finished {}'s #PinPoint Round for {}!\n\n", playable_round.get_creator(), playable_round.get_date());
+            Ok(Text::new(text))
+        })
+    }
+}
+
+fn get_distance_text_first_part() -> impl Scene {
     let distance_text = |distance: f32| {
         if distance <= 3. {
-            format!("Bullseye! You were only {distance:.3} units away!")
+            format!("Bullseye! You were only ")
         } else if distance <= 6.25 {
-            format!("On the green! You were {distance:.3} away from pin.")
+            format!("On the green! You were ")
         } else if distance <= 12.5 {
-            format!("Not Bad. You were {distance:.3} away from pin.")
+            format!("Not Bad. You were ")
         } else if distance <= 25. {
-            format!("Barely made it... You were {distance:.3} away from pin.")
+            format!("Barely made it... You were ")
         } else {
-            format!("You lost? You were {distance:.3} away from pin.")
+            format!("Are you lost? You were ")
         }
     };
     bsn! {
@@ -549,10 +593,73 @@ fn get_results_text() -> impl Scene {
             let app_type_registry = ctx.resource::<AppTypeRegistry>();
             let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
             let distance = loadable_round.get_guess_distance(app_type_registry);
-            let playable_round = loadable_rounds.get_as_playable_round(play_round.loadable_rounds_index, &app_type_registry);
-            let text = format!("You finished {}'s #PinPoint Round for {}!\n\
-                {}", playable_round.get_creator(), playable_round.get_date(), distance_text(distance));
-            Ok(Text::new(text))
+            let text = format!("{}", distance_text(distance));
+            Ok(TextSpan::new(text))
+        })
+    }
+}
+
+fn get_distance_text_second_part() -> impl Scene {
+    bsn! {
+        template(move |ctx| {
+            let play_round = ctx.resource::<PlayRound>();
+            let loadable_rounds = ctx.resource::<LoadableRounds>();
+            let app_type_registry = ctx.resource::<AppTypeRegistry>();
+            let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
+            let distance = loadable_round.get_guess_distance(app_type_registry);
+            let text_color = if distance <= 3. {
+                TextColor(DARK_GREEN_COLOR)
+            } else if distance <= 6.25 {
+                TextColor(DARK_GREEN_COLOR)
+            } else if distance <= 12.5 {
+                TextColor(MIDDLE_ORANGE_COLOR)
+            } else if distance <= 25. {
+                TextColor(DARK_ORANGE_COLOR)
+            } else {
+                TextColor(DARK_RED_COLOR)
+            };
+            Ok(text_color)
+        })
+    }
+}
+
+fn get_distance_text_color_second_part() -> impl Scene {
+    bsn! {
+        template(move |ctx| {
+            let play_round = ctx.resource::<PlayRound>();
+            let loadable_rounds = ctx.resource::<LoadableRounds>();
+            let app_type_registry = ctx.resource::<AppTypeRegistry>();
+            let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
+            let distance = loadable_round.get_guess_distance(app_type_registry);
+            let text = format!("{distance:.3}");
+            Ok(TextSpan::new(text))
+        })
+    }
+}
+
+fn get_distance_text_third_part() -> impl Scene {
+    let distance_text = |distance: f32| {
+        if distance <= 3. {
+            format!(" units away from the pin!")
+        } else if distance <= 6.25 {
+            format!(" units away from the pin.")
+        } else if distance <= 12.5 {
+            format!(" units away from the pin.")
+        } else if distance <= 25. {
+            format!(" units away from the pin.")
+        } else {
+            format!(" units away from the pin...")
+        }
+    };
+    bsn! {
+        template(move |ctx| {
+            let play_round = ctx.resource::<PlayRound>();
+            let loadable_rounds = ctx.resource::<LoadableRounds>();
+            let app_type_registry = ctx.resource::<AppTypeRegistry>();
+            let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
+            let distance = loadable_round.get_guess_distance(app_type_registry);
+            let text = format!("{}", distance_text(distance));
+            Ok(TextSpan::new(text))
         })
     }
 }
