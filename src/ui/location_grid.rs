@@ -30,8 +30,9 @@ pub fn location_grid(location: Option<UVec2>, is_movable: bool, use_crosshair: b
         if use_crosshair {
             update_pin_node_with_location_inner(&mut node, loc, GRID_SIZE_PX, CROSSHAIR_SIZE_PX);
         } else {
-            node.left = percent(loc.x);
-            node.bottom = percent(loc.y);
+            let shift_percent = (1. / ANSWER_PIN_SIZE_PX) / GRID_SIZE_PX * 100.0;
+            node.left = percent(loc.x as f32 - shift_percent);
+            node.bottom = percent(loc.y as f32 - shift_percent);
         }
 
         node
@@ -249,8 +250,9 @@ pub fn update_pin_location(
         if is_crosshair {
             update_crosshair_pin_node_with_location(&mut node, new_location);
         } else {
-            node.left = percent(new_location.x);
-            node.bottom = percent(new_location.y);
+            let shift_percent = (1. / ANSWER_PIN_SIZE_PX) / GRID_SIZE_PX * 100.0;
+            node.left = percent(new_location.x as f32 - shift_percent);
+            node.bottom = percent(new_location.y as f32 - shift_percent);
         }
     }
 }
