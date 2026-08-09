@@ -9,6 +9,7 @@ use bevy::{
 
 use crate::{
     AppState, EncodedRound, StartDateTime, Username,
+    how_to_modal::on_activate_show_how_to_modal,
     load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
@@ -177,7 +178,8 @@ fn menu(
             on(on_activate_show_load_modal)
             ,
 
-            base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5),
+            base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5)
+            on(on_activate_show_how_to_modal),
 
             username_input_col(username, encoded_round_is_valid)
             ,

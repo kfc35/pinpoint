@@ -16,6 +16,7 @@ mod ui;
 pub(crate) use grid_axes::axes_descriptions;
 
 mod create;
+mod how_to_modal;
 mod load;
 mod menu;
 mod play;
@@ -179,8 +180,14 @@ fn main() {
                 ui::update_scrollbar_with_scroll,
             ),
         )
-        .add_systems(OnEnter(AppState::Menu), menu::show_menu)
-        .add_systems(OnExit(AppState::Menu), menu::hide_menu)
+        .add_systems(
+            OnEnter(AppState::Menu),
+            (menu::show_menu, how_to_modal::how_to_modal.spawn()),
+        )
+        .add_systems(
+            OnExit(AppState::Menu),
+            (menu::hide_menu, how_to_modal::despawn_how_to_modal),
+        )
         .add_systems(OnEnter(AppState::Create), create::show_create)
         .add_systems(OnExit(AppState::Create), create::hide_create)
         .add_systems(OnEnter(AppState::Play), play::show_play)
