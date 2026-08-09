@@ -1,7 +1,7 @@
 use crate::ui::{
-    ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR,
-    DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_ORANGE_COLOR, MIDDLE_RED_COLOR,
-    Modal, YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
+    ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
+    MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal, YELLOW_COLOR, base_button,
+    confirmation_button, pinpoint_font,
 };
 use bevy::{
     prelude::*,
@@ -43,7 +43,6 @@ pub fn how_to_modal() -> impl Scene {
         }
         GlobalZIndex(1)
         BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
-        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
             // Inset node
             Node {
@@ -56,6 +55,7 @@ pub fn how_to_modal() -> impl Scene {
             }
             BorderColor::all(DARK_BLUE_COLOR)
             BackgroundColor(Color::BLACK)
+            on(crate::ui::handle_mouse_drag_as_scroll)
             Children [
                 #Content
                 Node {
@@ -118,7 +118,7 @@ fn menu_modal_content() -> impl Scene {
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
-            align_items: AlignItems::Center,
+            align_items: AlignItems::Start,
             margin: UiRect::top(px(50))
             width: percent(90),
             height: percent(100),
@@ -132,7 +132,18 @@ fn menu_modal_content() -> impl Scene {
 
 fn menu_content() -> impl SceneList {
     bsn_list! {
-        // Introduction paragraph.
+        { introduction_content() },
+
+        { technical_limitations_content() },
+
+        { clue_creator_content() },
+
+        { clue_receivers_content() },
+    }
+}
+
+fn introduction_content() -> impl SceneList {
+    bsn_list! {
         Text::new("Pinpoint")
         pinpoint_font()
         TextFont {
@@ -230,9 +241,11 @@ fn menu_content() -> impl SceneList {
             TextColor(MIDDLE_GREEN_COLOR)
             ,
         ]
-        ,
+    }
+}
 
-        // Technical limitations.
+fn technical_limitations_content() -> impl SceneList {
+    bsn_list! {
         Text::new("Technical Limitations:\n\n")
         pinpoint_font()
         TextFont {
@@ -241,42 +254,56 @@ fn menu_content() -> impl SceneList {
         TextColor(MIDDLE_BLUE_COLOR)
         TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
         Children [
-            TextSpan::new("Mobile Devices cannot")
+            TextSpan::new("Mobile Devices cannot ")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
             TextColor(MIDDLE_RED_COLOR),
 
-            TextSpan::new(" enter ")
-            pinpoint_font()
-            TextFont {
-                font_size: FontSize::Rem(1.0),
-            },
-
-            TextSpan::new("CREATE")
+            TextSpan::new("CREATE via web browser. ")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
             TextColor(MIDDLE_RED_COLOR),
 
-            TextSpan::new(" mode via web browser. \
-                Text input fields do not pop up the virtual keyboard.\n\n")
+            TextSpan::new("Text input fields fail to bring up the virtual keyboard.\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
             },
-        ],
+        ]
+    }
+}
 
-        Text::new("Clue Creators (Requires Username):\n\n")
+/// Content for clue creators. This appears in the menu how to and the creator screen question mark.
+fn clue_creator_content() -> impl SceneList {
+    bsn_list! {
+        Text::new("Clue Creators:\n\n")
         pinpoint_font()
         TextFont {
             font_size: FontSize::Rem(1.3),
         }
         TextColor(MIDDLE_BLUE_COLOR)
         Children [
-            TextSpan::new("Type in a clue that conveys a randomized position on a 2D grid with the given daily axes.\n\n")
+            TextSpan::new("Clue Creation Requires a Username and a Computer!\n\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_GREEN_COLOR)
+            ,
+
+            TextSpan::new("Type in a clue ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("that conveys a randomized position on a 2D grid with the given daily axes.\n\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
@@ -287,7 +314,7 @@ fn menu_content() -> impl SceneList {
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
-            TextColor(YELLOW_COLOR)
+            TextColor(MIDDLE_BLUE_COLOR)
             ,
 
             TextSpan::new("- ")
@@ -353,7 +380,96 @@ fn menu_content() -> impl SceneList {
             TextColor(MIDDLE_GREEN_COLOR)
             ,
 
-            TextSpan::new("Note: You cannot edit your username for the day after creating a round.\n\n")
+            TextSpan::new("Note: You cannot edit your username for the day after creating a round.\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            ,
+        ],
+    }
+}
+
+/// Content for clue receivers. This appears in the menu how to and the play screen question mark.
+fn clue_receivers_content() -> impl SceneList {
+    bsn_list! {
+        Text::new("Clue Receivers:\n\n")
+        pinpoint_font()
+        TextFont {
+            font_size: FontSize::Rem(1.3),
+        }
+        TextColor(MIDDLE_BLUE_COLOR)
+        Children [
+            TextSpan::new("Simply ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            },
+
+            TextSpan::new("click/press on the grid where you think the pin is ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("based on the Clue Creator's clue.\n\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            ,
+
+            TextSpan::new("Clue Receiver Performance Grades:\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("- Bullseye: <= 3 units away\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(DARK_GREEN_COLOR)
+            ,
+
+            TextSpan::new("- Great: <= 6.25 units away\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_GREEN_COLOR)
+            ,
+
+            TextSpan::new("- OK: <= 12.5 units away\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(YELLOW_COLOR)
+            ,
+
+            TextSpan::new("- Passing: <= 25 units away\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(DARK_ORANGE_COLOR)
+            ,
+
+            TextSpan::new("- Needs Improvement: > 25 units away\n\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(1.0),
+            }
+            TextColor(MIDDLE_RED_COLOR)
+            ,
+
+            TextSpan::new("Do not feel bad if you did poorly! It may be the fault of the Clue Creator...\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
@@ -369,6 +485,7 @@ fn bottom_button() -> impl Scene {
         Node {
             padding: UiRect::horizontal(px(3)),
             min_width: px(272),
+            align_self: AlignSelf::Center,
         }
         on(|_: On<Activate>,
             load_modal_q : Single<&mut Visibility, With<HowToModal>>| {
