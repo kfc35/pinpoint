@@ -1,0 +1,52 @@
+# Simple workflow for deploying static content to GitHub Pages
+name: Deploy to Pages
+
+on:
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+# Sets the GITHUB_TOKEN permissions to allow deployment to GitHub Pages
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Allow one concurrent deployment
+concurrency:
+  group: 'pages'
+  cancel-in-progress: true
+
+jobs:
+  # Single deploy job since we're just deploying
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: dtolnay/rust-toolchain@67ef31d5b988238dd797d409d6f9574278e20537
+        with:
+          target: wasm32-unknown-unknown
+          toolchain: stable
+      - name: Install wasm-bindgen
+        run: cargo install wasm-bindgen-cli
+      - name: Checkout
+        uses: actions/checkout@v7.0.0
+      - name: Build wasm target
+        run: cargo build --release --target wasm32-unknown-unknown
+      - name: Run wasm-bindgen
+        run: wasm-bindgen --out-name pinpoint --out-dir deploy/wasm/target --target web target/wasm32-unknown-unknown/release/pinpoint.wasm
+      - name: Copy assets/* and web/*
+        run: |
+          mkdir ./deploy/wasm/assets
+          cp -r ./assets/* ./deploy/wasm/assets/
+          cp -r ./web/* ./deploy/wasm/
+      - name: Setup Pages
+        uses: actions/configure-pages@v6.0.0
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v5.0.0
+        with:
+          # Upload dist folder
+          path: './deploy/wasm/'
+      - name: Deploy GitHub Pages site
+        uses: actions/deploy-pages@v5.0.0
