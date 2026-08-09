@@ -1,10 +1,9 @@
 use bevy::{
-    ecs::observer::ObservedBy,
     input_focus::{FocusCause, InputFocus, tab_navigation::TabIndex},
     picking::hover::Hovered,
     prelude::*,
     settings::SaveSettingsDeferred,
-    text::{EditableText, EditableTextFilter, EditableTextGeneration, TextCursorStyle},
+    text::{EditableText, EditableTextFilter, TextCursorStyle},
     ui::InteractionDisabled,
 };
 
