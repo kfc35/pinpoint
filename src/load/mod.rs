@@ -8,7 +8,7 @@ mod load_modal;
 pub use load_modal::{load_modal, on_activate_show_load_modal, on_changed_url_input};
 
 #[cfg(target_arch = "wasm32")]
-use crate::MenuHeaderText;
+use crate::menu::MenuHeaderText;
 #[cfg(target_arch = "wasm32")]
 use web_sys::window;
 
@@ -137,45 +137,38 @@ pub(crate) fn init_loadable_rounds(
 /// Returns whether it was successful and a message that can be shown to the
 /// user depending on what happened.
 pub(crate) fn load_shared_round(
-    url: String,
+    mut url: String,
     start_date_time: &Res<StartDateTime>,
     app_type_registry: &Res<AppTypeRegistry>,
     loadable_rounds: &mut ResMut<LoadableRounds>,
     my_created_round: &Res<EncodedRound>,
     commands: &mut Commands,
 ) -> (bool, String) {
-    if !url.contains("?share=") {
-        return (
-            false,
-            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
-        );
-    }
-    let Some(encoded) = url.strip_prefix("https://kfc35.github.io/pinpoint/?share=") else {
-        return (
-            false,
-            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
-        );
+    let Some(index) = url.find("share=") else {
+        return (false, "".to_string());
     };
-
+    let encoded = url.split_off(index + "share=".len());
+    println!("{encoded}");
     let encoded_round = EncodedRound(encoded.to_string());
     let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
         return (
             false,
-            "Game cannot be added. If this was a mistake, please double-check the URL.".to_string(),
+            "Game cannot be added.\nIf this was a mistake, please double-check the URL."
+                .to_string(),
         );
     };
 
     if my_created_round.0 == encoded_round.0 {
         return (
             false,
-            "Game cannot be added. It is your own game.".to_string(),
+            "Game cannot be added.\nIt is your own game.".to_string(),
         );
     }
 
     if *playable_round.get_date() != start_date_time.date {
         return (
             false,
-            "Game cannot be added. The invite expired because it is for an earlier day."
+            "Game cannot be added.\nThe invite expired because it is for an earlier day."
                 .to_string(),
         );
     }
@@ -189,7 +182,7 @@ pub(crate) fn load_shared_round(
         return (
             false,
             format!(
-                "Game from {} has already been added.",
+                "Game from {} has already been added for today.",
                 playable_round.get_creator()
             ),
         );

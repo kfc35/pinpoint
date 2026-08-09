@@ -8,7 +8,7 @@ use bevy::{
 };
 
 use crate::{
-    AppState, Username,
+    AppState, StartDateTime, Username,
     load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
@@ -17,10 +17,18 @@ use crate::{
     },
 };
 
-// Marker Components
+/// Text shown to the user when the menu is loaded.
+/// This text might contain something about a game that could be loaded
+/// on startup on the web version.
+#[derive(Resource, Clone, Default, Deref, DerefMut)]
+pub(crate) struct MenuHeaderText(String);
 
+// Marker Components
 #[derive(Component, Clone, Default)]
 pub struct AppMenu;
+
+#[derive(Component, Clone, Default)]
+pub struct MenuHeader;
 
 #[derive(Component, Clone, Default)]
 pub struct UsernameInput;
@@ -34,6 +42,8 @@ pub struct NeedsValidUsername;
 pub fn setup_menu(
     mut commands: Commands,
     username: Res<Username>,
+    start_date_time: Res<StartDateTime>,
+    menu_header_text: Res<MenuHeaderText>,
     loadable_rounds: Res<LoadableRounds>,
     app_type_registry: Res<AppTypeRegistry>,
 ) {
@@ -49,13 +59,14 @@ pub fn setup_menu(
             align_items: AlignItems::Center,
             width: percent(100),
             height: percent(97),
-            row_gap: percent(3),
+            row_gap: percent(2),
             margin: UiRect::top(percent(3)),
         }
         Children [
             Node {
                 min_width: px(280),
                 width: percent(80),
+                max_height: percent(15),
                 align_items: AlignItems::Center,
                 justify_content: JustifyContent::Center,
             }
@@ -68,7 +79,7 @@ pub fn setup_menu(
                 width: percent(100),
             }
             Children [
-                menu(&username)
+                menu(&username, &start_date_time, &menu_header_text)
             ],
         ],
     });
@@ -78,10 +89,16 @@ pub fn show_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
     *app_menu_q.into_inner() = Visibility::Inherited;
 }
 
-pub fn hide_menu(mut to_hide_q: Query<&mut Visibility, Or<(With<AppMenu>, With<Modal>)>>) {
+pub fn hide_menu(
+    start_date_time: Res<StartDateTime>,
+    mut to_hide_q: Query<&mut Visibility, Or<(With<AppMenu>, With<Modal>)>>,
+    header_text_q: Single<&mut Text, With<MenuHeader>>,
+) {
     for mut vis in to_hide_q.iter_mut() {
         *vis = Visibility::Hidden;
     }
+
+    *header_text_q.into_inner() = Text::new(format!("{}", start_date_time.date));
 }
 
 fn logo() -> impl Scene {
@@ -98,7 +115,11 @@ fn logo() -> impl Scene {
     }
 }
 
-fn menu(username: &Username) -> impl Scene {
+fn menu(
+    username: &Username,
+    start_date_time: &Res<StartDateTime>,
+    menu_header_text: &Res<MenuHeaderText>,
+) -> impl Scene {
     let (button_height, button_width) = (15, 50);
     bsn! {
         Node {
@@ -108,10 +129,10 @@ fn menu(username: &Username) -> impl Scene {
             align_items: AlignItems::Center,
             height: percent(100),
             width: percent(100),
-            row_gap: percent(5),
+            row_gap: percent(4),
         }
         Children [
-            invited_you_to_play_text("TenChars!!")
+            header_text(start_date_time, menu_header_text)
             ,
 
             needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), button_height, button_width, 4)
@@ -316,21 +337,29 @@ fn on_changed_username_input(
     }
 }
 
-// TODO date has to match.
-fn invited_you_to_play_text(name: &'static str) -> impl Scene {
+fn header_text(
+    start_date_time: &Res<StartDateTime>,
+    menu_header_text: &Res<MenuHeaderText>,
+) -> impl Scene {
+    let text = if menu_header_text.0.len() > 0 {
+        format!("{}\n\n{}", start_date_time.date, menu_header_text.0)
+    } else {
+        format!("{}", start_date_time.date)
+    };
     bsn! {
         Node {
             min_width: px(280),
-            width: percent(100),
+            width: percent(80),
         }
         Children [
+            MenuHeader
             Node {
                 width: percent(100),
                 margin: UiRect::horizontal(px(5)),
             }
-            Text::new(format!("Successfully loaded a round from {}!", name))
+            Text::new(text)
             TextFont {
-                font_size: px(16.)
+                font_size: FontSize::Rem(0.8)
             }
             TextLayout::justify(Justify::Center)
             pinpoint_font()

@@ -24,6 +24,8 @@ mod results;
 mod playable_round;
 use playable_round::PlayableRound;
 
+use crate::menu::MenuHeaderText;
+
 pub const SETTINGS_APP_NAME: &'static str = "com.github.kfc35.pinpoint";
 
 /// States that the app can transition between that trigger the whole screen to change.
@@ -50,12 +52,6 @@ pub(crate) struct StartDateTime {
 #[derive(Resource, Reflect, Clone, Default, Deref, DerefMut, SettingsGroup)]
 #[reflect(Resource, Default, SettingsGroup)]
 pub(crate) struct Username(String);
-
-/// Text shown to the user when the menu is loaded.
-/// This text usually contains something about a game that could be loaded
-/// on startup.
-#[derive(Resource, Clone, Default, Deref, DerefMut)]
-pub(crate) struct MenuHeaderText(String);
 
 impl Username {
     /// Returns whether the name is valid (at least 1 character, alphamumeric incl. underscore, max 10 characters)
@@ -153,6 +149,7 @@ fn main() {
         )
         .init_state::<AppState>()
         .init_resource::<Username>()
+        .init_resource::<MenuHeaderText>()
         .add_plugins(SettingsPlugin::new(SETTINGS_APP_NAME))
         .add_plugins((
             animation::AnimateGifPlugin,
