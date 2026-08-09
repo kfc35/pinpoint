@@ -1,7 +1,14 @@
 ///! Module dealing with the assigned axes for a given day of Pinpoint.
 use bevy::prelude::*;
+use chrono::{Datelike, NaiveDate};
 
-use crate::ui::{image_node_with_texture_atlas, pinpoint_font};
+use crate::{
+    StartDateTime,
+    ui::{image_node_with_texture_atlas, pinpoint_font},
+};
+
+// 2026/08/09
+const APP_BEGIN_NAIVE_DATE: NaiveDate = NaiveDate::from_ymd_opt(2026, 08, 09).unwrap();
 
 /// Contains the axes for a given day of Pinpoint.
 #[derive(Clone, Copy, PartialEq)]
@@ -36,14 +43,16 @@ impl AxisSpectrum {
 }
 
 /// Returns the Axes for a given day.
-fn get_axes(_date: &String) -> Axes {
-    AXES[0]
+fn get_axes(start_date_time: &Res<StartDateTime>) -> Axes {
+    let index =
+        start_date_time.naive_date.num_days_from_ce() - APP_BEGIN_NAIVE_DATE.num_days_from_ce();
+    AXES[index as usize % AXES.len()]
 }
 
 /// Returns the axes as a compass scene
-pub(crate) fn axes_descriptions(date: &String) -> impl Scene {
+pub(crate) fn axes_descriptions(date: &Res<StartDateTime>) -> impl Scene {
     let axes = get_axes(date);
-    let date = date.clone();
+    let date = date.date.clone();
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
@@ -56,7 +65,7 @@ pub(crate) fn axes_descriptions(date: &String) -> impl Scene {
         Children [
             Node
             Children [
-                Text::new(format!("Axes for {}", date.clone()))
+                Text::new(format!("Axes for {}", date))
                 pinpoint_font()
                 TextFont {
                     font_size: FontSize::Rem(0.7)

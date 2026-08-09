@@ -116,11 +116,13 @@ pub fn init_created_round(
 
 pub fn setup_create(
     mut commands: Commands,
+    start_date_time: Res<StartDateTime>,
     created_round: Res<CreatedRound>,
     encoded_round: Res<EncodedRound>,
     app_type_registry: Res<AppTypeRegistry>,
 ) {
     commands.spawn_scene_list(setup_create_vertical(
+        &start_date_time,
         &created_round,
         &encoded_round,
         &app_type_registry,
@@ -138,6 +140,7 @@ pub fn hide_create(mut to_hide_q: Query<&mut Visibility, Or<(With<AppCreate>, Wi
 }
 
 fn setup_create_vertical(
+    start_date_time: &Res<StartDateTime>,
     created_round: &CreatedRound,
     encoded_round: &EncodedRound,
     app_type_registry: &AppTypeRegistry,
@@ -160,7 +163,7 @@ fn setup_create_vertical(
         Children [
             location_grid(Some(created_round.location), false, true),
 
-            axes_descriptions(&created_round.date),
+            axes_descriptions(&start_date_time),
 
             // Text Input
             clue_input_container(created_round),

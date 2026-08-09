@@ -226,7 +226,7 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
             on(on_pointer_out_default_cursor)
             ,
 
-            axes_descriptions(&start_date_time.date)
+            axes_descriptions(&start_date_time)
             ,
 
             clue_placeholder()

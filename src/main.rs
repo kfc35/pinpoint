@@ -7,7 +7,7 @@ use bevy::{
     reflect::{Reflect, serde::TypedReflectDeserializer, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup, SettingsPlugin},
 };
-use chrono::Utc;
+use chrono::{NaiveDate, Utc};
 use serde::de::DeserializeSeed;
 
 mod animation;
@@ -44,6 +44,8 @@ pub(crate) enum AppState {
 pub(crate) struct StartDateTime {
     /// Current date as "%Y/%m/%d"
     date: String,
+    /// Current date as a [`NaiveDate`].
+    naive_date: NaiveDate,
     /// Current time as "%H:%M:%S%.3f"
     time: String,
 }
@@ -212,10 +214,15 @@ fn setup(mut commands: Commands, mut username: ResMut<Username>) {
 
     // The game will change categories every day in Eastern time.
     let date_time = Utc::now().with_timezone(&chrono_tz::US::Eastern);
+    let naive_date = date_time.date_naive();
     let date = format!("{}", date_time.format("%Y/%m/%d"));
     let time = format!("{}", date_time.format("%H:%M:%S%.3f"));
 
-    commands.insert_resource(StartDateTime { date, time });
+    commands.insert_resource(StartDateTime {
+        date,
+        naive_date,
+        time,
+    });
 
     // This can happen if the user manually edits the settings file.
     if !Username::is_valid(&username.0) {
