@@ -78,6 +78,15 @@ pub fn load_modal(
     loadable_rounds: &LoadableRounds,
     app_type_registry: &AppTypeRegistry,
 ) -> impl Scene {
+    let maybe_input_form = || -> Box<dyn Scene> {
+        // Doing this because copy and paste is not working on wasm32.
+        if cfg!(not(target_arch = "wasm32")) {
+            Box::new(bsn! { load_game_input_form() })
+        } else {
+            Box::new(bsn! {})
+        }
+    };
+
     bsn! {
         // Background Node to center the modal.
         Modal
@@ -97,7 +106,7 @@ pub fn load_modal(
                 border: px(5),
                 padding: UiRect::axes(px(10), px(10)),
                 flex_direction: FlexDirection::Column,
-                justify_content: JustifyContent::SpaceBetween,
+                justify_content: JustifyContent::SpaceAround,
                 align_items: AlignItems::Center,
                 width: percent(95),
                 height: percent(80),
@@ -132,10 +141,9 @@ pub fn load_modal(
                 }
                 ,
 
-                load_game_input_form()
+                maybe_input_form()
                 ,
 
-                // TODO it can be disabled if there are no games to play.
                 play_button(&loadable_rounds)
                 ,
             ]
