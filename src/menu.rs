@@ -1,14 +1,15 @@
 use bevy::{
+    ecs::observer::ObservedBy,
     input_focus::{FocusCause, InputFocus, tab_navigation::TabIndex},
     picking::hover::Hovered,
     prelude::*,
     settings::SaveSettingsDeferred,
-    text::{EditableText, EditableTextFilter, TextCursorStyle},
+    text::{EditableText, EditableTextFilter, EditableTextGeneration, TextCursorStyle},
     ui::InteractionDisabled,
 };
 
 use crate::{
-    AppState, StartDateTime, Username,
+    AppState, EncodedRound, StartDateTime, Username,
     load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
@@ -28,10 +29,16 @@ pub(crate) struct MenuHeaderText(String);
 pub struct AppMenu;
 
 #[derive(Component, Clone, Default)]
+pub struct MenuContainer;
+
+#[derive(Component, Clone, Default)]
 pub struct MenuHeader;
 
 #[derive(Component, Clone, Default)]
 pub struct UsernameInput;
+
+#[derive(Component, Clone, Default)]
+pub struct UsernameInputColumn;
 
 #[derive(Component, Clone, Default)]
 pub struct UsernameRequirements;
@@ -42,11 +49,13 @@ pub struct NeedsValidUsername;
 pub fn setup_menu(
     mut commands: Commands,
     username: Res<Username>,
+    encoded_round: Res<EncodedRound>,
     start_date_time: Res<StartDateTime>,
     menu_header_text: Res<MenuHeaderText>,
     loadable_rounds: Res<LoadableRounds>,
     app_type_registry: Res<AppTypeRegistry>,
 ) {
+    let encoded_round_is_valid = encoded_round.is_valid(&start_date_time.date, &app_type_registry);
     commands.spawn_scene_list(bsn_list! {
         crate::load::load_modal(&loadable_rounds, &app_type_registry),
 
@@ -79,14 +88,35 @@ pub fn setup_menu(
                 width: percent(100),
             }
             Children [
-                menu(&username, &start_date_time, &menu_header_text)
+                menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
             ],
         ],
     });
 }
 
-pub fn show_menu(app_menu_q: Single<&mut Visibility, With<AppMenu>>) {
+pub fn show_menu(
+    app_menu_q: Single<&mut Visibility, (With<AppMenu>, Without<UsernameRequirements>)>,
+    username_input_q: Single<Entity, With<UsernameInput>>,
+    username_input_col_q: Single<Entity, With<UsernameInputColumn>>,
+    username_directions_q: Single<&mut Visibility, (With<UsernameRequirements>, Without<AppMenu>)>,
+    username: Res<Username>,
+    encoded_round: Res<EncodedRound>,
+    start_date_time: Res<StartDateTime>,
+    app_type_registry: Res<AppTypeRegistry>,
+    mut commands: Commands,
+) {
     *app_menu_q.into_inner() = Visibility::Inherited;
+
+    if encoded_round.is_valid(&start_date_time.date, &app_type_registry) {
+        commands.entity(username_input_q.entity()).despawn();
+
+        let username_id = commands.spawn_scene(static_username(&username)).id();
+        commands
+            .entity(username_input_col_q.entity())
+            .insert_child(1, username_id);
+
+        *username_directions_q.into_inner() = Visibility::Hidden;
+    }
 }
 
 pub fn hide_menu(
@@ -119,9 +149,11 @@ fn menu(
     username: &Username,
     start_date_time: &Res<StartDateTime>,
     menu_header_text: &Res<MenuHeaderText>,
+    encoded_round_is_valid: bool,
 ) -> impl Scene {
     let (button_height, button_width) = (15, 50);
     bsn! {
+        MenuContainer
         Node {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Start,
@@ -148,7 +180,7 @@ fn menu(
 
             base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5),
 
-            username_input_col(username)
+            username_input_col(username, encoded_round_is_valid)
             ,
         ]
     }
@@ -183,7 +215,7 @@ fn needs_valid_username_button(
     }
 }
 
-fn username_input_col(username: &Username) -> impl Scene {
+fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl Scene {
     let mut editable_text = EditableText {
         max_characters: Some(10),
         ..default()
@@ -194,7 +226,38 @@ fn username_input_col(username: &Username) -> impl Scene {
         editable_text.editor.set_text(username.as_ref());
     }
 
+    let username_input = || -> Box<dyn Scene> {
+        if !encoded_round_is_valid {
+            Box::new(bsn! {
+                UsernameInput
+                Node {
+                    min_width: px(250),
+                    border: px(5),
+                    border_radius: BorderRadius::all(px(10)),
+                    padding: UiRect::axes(px(5), px(2)),
+                }
+                template_value(editable_text)
+                TextFont {
+                    font_size: FontSize::Rem(1.)
+                }
+                pinpoint_font()
+                TextLayout::justify(Justify::Center)
+                EditableTextFilter::new(|char| char.is_alphanumeric() || char == '_')
+                TabIndex(0)
+                TextCursorStyle::default()
+                BackgroundColor(Color::BLACK)
+                BorderColor::all(Color::BLACK)
+                on(on_pointer_over_text_cursor)
+                on(on_pointer_out_default_cursor)
+            })
+        } else {
+            // You cannot edit your username after you have created a round for the day.
+            Box::new(static_username(username))
+        }
+    };
+
     bsn! {
+        UsernameInputColumn
         Node {
             flex_direction: FlexDirection::Column,
             row_gap: percent(5),
@@ -207,35 +270,37 @@ fn username_input_col(username: &Username) -> impl Scene {
                 Node
                 username_greeting(username)
                 TextFont {
-                    font_size: FontSize::Px(24.)
+                    font_size: FontSize::Rem(1.)
                 }
                 pinpoint_font()
             ],
 
-            UsernameInput
-            Node {
-                min_width: px(250),
-                border: px(5),
-                border_radius: BorderRadius::all(px(10)),
-                padding: UiRect::axes(px(5), px(2)),
-            }
-            // TODO Username should not by editable if there is a finalized username
-            template_value(editable_text)
-            TextFont {
-                font_size: FontSize::Px(16.)
-            }
-            pinpoint_font()
-            TextLayout::justify(Justify::Center)
-            EditableTextFilter::new(|char| char.is_alphanumeric() || char == '_')
-            TabIndex(0)
-            TextCursorStyle::default()
-            BackgroundColor(Color::BLACK)
-            BorderColor::all(Color::BLACK)
-            on(on_pointer_over_text_cursor)
-            on(on_pointer_out_default_cursor),
+            username_input(),
 
             username_directions(username),
         ]
+    }
+}
+
+/// Username scene that is not editable. (Bevy 0.19 does not contain TextReadWriteMode)
+fn static_username(username: &Username) -> impl Scene {
+    let username = username.0.clone();
+    bsn! {
+        UsernameInput
+        Node {
+            min_width: px(250),
+            border: px(5),
+            border_radius: BorderRadius::all(px(10)),
+            padding: UiRect::axes(px(5), px(2)),
+        }
+        Text::new(format!("{}", username))
+        TextFont {
+            font_size: FontSize::Rem(1.)
+        }
+        pinpoint_font()
+        TextLayout::justify(Justify::Center)
+        BackgroundColor(Color::BLACK)
+        BorderColor::all(Color::BLACK)
     }
 }
 
@@ -258,7 +323,7 @@ fn username_directions(username: &Username) -> Box<dyn Scene> {
         Children [
             Text::new("Username must be:\nalphanumeric incl. _ \nbetween 1 and 10 chars.")
             TextFont {
-                font_size: FontSize::Px(12.)
+                font_size: FontSize::Rem(0.8)
             }
             pinpoint_font()
             TextLayout::justify(Justify::Center)

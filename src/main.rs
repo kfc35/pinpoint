@@ -79,11 +79,11 @@ impl EncodedRound {
         self.0 == ""
     }
 
-    fn try_decode(&self, type_registry: &AppTypeRegistry) -> Option<PlayableRound> {
+    fn try_decode(&self, app_type_registry: &AppTypeRegistry) -> Option<PlayableRound> {
         if self.0 == "" {
             return None;
         }
-        let type_registry = type_registry.read();
+        let type_registry = app_type_registry.read();
 
         let decoded = URL_SAFE.decode(self.0.clone()).ok()?;
         let value: serde_json::Value = serde_json::from_slice(&decoded).unwrap();
@@ -103,15 +103,15 @@ impl EncodedRound {
         }
     }
 
-    fn decode(&self, type_registry: &AppTypeRegistry) -> PlayableRound {
-        self.try_decode(type_registry)
+    fn decode(&self, app_type_registry: &AppTypeRegistry) -> PlayableRound {
+        self.try_decode(app_type_registry)
             .expect("EncodedRound should be valid.")
     }
 
-    fn is_valid(&self, today: &String, type_registry: &AppTypeRegistry) -> bool {
+    fn is_valid(&self, today: &String, app_type_registry: &AppTypeRegistry) -> bool {
         !self.is_empty()
             && self
-                .try_decode(type_registry)
+                .try_decode(app_type_registry)
                 .is_some_and(|playable_round| *playable_round.get_date() == *today)
     }
 }

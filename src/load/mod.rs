@@ -148,7 +148,6 @@ pub(crate) fn load_shared_round(
         return (false, "".to_string());
     };
     let encoded = url.split_off(index + "share=".len());
-    println!("{encoded}");
     let encoded_round = EncodedRound(encoded.to_string());
     let Some(playable_round) = encoded_round.try_decode(&app_type_registry) else {
         return (
