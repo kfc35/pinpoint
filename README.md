@@ -18,9 +18,6 @@ This app is powered by Bevy Engine, which is free and open-source forever! It is
 ### Literally Random Utilities (rand, rand_pcg, getrandom)
 Thanks to the rust-random team and their contributors for giving me the ability to randomize games with reproducibility without much of a headache.
 
-### bytemuck
-Thanks to Lokathor and the bytemuck contributors for making it easy for me to make the rng seed.
-
 ### chrono and chrono_tz
 Thanks to chronotope team and contributors for giving me the time utils I need to ensure the game works on web.
 
