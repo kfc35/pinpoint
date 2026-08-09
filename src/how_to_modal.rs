@@ -1,8 +1,8 @@
 use crate::{
     AppState,
     ui::{
-        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR,
-        DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal,
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
+        LIGHT_GREEN_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal,
         YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
     },
 };
@@ -438,7 +438,7 @@ fn clue_receivers_content() -> impl SceneList {
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
-            TextColor(DARK_GREEN_COLOR)
+            TextColor(LIGHT_GREEN_COLOR)
             ,
 
             TextSpan::new("- Great: <= 6.25 units away\n")

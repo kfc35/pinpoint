@@ -11,12 +11,13 @@ use crate::{
     animation::AnimationTimer,
     axes_descriptions,
     load::LoadableRounds,
+    playable_round::PlayableRound,
     ui::{
         AnswerPin, ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_COLOR, DARK_GRAY_COLOR,
-        DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, LIGHT_GREEN_COLOR, MIDDLE_GREEN_COLOR,
-        MIDDLE_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer, YELLOW_COLOR, base_button,
-        bottom_buttons, change_image_node_index, confirmation_button, location_grid,
-        on_pointer_out_back_to_share, on_pointer_out_default_cursor,
+        DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, LIGHT_GREEN_COLOR, MIDDLE_BLUE_COLOR,
+        MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal, MovablePin, PrimaryButtonContainer,
+        YELLOW_COLOR, base_button, bottom_buttons, change_image_node_index, confirmation_button,
+        location_grid, on_pointer_out_back_to_share, on_pointer_out_default_cursor,
         on_pointer_over_pointer_cursor, pinpoint_font, place_answer_pin, share_primary_button,
         update_crosshair_pin_node_with_location, update_pin_location,
     },
@@ -110,7 +111,7 @@ pub fn show_play(
                     create_on_activate_share_link()
                 });
 
-            commands.spawn_scene(results_modal());
+            commands.spawn_scene(results_modal(&playable_round));
 
             place_answer_pin(
                 location_grid_q.entity(),
@@ -470,7 +471,9 @@ fn confirmation_modal() -> impl Scene {
                                 loadable_round.get_answer(&app_type_registry).expect("final guess has been submitted so this should be ok."),
                                     &mut commands);
 
-                            commands.spawn_scene(results_modal());
+                            commands.spawn_scene(
+                                results_modal(&loadable_round.as_playable_round(&app_type_registry))
+                            );
                     }),
                 ]
             ]
@@ -479,7 +482,7 @@ fn confirmation_modal() -> impl Scene {
 }
 
 /// Modal that pops up when the round is over
-fn results_modal() -> impl Scene {
+fn results_modal(playable_round: &PlayableRound) -> impl Scene {
     bsn! {
         Modal
         ResultsModal
@@ -537,20 +540,23 @@ fn results_modal() -> impl Scene {
                     AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
                 ],
 
-                get_results_text_title()
+                get_results_text_title(playable_round),
+
+                get_distance_text_first_part()
                 pinpoint_font()
                 TextFont {
-                    font_size: FontSize::Rem(0.7)
+                    font_size: FontSize::Rem(0.7),
                 }
+                get_distance_text_color()
                 Children [
-                    get_distance_text_first_part()
+                    TextSpan::new("You were ")
                     pinpoint_font()
                     TextFont {
                         font_size: FontSize::Rem(0.7),
                     },
 
-                    get_distance_text_second_part()
-                    get_distance_text_color_second_part()
+                    get_distance_text_distance()
+                    get_distance_text_color()
                     pinpoint_font()
                     TextFont {
                         font_size: FontSize::Rem(0.7),
@@ -575,31 +581,76 @@ fn results_modal() -> impl Scene {
     }
 }
 
-fn get_results_text_title() -> impl Scene {
+fn get_results_text_title(playable_round: &PlayableRound) -> impl Scene {
+    let creator = playable_round.get_creator().clone();
+    let date = playable_round.get_date().clone();
     bsn! {
-        template(move |ctx| {
-            let play_round = ctx.resource::<PlayRound>();
-            let loadable_rounds = ctx.resource::<LoadableRounds>();
-            let app_type_registry = ctx.resource::<AppTypeRegistry>();
-            let playable_round = loadable_rounds.get_as_playable_round(play_round.loadable_rounds_index, &app_type_registry);
-            let text = format!("You finished {}'s #Pinpoint Round for {}!\n\n", playable_round.get_creator(), playable_round.get_date());
-            Ok(Text::new(text))
-        })
+        Text::new("You finished ")
+        pinpoint_font()
+        TextFont {
+            font_size: FontSize::Rem(0.7)
+        }
+        Children [
+            TextSpan::new(format!("{}", creator))
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("'s ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            ,
+
+            TextSpan::new("#Pinpoint ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("Round for ")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            ,
+
+            TextSpan::new(format!("{date}"))
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            TextColor(MIDDLE_BLUE_COLOR)
+            ,
+
+            TextSpan::new("!\n")
+            pinpoint_font()
+            TextFont {
+                font_size: FontSize::Rem(0.7)
+            }
+            ,
+        ]
     }
 }
 
 fn get_distance_text_first_part() -> impl Scene {
     let distance_text = |distance: f32| {
         if distance <= 3. {
-            format!("Bullseye! You were ")
+            format!("Bullseye! ")
         } else if distance <= 6.25 {
-            format!("Nice job! You were ")
+            format!("Nice job! ")
         } else if distance <= 12.5 {
-            format!("Not bad. You were ")
+            format!("Not bad. ")
         } else if distance <= 25. {
-            format!("Barely made it... You were ")
+            format!("Barely made it... ")
         } else {
-            format!("Are you lost? You were ")
+            format!("Are you lost? ")
         }
     };
     bsn! {
@@ -610,12 +661,12 @@ fn get_distance_text_first_part() -> impl Scene {
             let loadable_round = loadable_rounds.get_round(play_round.loadable_rounds_index);
             let distance = loadable_round.get_guess_distance(app_type_registry);
             let text = format!("{}", distance_text(distance));
-            Ok(TextSpan::new(text))
+            Ok(Text::new(text))
         })
     }
 }
 
-fn get_distance_text_second_part() -> impl Scene {
+fn get_distance_text_color() -> impl Scene {
     bsn! {
         template(move |ctx| {
             let play_round = ctx.resource::<PlayRound>();
@@ -639,7 +690,7 @@ fn get_distance_text_second_part() -> impl Scene {
     }
 }
 
-fn get_distance_text_color_second_part() -> impl Scene {
+fn get_distance_text_distance() -> impl Scene {
     bsn! {
         template(move |ctx| {
             let play_round = ctx.resource::<PlayRound>();
