@@ -173,7 +173,7 @@ fn menu(
             Node {
                 padding: px(3),
             }
-            needs_valid_username_button(username, "button/load.png", UVec2::new(128, 32), button_height, button_width, 4)
+            base_button("button/load.png", UVec2::new(128, 32), button_height, button_width, 0, 4, 5)
             on(on_activate_show_load_modal)
             ,
 
