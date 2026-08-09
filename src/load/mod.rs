@@ -189,7 +189,13 @@ pub(crate) fn load_shared_round(
 
     loadable_rounds.push(LoadableRound::new(encoded_round));
     commands.queue(SaveSettingsSync::Always);
-    (true, "Game from {} successfully added.".to_string())
+    (
+        true,
+        format!(
+            "Game from {} successfully added.",
+            playable_round.get_creator()
+        ),
+    )
 }
 
 #[cfg(target_arch = "wasm32")]

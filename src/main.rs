@@ -168,10 +168,10 @@ fn main() {
                 load::parse_window_url,
                 create::setup_create,
                 play::setup_play_skeleton,
+                menu::setup_menu,
             )
                 .chain(),
         )
-        .add_systems(Startup, menu::setup_menu.after(setup))
         .add_systems(
             Update,
             (
