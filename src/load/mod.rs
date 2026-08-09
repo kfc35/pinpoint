@@ -199,7 +199,7 @@ pub(crate) fn load_shared_round(
 pub fn parse_window_url(
     start_date_time: Res<StartDateTime>,
     app_type_registry: Res<AppTypeRegistry>,
-    loadable_rounds: ResMut<LoadableRounds>,
+    mut loadable_rounds: ResMut<LoadableRounds>,
     my_encoded_round: Res<EncodedRound>,
     mut menu_header_text: ResMut<MenuHeaderText>,
     mut commands: Commands,
@@ -212,7 +212,7 @@ pub fn parse_window_url(
             url,
             &start_date_time,
             &app_type_registry,
-            &loadable_rounds,
+            &mut loadable_rounds,
             &my_encoded_round,
             &mut commands,
         )

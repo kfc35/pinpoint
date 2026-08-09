@@ -21,7 +21,7 @@ use crate::{
 /// This text might contain something about a game that could be loaded
 /// on startup on the web version.
 #[derive(Resource, Clone, Default, Deref, DerefMut)]
-pub(crate) struct MenuHeaderText(String);
+pub(crate) struct MenuHeaderText(pub(crate) String);
 
 // Marker Components
 #[derive(Component, Clone, Default)]

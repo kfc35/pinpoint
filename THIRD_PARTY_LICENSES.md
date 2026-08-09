@@ -8,12 +8,14 @@ This project uses the following third-party packages and libraries:
    - https://github.com/bevyengine/bevy/blob/v0.19.0/LICENSE-MIT
    - https://github.com/bevyengine/bevy/blob/v0.19.0/LICENSE-APACHE
 
-2. rand & rand_pcg
-   - rand and rand_pcg are distributed under the terms of both the MIT license and the Apache License (Version 2.0).
+2. rand, rand_pcg, and getrandom
+   - rand, rand_pcg, and getrandom are distributed under the terms of both the MIT license and the Apache License (Version 2.0).
    - https://github.com/rust-random/rand/blob/0.10.1/LICENSE-MIT
    - https://github.com/rust-random/rand/blob/0.10.1/LICENSE-APACHE
    - https://github.com/rust-random/rngs/blob/rand_pcg-0.10.2/rand_pcg/LICENSE-MIT
    - https://github.com/rust-random/rngs/blob/rand_pcg-0.10.2/rand_pcg/LICENSE-APACHE
+   - https://github.com/rust-random/getrandom/blob/v0.4.3/LICENSE-MIT
+   - https://github.com/rust-random/getrandom/blob/v0.4.3/LICENSE-APACHE
 
 3. bytemuck
   - bytemuck is licensed under MIT, Apache 2.0, and zlib.
@@ -51,6 +53,8 @@ This project uses the following third-party packages and libraries:
 Copyright 2018 Developers of the Rand project
 
 Copyright (c) 2014 The Rust Project Developers
+
+Copyright (c) 2018-2026 The rust-random Project Developers
 
 Copyright (c) 2019 Daniel "Lokathor" Gee.
 
