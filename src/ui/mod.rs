@@ -1,5 +1,5 @@
 ///! UI utilities that make composing ui elements easier.
-use crate::AppState;
+use crate::{AppState, how_to_modal::on_activate_show_how_to_modal};
 use bevy::{
     input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
@@ -319,7 +319,7 @@ pub fn on_pointer_out_back_to_share() -> impl Scene {
 
 /// Returns a scene of buttons useful for navigation among some common screens.
 /// It contains a back button and a ? (help) button.
-pub fn bottom_buttons(back_button_observer: Box<dyn Scene>) -> impl Scene {
+pub fn bottom_buttons() -> impl Scene {
     bsn! {
         BottomButtons
         Node {
@@ -343,7 +343,7 @@ pub fn bottom_buttons(back_button_observer: Box<dyn Scene>) -> impl Scene {
                 height: px(50),
                 min_width: px(50),
             }
-            back_button_observer,
+            on(on_activate_show_how_to_modal),
         ]
     }
 }

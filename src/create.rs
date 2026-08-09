@@ -167,7 +167,7 @@ fn setup_create_vertical(
 
             primary_button(created_round, encoded_round, app_type_registry),
 
-            bottom_buttons(Box::new(bsn!{})),
+            bottom_buttons(),
         ]
     }
 }

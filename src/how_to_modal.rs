@@ -1,7 +1,10 @@
-use crate::ui::{
-    ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
-    MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal, YELLOW_COLOR, base_button,
-    confirmation_button, pinpoint_font,
+use crate::{
+    AppState,
+    ui::{
+        ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GREEN_COLOR, DARK_ORANGE_COLOR,
+        DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal,
+        YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
+    },
 };
 use bevy::{
     prelude::*,
@@ -28,8 +31,15 @@ pub fn despawn_how_to_modal(modal_q: Single<Entity, With<HowToModal>>, mut comma
 }
 
 /// Creates the how to modal
-pub fn how_to_modal() -> impl Scene {
-    bsn! {
+pub fn spawn_how_to_modal(app_state: Res<State<AppState>>, mut commands: Commands) {
+    let content = || -> Box<dyn SceneList> {
+        match **app_state {
+            AppState::Menu => Box::new(bsn_list! {{menu_content()}}),
+            AppState::Create => Box::new(bsn_list! {{clue_creator_content()}}),
+            AppState::Play => Box::new(bsn_list! {{clue_receivers_content()}}),
+        }
+    };
+    commands.spawn_scene( bsn! {
         // Background Node to center the modal.
         Modal
         HowToModal
@@ -51,7 +61,7 @@ pub fn how_to_modal() -> impl Scene {
                 border: px(5),
                 width: percent(95),
                 min_width: px(300),
-                height: percent(80),
+                height: percent(90),
             }
             BorderColor::all(DARK_BLUE_COLOR)
             BackgroundColor(Color::BLACK)
@@ -83,8 +93,19 @@ pub fn how_to_modal() -> impl Scene {
                     ]
                     ,
 
-                    // TODO this should switch based on the app state.
-                    menu_modal_content(),
+                    Node {
+                        flex_direction: FlexDirection::Column,
+                        justify_content: JustifyContent::SpaceAround,
+                        align_items: AlignItems::Start,
+                        margin: UiRect::top(px(55))
+                        width: percent(90),
+                        height: percent(100),
+                    }
+                    Children [
+                        { content() },
+                        bottom_button(),
+                    ]
+                    ,
                 ]
                 ,
 
@@ -110,24 +131,7 @@ pub fn how_to_modal() -> impl Scene {
                 ,
             ],
         ]
-    }
-}
-
-fn menu_modal_content() -> impl Scene {
-    bsn! {
-        Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_items: AlignItems::Start,
-            margin: UiRect::top(px(50))
-            width: percent(90),
-            height: percent(100),
-        }
-        Children [
-            { menu_content() },
-            bottom_button(),
-        ]
-    }
+    });
 }
 
 fn menu_content() -> impl SceneList {
@@ -485,6 +489,7 @@ fn bottom_button() -> impl Scene {
         Node {
             padding: UiRect::horizontal(px(3)),
             min_width: px(272),
+            max_height: percent(10),
             align_self: AlignSelf::Center,
         }
         on(|_: On<Activate>,

@@ -235,8 +235,8 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
             primary_button_placeholder()
             ,
 
-            bottom_buttons(Box::new(bsn!{})
-        ),
+            bottom_buttons()
+            ,
         ]
     }
 }

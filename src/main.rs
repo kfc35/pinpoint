@@ -182,16 +182,28 @@ fn main() {
         )
         .add_systems(
             OnEnter(AppState::Menu),
-            (menu::show_menu, how_to_modal::how_to_modal.spawn()),
+            (menu::show_menu, how_to_modal::spawn_how_to_modal),
         )
         .add_systems(
             OnExit(AppState::Menu),
             (menu::hide_menu, how_to_modal::despawn_how_to_modal),
         )
-        .add_systems(OnEnter(AppState::Create), create::show_create)
-        .add_systems(OnExit(AppState::Create), create::hide_create)
-        .add_systems(OnEnter(AppState::Play), play::show_play)
-        .add_systems(OnExit(AppState::Play), play::hide_play)
+        .add_systems(
+            OnEnter(AppState::Create),
+            (create::show_create, how_to_modal::spawn_how_to_modal),
+        )
+        .add_systems(
+            OnExit(AppState::Create),
+            (create::hide_create, how_to_modal::despawn_how_to_modal),
+        )
+        .add_systems(
+            OnEnter(AppState::Play),
+            (play::show_play, how_to_modal::spawn_how_to_modal),
+        )
+        .add_systems(
+            OnExit(AppState::Play),
+            (play::hide_play, how_to_modal::despawn_how_to_modal),
+        )
         .run();
 }
 
