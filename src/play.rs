@@ -582,7 +582,7 @@ fn get_results_text_title() -> impl Scene {
             let loadable_rounds = ctx.resource::<LoadableRounds>();
             let app_type_registry = ctx.resource::<AppTypeRegistry>();
             let playable_round = loadable_rounds.get_as_playable_round(play_round.loadable_rounds_index, &app_type_registry);
-            let text = format!("You finished {}'s #PinPoint Round for {}!\n\n", playable_round.get_creator(), playable_round.get_date());
+            let text = format!("You finished {}'s #Pinpoint Round for {}!\n\n", playable_round.get_creator(), playable_round.get_date());
             Ok(Text::new(text))
         })
     }
