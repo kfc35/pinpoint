@@ -438,7 +438,7 @@ fn clue_receivers_content() -> impl SceneList {
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
-            TextColor(LIGHT_GREEN_COLOR)
+            TextColor(MIDDLE_GREEN_COLOR)
             ,
 
             TextSpan::new("- Great: <= 6.25 units away\n")
@@ -446,7 +446,7 @@ fn clue_receivers_content() -> impl SceneList {
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
-            TextColor(MIDDLE_GREEN_COLOR)
+            TextColor(LIGHT_GREEN_COLOR)
             ,
 
             TextSpan::new("- OK: <= 12.5 units away\n")
