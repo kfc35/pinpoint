@@ -140,6 +140,7 @@ pub(crate) fn pinpoint_font() -> impl Scene {
     bsn! {
         TextFont {
             font: FontSourceTemplate::Handle("font/Pinpoint.ttf"),
+            font_smoothing: FontSmoothing::None,
         }
     }
 }

@@ -228,7 +228,7 @@ fn main() {
 }
 
 fn setup(mut commands: Commands, mut username: ResMut<Username>) {
-    commands.spawn(Camera2d);
+    commands.spawn((Camera2d, UiAntiAlias::Off, Msaa::Off));
 
     // The game will change categories every day in Eastern time.
     let date_time = Utc::now().with_timezone(&chrono_tz::US::Eastern);
