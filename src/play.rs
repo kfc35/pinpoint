@@ -540,13 +540,20 @@ fn results_modal(playable_round: &PlayableRound) -> impl Scene {
                     AnimationTimer(Timer::from_seconds(0.1, TimerMode::Repeating))
                 ],
 
+                Node {
+                    width: percent(90),
+                }
                 get_results_text_title(playable_round),
 
+                Node {
+                    width: percent(90),
+                }
                 get_distance_text_first_part()
                 pinpoint_font()
                 TextFont {
                     font_size: FontSize::Rem(0.7),
                 }
+                TextLayout::justify(Justify::Center)
                 get_distance_text_color()
                 Children [
                     TextSpan::new("You were ")
@@ -590,6 +597,7 @@ fn get_results_text_title(playable_round: &PlayableRound) -> impl Scene {
         TextFont {
             font_size: FontSize::Rem(0.7)
         }
+        TextLayout::justify(Justify::Center)
         Children [
             TextSpan::new(format!("{}", creator))
             pinpoint_font()

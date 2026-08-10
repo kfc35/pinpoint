@@ -59,12 +59,12 @@ fn get_image(context: &TemplateContext) -> (&'static str, usize) {
     if distance <= 3. {
         RESULT_BANNERS_A[rng.random_range(0..RESULT_BANNERS_A.len())]
     } else if distance <= 6.25 {
-        RESULT_BANNERS[1]
+        RESULT_BANNERS[0]
     } else if distance <= 12.5 {
-        RESULT_BANNERS[2]
+        RESULT_BANNERS[1]
     } else if distance <= 25. {
-        RESULT_BANNERS[3]
+        RESULT_BANNERS[2]
     } else {
-        RESULT_BANNERS[4]
+        RESULT_BANNERS[3]
     }
 }
