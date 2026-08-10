@@ -6,8 +6,7 @@ use rand::{RngExt, SeedableRng};
 
 use crate::{animation::AnimatedImageNode, load::LoadableRounds, play::PlayRound};
 
-const RESULT_BANNERS: [(&'static str, usize); 3] = [
-    ("images/results/in_the_neighborhood.png", 8),
+const RESULT_BANNERS: [(&'static str, usize); 2] = [
     ("images/results/ehh_close_enough.png", 8),
     ("images/results/where_am_i.png", 7),
 ];
@@ -20,6 +19,11 @@ const RESULT_BANNERS_A: [(&'static str, usize); 2] = [
 const RESULT_BANNERS_B: [(&'static str, usize); 2] = [
     ("images/results/B/on_the_green.png", 11),
     ("images/results/B/lollipop_rich.png", 8),
+];
+
+const RESULT_BANNERS_C: [(&'static str, usize); 2] = [
+    ("images/results/C/in_the_neighborhood.png", 8),
+    ("images/results/C/i_lift_my_pin.png", 5),
 ];
 
 /// Returns the result image after an imported round has been played.
@@ -65,10 +69,10 @@ fn get_image(context: &TemplateContext) -> (&'static str, usize) {
     } else if distance <= 6.25 {
         RESULT_BANNERS_B[rng.random_range(0..RESULT_BANNERS_B.len())]
     } else if distance <= 12.5 {
-        RESULT_BANNERS[0]
+        RESULT_BANNERS_C[rng.random_range(0..RESULT_BANNERS_C.len())]
     } else if distance <= 25. {
-        RESULT_BANNERS[1]
+        RESULT_BANNERS[0]
     } else {
-        RESULT_BANNERS[2]
+        RESULT_BANNERS[1]
     }
 }
