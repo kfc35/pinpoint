@@ -94,14 +94,6 @@ impl LoadableRounds {
         &self.rounds[idx]
     }
 
-    pub fn get_as_playable_round(
-        &self,
-        idx: usize,
-        app_type_registry: &AppTypeRegistry,
-    ) -> PlayableRound {
-        self.get_round(idx).as_playable_round(&app_type_registry)
-    }
-
     pub fn get_round_mut(&mut self, idx: usize) -> &mut LoadableRound {
         &mut self.rounds[idx]
     }

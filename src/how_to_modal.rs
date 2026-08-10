@@ -138,6 +138,16 @@ fn menu_content() -> impl SceneList {
     bsn_list! {
         { introduction_content() },
 
+        // Node {
+        //     align_self: AlignSelf::Center,
+        // }
+        // Text::new("---")
+        // pinpoint_font()
+        // TextFont {
+        //     font_size: FontSize::Rem(1.0),
+        // }
+        // ,
+
         { technical_limitations_content() },
 
         { clue_creator_content() },

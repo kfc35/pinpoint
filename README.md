@@ -29,3 +29,6 @@ Thanks to dtolnay and contributors for making the change-off between structs and
 
 ### wasm-bindgen / web-sys
 Thanks to Alex Crichton and contributors for making it easy to have the game work on the web.
+
+### bytemuck
+Thanks to Lokathor and the bytemuck contributors for making it easy for me to make rng seeds.

@@ -42,6 +42,12 @@ This project uses the following third-party packages and libraries:
   - https://github.com/wasm-bindgen/wasm-bindgen/blob/0.2.126/LICENSE-MIT
   - https://github.com/wasm-bindgen/wasm-bindgen/blob/0.2.126/LICENSE-APACHE
 
+8. bytemuck
+  - bytemuck is licensed under MIT, Apache 2.0, and zlib.
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-MIT
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-APACHE
+  - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-ZLIB
+
 ## Coalesced MIT License
 
 Copyright 2018 Developers of the Rand project
@@ -60,6 +66,8 @@ Copyright (c) 2016-2024 Benjamin Sago & the chronotope maintainers
 Copyright (c) 2025 Alice Maz, Marshall Pierce
 
 Copyright (c) 2014 Alex Crichton
+
+Copyright (c) 2019 Daniel "Lokathor" Gee.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -257,3 +265,17 @@ TERMS AND CONDITIONS FOR USE, REPRODUCTION, AND DISTRIBUTION
    of your accepting any such warranty or additional liability.
 
 END OF TERMS AND CONDITIONS
+
+## zlib License
+
+Copyright (c) 2019 Daniel "Lokathor" Gee.
+
+This software is provided 'as-is', without any express or implied warranty. In no event will the authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose, including commercial applications, and to alter it and redistribute it freely, subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented; you must not claim that you wrote the original software. If you use this software in a product, an acknowledgment in the product documentation would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such, and must not be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
