@@ -3,6 +3,7 @@ use bevy::{
     DefaultPlugins,
     asset::{AssetMetaCheck, AssetPlugin},
     image::{ImagePlugin, ImageSamplerDescriptor},
+    input_focus::InputFocus,
     prelude::*,
     reflect::{Reflect, serde::TypedReflectDeserializer, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsSync, SettingsGroup, SettingsPlugin},
@@ -136,6 +137,11 @@ pub(crate) fn init_encoded_round(
     commands.queue(SaveSettingsSync::Always);
 }
 
+/// System that clears the input focus, used when switching between screens.
+pub(crate) fn clear_input_focus(mut input_focus: ResMut<InputFocus>) {
+    input_focus.clear();
+}
+
 fn main() {
     App::new()
         .add_plugins(
@@ -188,7 +194,11 @@ fn main() {
         )
         .add_systems(
             OnExit(AppState::Menu),
-            (menu::hide_menu, how_to_modal::despawn_how_to_modal),
+            (
+                menu::hide_menu,
+                how_to_modal::despawn_how_to_modal,
+                clear_input_focus,
+            ),
         )
         .add_systems(
             OnEnter(AppState::Create),
@@ -196,7 +206,11 @@ fn main() {
         )
         .add_systems(
             OnExit(AppState::Create),
-            (create::hide_create, how_to_modal::despawn_how_to_modal),
+            (
+                create::hide_create,
+                how_to_modal::despawn_how_to_modal,
+                clear_input_focus,
+            ),
         )
         .add_systems(
             OnEnter(AppState::Play),
@@ -204,7 +218,11 @@ fn main() {
         )
         .add_systems(
             OnExit(AppState::Play),
-            (play::hide_play, how_to_modal::despawn_how_to_modal),
+            (
+                play::hide_play,
+                how_to_modal::despawn_how_to_modal,
+                clear_input_focus,
+            ),
         )
         .run();
 }
