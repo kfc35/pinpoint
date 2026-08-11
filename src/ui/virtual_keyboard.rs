@@ -29,7 +29,7 @@ pub fn virtual_keyboard(editable_text_entity: EntityTemplate) -> impl Scene {
             display: Display::None,
             flex_direction: FlexDirection::Column,
             row_gap: px(6),
-            width: percent(95),
+            width: px(280),
         }
         Children [
             virtual_keyboard_row("1234567890".chars().collect::<Vec<_>>(), editable_text_entity),
