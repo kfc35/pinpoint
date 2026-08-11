@@ -44,9 +44,14 @@ impl AxisSpectrum {
 
 /// Returns the Axes for a given day.
 fn get_axes(start_date_time: &Res<StartDateTime>) -> Axes {
-    let index =
-        start_date_time.naive_date.num_days_from_ce() - APP_BEGIN_NAIVE_DATE.num_days_from_ce();
-    AXES[index as usize % AXES.len()]
+    let index = (start_date_time.naive_date.num_days_from_ce()
+        - APP_BEGIN_NAIVE_DATE.num_days_from_ce())
+        % (AXIS_SPECTRA.len() as i32 / 2);
+
+    Axes {
+        horizontal: AXIS_SPECTRA[(index * 2) as usize],
+        vertical: AXIS_SPECTRA[(index * 2 + 1) as usize],
+    }
 }
 
 /// Returns the axes as a compass scene
@@ -174,46 +179,38 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 12] = [
+const AXIS_SPECTRA: [AxisSpectrum; 22] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
     // Directions
     AxisSpectrum("Western", "Eastern"),
     AxisSpectrum("Northern", "Southern"),
-    // US Cities
+    // East vs West coast cities
     AxisSpectrum("NYC", "BOS"),
     AxisSpectrum("SF", "LA"),
     // Knowledge
     AxisSpectrum("Obscure", "Well Known"),
-    AxisSpectrum("Important", "Insignificant"),
+    AxisSpectrum("Important", "Trivial"),
     // Moments
-    AxisSpectrum("Unpleasant", "Enjoyable"),
     AxisSpectrum("Rare", "Common"),
-    // Moments
+    AxisSpectrum("Unpleasant", "Enjoyable"),
+    // Food
     AxisSpectrum("Breakfast", "Dinner"),
     AxisSpectrum("Diet", "Indulgent"),
-];
-
-const AXES: [Axes; 5] = [
-    Axes {
-        horizontal: AXIS_SPECTRA[0],
-        vertical: AXIS_SPECTRA[1],
-    },
-    Axes {
-        horizontal: AXIS_SPECTRA[2],
-        vertical: AXIS_SPECTRA[3],
-    },
-    Axes {
-        horizontal: AXIS_SPECTRA[4],
-        vertical: AXIS_SPECTRA[5],
-    },
-    Axes {
-        horizontal: AXIS_SPECTRA[6],
-        vertical: AXIS_SPECTRA[7],
-    },
-    Axes {
-        horizontal: AXIS_SPECTRA[8],
-        vertical: AXIS_SPECTRA[9],
-    },
+    // Flavor
+    AxisSpectrum("Sweet", "Savory"),
+    AxisSpectrum("Salty", "Sour"),
+    // Activities
+    AxisSpectrum("Overhyped", "Secret"),
+    AxisSpectrum("Fun", "Interesting"),
+    // Occupations
+    AxisSpectrum("Chore", "Job"),
+    AxisSpectrum("Use Tools", "Use Hands"),
+    // Attraction
+    AxisSpectrum("Cliche", "True"),
+    AxisSpectrum("Attractive", "Turn off"),
+    // Desires
+    AxisSpectrum("Want", "Need"),
+    AxisSpectrum("For World", "For Self"),
 ];
