@@ -3,7 +3,7 @@ use bevy::{
     picking::hover::Hovered,
     prelude::*,
     settings::SaveSettingsDeferred,
-    text::{EditableText, EditableTextFilter, TextCursorStyle},
+    text::{EditableText, EditableTextFilter, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
     ui_widgets::Activate,
 };
@@ -306,13 +306,25 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
                     min_width: Val::Auto,
                 }
                 on(|_: On<Activate>,
-                node_q: Single<&mut Node, With<UsernameKeyboard>>| {
+                node_q: Single<&mut Node, With<UsernameKeyboard>>,
+                mut input_focus: ResMut<InputFocus>,
+                mut username_input_q: Query<(Entity, &mut EditableText), With<UsernameInput>>,| {
+                    // Since the username input might not be an editable text, we have it
+                    // query here. If it fails, then we just don't toggle the keyboard at all.
+                    let Ok((ent, mut username_input)) = username_input_q.single_mut() else {
+                        return;
+                    };
                     let mut node = node_q.into_inner();
                     if node.display == Display::None {
+                        if input_focus.get() != Some(ent) {
+                            username_input.queue_edit(TextEdit::TextEnd(false));
+                            input_focus.set(ent, FocusCause::Navigated);
+                        }
                         node.display = Display::Flex;
                     } else {
                         node.display = Display::None;
                     }
+
                 })
                 ,
             ],
