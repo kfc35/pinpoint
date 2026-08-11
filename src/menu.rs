@@ -102,7 +102,7 @@ pub fn show_menu(
     app_menu_q: Single<&mut Visibility, (With<AppMenu>, Without<UsernameRequirements>)>,
     username_input_q: Single<Entity, With<UsernameInput>>,
     username_input_col_q: Single<Entity, With<UsernameInputColumn>>,
-    username_directions_q: Single<&mut Visibility, (With<UsernameRequirements>, Without<AppMenu>)>,
+    username_directions_q: Single<&mut Node, (With<UsernameRequirements>, Without<AppMenu>)>,
     username: Res<Username>,
     encoded_round: Res<EncodedRound>,
     start_date_time: Res<StartDateTime>,
@@ -119,7 +119,7 @@ pub fn show_menu(
             .entity(username_input_col_q.entity())
             .insert_child(1, username_id);
 
-        *username_directions_q.into_inner() = Visibility::Hidden;
+        username_directions_q.into_inner().display = Display::None;
     }
 }
 
@@ -155,7 +155,7 @@ fn menu(
     menu_header_text: &Res<MenuHeaderText>,
     encoded_round_is_valid: bool,
 ) -> impl Scene {
-    let (button_height, button_width) = (15, 50);
+    let (button_height, button_width) = (0, 50);
     bsn! {
         MenuContainer
         Node {
@@ -173,17 +173,28 @@ fn menu(
 
             needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), button_height, button_width, 4)
             on_activate_change_state(AppState::Create)
+            Node {
+                min_height: px(50),
+                height: px(50),
+            }
             ,
 
-            Node {
-                padding: px(3),
-            }
             base_button("button/load.png", UVec2::new(128, 32), button_height, button_width, 0, 4, 5)
             on(on_activate_show_load_modal)
+            Node {
+                padding: px(3),
+                min_height: px(50),
+                height: px(50),
+            }
             ,
 
             base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5)
-            on(on_activate_show_how_to_modal),
+            on(on_activate_show_how_to_modal)
+            Node {
+                min_height: px(50),
+                height: px(50),
+            }
+            ,
 
             username_input_col(username, encoded_round_is_valid)
             ,
@@ -272,17 +283,20 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
         Children [
             Node {
                 flex_direction: FlexDirection::Row,
-                width: percent(95),
+                width: percent(100),
+                min_width: px(280),
                 justify_content: JustifyContent::SpaceEvenly,
                 align_items: AlignItems::Center,
             }
             Children [
                 Node
-                username_greeting(username)
-                TextFont {
-                    font_size: FontSize::Rem(1.)
-                }
-                pinpoint_font()
+                Children [
+                    username_greeting(username)
+                    TextFont {
+                        font_size: FontSize::Rem(1.)
+                    }
+                    pinpoint_font()
+                ]
                 ,
 
                 base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
@@ -355,19 +369,21 @@ fn username_directions(username: &Username) -> Box<dyn Scene> {
             align_items: AlignItems::Center,
         }
         Children [
-            Text::new("Username must be:\nalphanumeric incl. _ \nbetween 1 and 10 chars.")
+            Text::new("Username must be:\nalphanumeric incl _ \nbetween 1 and 10 chars.")
             TextFont {
-                font_size: FontSize::Rem(0.8)
+                font_size: FontSize::Rem(0.7)
             }
             pinpoint_font()
-            TextLayout::justify(Justify::Center)
+            TextLayout::justify(Justify::Left)
         ]}
     };
 
     if Username::is_valid(username) {
         Box::new(bsn! {
             base_directions()
-            Visibility::Hidden
+            Node {
+                display: Display::None
+            }
         })
     } else {
         Box::new(bsn! {
@@ -382,7 +398,7 @@ fn on_changed_username_input(
         (&EditableText, &mut BorderColor),
         (With<UsernameInput>, Without<NeedsValidUsername>),
     >,
-    mut username_directions_q: Query<&mut Visibility, With<UsernameRequirements>>,
+    mut username_directions_q: Query<&mut Node, With<UsernameRequirements>>,
     mut needs_valid_username_q: Query<
         (Entity, &Hovered, &mut BorderColor),
         (With<NeedsValidUsername>, Without<UsernameInput>),
@@ -407,10 +423,10 @@ fn on_changed_username_input(
             username.0 = new_name;
             commands.queue(SaveSettingsDeferred::default());
         }
-        let Ok(mut visibility) = username_directions_q.single_mut() else {
+        let Ok(mut node) = username_directions_q.single_mut() else {
             return;
         };
-        *visibility = Visibility::Inherited;
+        node.display = Display::Flex;
 
         for (entity, _, mut border_color) in needs_valid_username_q.iter_mut() {
             commands.entity(entity).insert(InteractionDisabled);
