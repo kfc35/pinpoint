@@ -299,6 +299,8 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
                 ]
                 ,
 
+                // TODO display:None this icon and display:None the virtual keyboard after round has been
+                // created
                 base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
                 Node {
                     height: Val::Auto,

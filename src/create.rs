@@ -158,7 +158,6 @@ fn setup_create_vertical(
             flex_direction: FlexDirection::Row,
             width: percent(100),
             height: percent(100),
-            // grid_template_columns: vec![RepeatedGridTrack::flex(1, 1.),RepeatedGridTrack::auto(1)],
         }
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
@@ -302,6 +301,8 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
             TextLayout::justify(Justify::Center)
             pinpoint_font(),
 
+            // TODO display:None this icon and display:None the virtual keyboard after round has been
+            // created
             base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
             Node {
                 height: Val::Auto,
