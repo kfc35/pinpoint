@@ -76,7 +76,7 @@ fn virtual_keyboard_key(c: char, editable_text_entity: EntityTemplate) -> impl S
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
-        ActivateOnPress
+        // ActivateOnPress
         Button
         virtual_keyboard_key_inner(TextEdit::Insert(c.to_smolstr()), editable_text_entity)
         Children [
@@ -97,7 +97,7 @@ fn virtual_keyboard_backspace(editable_text_entity: EntityTemplate) -> impl Scen
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
-        ActivateOnPress
+        // ActivateOnPress
         Button
         virtual_keyboard_key_inner(TextEdit::Backspace, editable_text_entity)
         Children [
@@ -117,7 +117,7 @@ fn virtual_keyboard_spacebar(editable_text_entity: EntityTemplate) -> impl Scene
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
-        ActivateOnPress
+        // ActivateOnPress
         Button
         virtual_keyboard_key_inner(TextEdit::Insert(SmolStr::new(" ")), editable_text_entity)
         on(key_on_activate)

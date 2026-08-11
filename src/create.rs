@@ -6,7 +6,7 @@ use bevy::{
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
     text::{EditableText, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
-    ui_widgets::Activate,
+    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
 };
 
 use crate::{
@@ -155,25 +155,57 @@ fn setup_create_vertical(
         AppCreate
         Visibility::Hidden
         Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
-            align_items: AlignItems::Center,
-            row_gap: px(15),
+            flex_direction: FlexDirection::Row,
             width: percent(100),
             height: percent(100),
+            // grid_template_columns: vec![RepeatedGridTrack::flex(1, 1.),RepeatedGridTrack::auto(1)],
         }
+        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
-            location_grid(Some(created_round.location), false, true),
+            #Content
+            Node {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_content: AlignContent::Default,
+                align_items: AlignItems::Center,
+                row_gap: px(15),
+                width: percent(100),
+                overflow: Overflow::scroll_y(),
+            }
+            Children [
+                location_grid(Some(created_round.location), false, true),
 
-            axes_descriptions(&start_date_time),
+                axes_descriptions(&start_date_time),
 
-            // Text Input
-            clue_input_container(created_round),
+                // Text Input
+                clue_input_container(created_round),
 
-            primary_button(created_round, encoded_round, app_type_registry),
+                primary_button(created_round, encoded_round, app_type_registry),
 
-            bottom_buttons(),
+                bottom_buttons(),
+            ]
+            ,
+
+            // This node will always have Display::None - it is an invisible scrollbar.
+            Node {
+                min_width: px(12),
+                height: percent(100),
+                display: Display::None,
+            }
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
         ]
     }
 }
@@ -183,7 +215,7 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
         ClueInputContainer
         Node {
             flex_direction: FlexDirection::Column,
-            row_gap: percent(5),
+            row_gap: px(10),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::SpaceBetween,
         }
@@ -233,7 +265,6 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
                 on(on_pointer_out_default_cursor)
             })
         } else {
-            // TODO scrollbar?
             Box::new(bsn! {
                 ClueInput
                 Node {
@@ -257,6 +288,7 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
         Node {
             flex_direction: FlexDirection::Row,
             justify_content: JustifyContent::SpaceEvenly,
+            align_items: AlignItems::Center,
             width: percent(100),
         }
         Children [
@@ -384,7 +416,6 @@ fn primary_button(
                 // override the width because we don't care
                 width: Val::Auto,
                 max_width: px(280),
-                height: percent(7),
             }
             Children [
                 share_primary_button()
@@ -397,12 +428,18 @@ fn primary_button(
             Box::new(bsn! {
                 InteractionDisabled
                 base_button("button/done.png", UVec2::new(128, 32), 7, 50, 3, 4, 5)
+                Node {
+                    height: px(50),
+                }
                 // Override border color
                 BorderColor::all(DARK_GRAY_COLOR)
             })
         } else {
             Box::new(bsn! {
                 base_button("button/done.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
+                Node {
+                    height: px(50),
+                }
             })
         }
     };
@@ -414,7 +451,6 @@ fn primary_button(
             // override the width because we don't care
             width: Val::Auto,
             max_width: px(280),
-            height: percent(7),
         }
         Children [
             DoneButton
