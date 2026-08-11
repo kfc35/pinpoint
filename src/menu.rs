@@ -5,6 +5,7 @@ use bevy::{
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle},
     ui::InteractionDisabled,
+    ui_widgets::Activate,
 };
 
 use crate::{
@@ -14,7 +15,7 @@ use crate::{
     ui::{
         DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
         change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
-        on_pointer_over_text_cursor, pinpoint_font,
+        on_pointer_over_text_cursor, pinpoint_font, virtual_keyboard,
     },
 };
 
@@ -42,6 +43,9 @@ pub struct UsernameInputColumn;
 
 #[derive(Component, Clone, Default)]
 pub struct UsernameRequirements;
+
+#[derive(Component, Clone, Default)]
+pub struct UsernameKeyboard;
 
 #[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
@@ -232,7 +236,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(bsn! {
                 UsernameInput
                 Node {
-                    min_width: px(250),
+                    min_width: px(200),
                     border: px(5),
                     border_radius: BorderRadius::all(px(10)),
                     padding: UiRect::axes(px(5), px(2)),
@@ -261,12 +265,17 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
         UsernameInputColumn
         Node {
             flex_direction: FlexDirection::Column,
-            row_gap: percent(5),
+            row_gap: px(10),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::SpaceBetween,
         }
         Children [
-            Node
+            Node {
+                flex_direction: FlexDirection::Row,
+                width: percent(95),
+                justify_content: JustifyContent::SpaceEvenly,
+                align_items: AlignItems::Center,
+            }
             Children [
                 Node
                 username_greeting(username)
@@ -274,9 +283,33 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
                     font_size: FontSize::Rem(1.)
                 }
                 pinpoint_font()
+                ,
+
+                base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
+                Node {
+                    height: Val::Auto,
+                    width: px(32),
+                    min_width: Val::Auto,
+                }
+                on(|_: On<Activate>,
+                node_q: Single<&mut Node, With<UsernameKeyboard>>| {
+                    let mut node = node_q.into_inner();
+                    if node.display == Display::None {
+                        node.display = Display::Flex;
+                    } else {
+                        node.display = Display::None;
+                    }
+                })
+                ,
             ],
 
-            username_input(),
+            #KeyboardTarget
+            username_input()
+            ,
+
+            UsernameKeyboard
+            virtual_keyboard(#KeyboardTarget)
+            ,
 
             username_directions(username),
         ]
