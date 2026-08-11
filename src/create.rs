@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
     reflect::{Reflect, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
-    text::{EditableText, TextCursorStyle},
+    text::{EditableText, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
     ui_widgets::Activate,
 };
@@ -18,7 +18,7 @@ use crate::{
         DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, PrimaryButtonContainer,
         base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
         on_pointer_out_back_to_share, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
-        pinpoint_font, share_primary_button,
+        pinpoint_font, share_primary_button, virtual_keyboard,
     },
 };
 use rand::{RngExt, SeedableRng};
@@ -30,6 +30,9 @@ pub struct AppCreate;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInput;
+
+#[derive(Component, Clone, Default)]
+pub struct ClueKeyboard;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInputContainer;
@@ -192,7 +195,7 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
 
 fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList {
     let text = if created_round.is_draft {
-        Text::new("Type in Your Clue")
+        Text::new("Type Clue Here")
     } else {
         Text::new("Your Clue")
     };
@@ -252,6 +255,8 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
 
     bsn_list! {
         Node {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::SpaceEvenly,
             width: percent(100),
         }
         Children [
@@ -263,10 +268,44 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
                 font_size: FontSize::Rem(0.8)
             }
             TextLayout::justify(Justify::Center)
-            pinpoint_font()
+            pinpoint_font(),
+
+            base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
+            Node {
+                height: Val::Auto,
+                width: px(32),
+                min_width: Val::Auto,
+            }
+            on(|_: On<Activate>,
+            node_q: Single<&mut Node, With<ClueKeyboard>>,
+            mut input_focus: ResMut<InputFocus>,
+            mut clue_input_q: Query<(Entity, &mut EditableText), With<ClueInput>>,| {
+                // Since the username input might not be an editable text, we have it
+                // query here. If it fails, then we just don't toggle the keyboard at all.
+                let Ok((ent, mut username_input)) = clue_input_q.single_mut() else {
+                    return;
+                };
+                let mut node = node_q.into_inner();
+                if node.display == Display::None {
+                    if input_focus.get() != Some(ent) {
+                        username_input.queue_edit(TextEdit::TextEnd(false));
+                        input_focus.set(ent, FocusCause::Navigated);
+                    }
+                    node.display = Display::Flex;
+                } else {
+                    node.display = Display::None;
+                }
+
+            })
         ],
 
-        clue_input(),
+        #KeyboardTarget
+        clue_input()
+        ,
+
+        ClueKeyboard
+        virtual_keyboard(#KeyboardTarget)
+        ,
     }
 }
 
