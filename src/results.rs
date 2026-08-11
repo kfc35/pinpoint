@@ -22,8 +22,8 @@ const RESULT_BANNERS_C: [(&'static str, usize); 2] = [
 ];
 
 const RESULT_BANNERS_D: [(&'static str, usize); 2] = [
-    ("images/results/ehh_close_enough.png", 8),
-    ("images/results/at.png", 8),
+    ("images/results/D/ehh_close_enough.png", 8),
+    ("images/results/D/at_least_you_placed.png", 8),
 ];
 
 const RESULT_BANNERS_F: [(&'static str, usize); 2] = [
