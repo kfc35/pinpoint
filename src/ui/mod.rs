@@ -396,7 +396,7 @@ pub fn update_scrollbar_with_scroll(
 /// Observer that interprets mouse drag as scroll.
 /// Attach it to an entity who has the Scroll Area as a child.
 pub fn handle_mouse_drag_as_scroll(
-    drag: On<Pointer<Drag>>,
+    mut drag: On<Pointer<Drag>>,
     mut scroll_query: Query<(
         &mut ScrollPosition,
         &Node,
@@ -413,13 +413,16 @@ pub fn handle_mouse_drag_as_scroll(
         else {
             continue;
         };
-        handle_scroll(
+        if handle_scroll(
             -drag.delta.y,
             &mut scroll_pos,
             node,
             computed_node,
             visibility,
-        );
+        ) {
+            drag.propagate(false);
+            return;
+        }
     }
 }
 
