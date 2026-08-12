@@ -5,7 +5,7 @@ use bevy::{
     settings::SaveSettingsDeferred,
     text::{EditableText, EditableTextFilter, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
-    ui_widgets::Activate,
+    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
 };
 
 use crate::{
@@ -13,9 +13,10 @@ use crate::{
     how_to_modal::on_activate_show_how_to_modal,
     load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
-        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
-        change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
-        on_pointer_over_text_cursor, pinpoint_font, virtual_keyboard,
+        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR,
+        Modal, base_button, change_image_node_index, on_activate_change_state,
+        on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
+        virtual_keyboard,
     },
 };
 
@@ -48,6 +49,9 @@ pub struct UsernameRequirements;
 pub struct UsernameKeyboard;
 
 #[derive(Component, Clone, Default)]
+pub struct UsernameKeyboardToggle;
+
+#[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
 
 pub fn setup_menu(
@@ -66,43 +70,82 @@ pub fn setup_menu(
         AppMenu
         Visibility::Inherited
         Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
-            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Row,
             width: percent(100),
-            height: percent(97),
-            row_gap: percent(2),
-            margin: UiRect::top(percent(3)),
+            height: percent(100),
         }
+        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
+            #Content
             Node {
-                min_width: px(280),
-                width: percent(80),
-                max_height: percent(15),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_content: AlignContent::Default,
                 align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-            }
-            Children [
-                logo()
-            ],
-
-            Node {
-                height: percent(75),
                 width: percent(100),
+                height: percent(97),
+                row_gap: percent(2),
+                margin: UiRect::top(percent(3)),
+                overflow: Overflow::scroll_y(),
             }
             Children [
-                menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
-            ],
+                Node {
+                    min_width: px(280),
+                    width: percent(80),
+                    max_height: percent(15),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                }
+                Children [
+                    logo()
+                ],
+
+                Node {
+                    height: percent(75),
+                    width: percent(100),
+                }
+                Children [
+                    menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
+                ],
+            ]
+            ,
+
+            // This node will always have Display::None - it is an invisible scrollbar.
+            Node {
+                min_width: px(1),
+                height: percent(100),
+                display: Display::None,
+            }
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
         ],
     });
 }
 
 pub fn show_menu(
-    app_menu_q: Single<&mut Visibility, (With<AppMenu>, Without<UsernameRequirements>)>,
-    username_input_q: Single<Entity, With<UsernameInput>>,
+    app_menu_q: Single<&mut Visibility, With<AppMenu>>,
+    username_input_q: Query<Entity, With<UsernameInput>>,
     username_input_col_q: Single<Entity, With<UsernameInputColumn>>,
-    username_directions_q: Single<&mut Node, (With<UsernameRequirements>, Without<AppMenu>)>,
+    mut to_hide_q: Query<
+        &mut Node,
+        Or<(
+            With<UsernameRequirements>,
+            With<UsernameKeyboard>,
+            With<UsernameKeyboardToggle>,
+        )>,
+    >,
     username: Res<Username>,
     encoded_round: Res<EncodedRound>,
     start_date_time: Res<StartDateTime>,
@@ -112,14 +155,18 @@ pub fn show_menu(
     *app_menu_q.into_inner() = Visibility::Inherited;
 
     if encoded_round.is_valid(&start_date_time.date, &app_type_registry) {
-        commands.entity(username_input_q.entity()).despawn();
+        if let Ok(entity) = username_input_q.single() {
+            commands.entity(entity).despawn();
+        }
 
         let username_id = commands.spawn_scene(static_username(&username)).id();
         commands
             .entity(username_input_col_q.entity())
             .insert_child(1, username_id);
 
-        username_directions_q.into_inner().display = Display::None;
+        for mut node in to_hide_q.iter_mut() {
+            node.display = Display::None;
+        }
     }
 }
 
@@ -271,6 +318,13 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(static_username(username))
         }
     };
+    let maybe_hide_keyboard_button = || -> Box<dyn Scene> {
+        if encoded_round_is_valid {
+            Box::new(bsn! { Node { display: Display::None}})
+        } else {
+            Box::new(bsn! {})
+        }
+    };
 
     bsn! {
         UsernameInputColumn
@@ -301,12 +355,14 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
 
                 // TODO display:None this icon and display:None the virtual keyboard after round has been
                 // created
+                UsernameKeyboardToggle
                 base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
                 Node {
                     height: Val::Auto,
                     width: px(32),
                     min_width: Val::Auto,
                 }
+                maybe_hide_keyboard_button()
                 on(|_: On<Activate>,
                 node_q: Single<&mut Node, With<UsernameKeyboard>>,
                 mut input_focus: ResMut<InputFocus>,
