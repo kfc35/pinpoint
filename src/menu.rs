@@ -338,7 +338,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Node {
                 flex_direction: FlexDirection::Row,
                 width: percent(100),
-                min_width: px(280),
+                min_width: px(300),
                 justify_content: JustifyContent::SpaceEvenly,
                 align_items: AlignItems::Center,
             }

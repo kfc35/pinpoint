@@ -29,7 +29,8 @@ pub fn virtual_keyboard(editable_text_entity: EntityTemplate) -> impl Scene {
             display: Display::None,
             flex_direction: FlexDirection::Column,
             row_gap: px(6),
-            width: px(280),
+            min_width: px(300),
+            width: percent(100),
         }
         Children [
             virtual_keyboard_row("1234567890".chars().collect::<Vec<_>>(), editable_text_entity),
@@ -73,7 +74,7 @@ fn virtual_keyboard_row(chars: Vec<char>, editable_text_entity: EntityTemplate) 
 fn virtual_keyboard_key(c: char, editable_text_entity: EntityTemplate) -> impl Scene {
     bsn! {
         Node {
-            padding: UiRect::axes(px(2), px(4)),
+            padding: UiRect::axes(px(4), px(6)),
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
@@ -93,7 +94,7 @@ fn virtual_keyboard_key(c: char, editable_text_entity: EntityTemplate) -> impl S
 fn virtual_keyboard_backspace(editable_text_entity: EntityTemplate) -> impl Scene {
     bsn! {
         Node {
-            padding: UiRect::axes(px(2), px(4)),
+            padding: UiRect::axes(px(4), px(6)),
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
@@ -111,7 +112,7 @@ fn virtual_keyboard_backspace(editable_text_entity: EntityTemplate) -> impl Scen
 fn virtual_keyboard_enter(editable_text_entity: EntityTemplate) -> impl Scene {
     bsn! {
         Node {
-            padding: UiRect::axes(px(6), px(6)),
+            padding: UiRect::axes(px(8), px(8)),
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
@@ -133,7 +134,7 @@ fn virtual_keyboard_spacebar(editable_text_entity: EntityTemplate) -> impl Scene
     bsn! {
         Node {
             width: percent(50),
-            height: px(34),
+            height: px(38),
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
