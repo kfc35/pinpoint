@@ -28,23 +28,26 @@ pub fn virtual_keyboard(editable_text_entity: EntityTemplate) -> impl Scene {
         Node {
             display: Display::None,
             flex_direction: FlexDirection::Column,
+            width: px(315),
+            max_width: percent(100),
             row_gap: px(6),
-            min_width: px(300),
-            width: px(300),
         }
         Children [
             virtual_keyboard_row("1234567890".chars().collect::<Vec<_>>(), editable_text_entity),
             virtual_keyboard_row("qwertyuiop".chars().collect::<Vec<_>>(), editable_text_entity),
             virtual_keyboard_row("asdfghjkl".chars().collect::<Vec<_>>(), editable_text_entity),
+
             virtual_keyboard_row("zxcvbnm".chars().collect::<Vec<_>>(), editable_text_entity)
             Children [
                 virtual_keyboard_backspace(editable_text_entity)
             ],
+
             Node {
                 flex_direction: FlexDirection::Row,
                 justify_content: JustifyContent::End,
                 align_items: AlignItems::Center,
-                column_gap: px(3),
+                column_gap: px(2),
+                width: percent(100),
             }
             Children [
                 virtual_keyboard_key(',', editable_text_entity),
@@ -61,9 +64,10 @@ fn virtual_keyboard_row(chars: Vec<char>, editable_text_entity: EntityTemplate) 
     bsn! {
         Node {
             flex_direction: FlexDirection::Row,
-            column_gap: px(3),
+            column_gap: px(2),
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
+            width: percent(100),
         }
         Children [
             { chars.iter().map(|c| virtual_keyboard_key(*c, editable_text_entity)).collect::<Vec<_>>() }
@@ -74,8 +78,11 @@ fn virtual_keyboard_row(chars: Vec<char>, editable_text_entity: EntityTemplate) 
 fn virtual_keyboard_key(c: char, editable_text_entity: EntityTemplate) -> impl Scene {
     bsn! {
         Node {
-            padding: UiRect::axes(px(4), px(6)),
+            padding: UiRect::vertical(px(6)),
+            width: percent(9.5),
             border: px(1),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
         }
         BorderColor::all(Color::BLACK)
         Button
@@ -86,6 +93,7 @@ fn virtual_keyboard_key(c: char, editable_text_entity: EntityTemplate) -> impl S
             TextFont {
                 font_size: px(20),
             }
+            TextLayout::justify(Justify::Center)
         ]
         on(key_on_activate)
     }

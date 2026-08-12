@@ -294,7 +294,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(bsn! {
                 UsernameInput
                 Node {
-                    min_width: px(300),
+                    min_width: px(280),
                     border: px(5),
                     border_radius: BorderRadius::all(px(10)),
                     padding: UiRect::axes(px(5), px(2)),
@@ -331,6 +331,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
         Node {
             flex_direction: FlexDirection::Column,
             row_gap: px(10),
+            max_width: px(320),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::SpaceBetween,
         }
