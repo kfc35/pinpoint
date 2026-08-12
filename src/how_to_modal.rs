@@ -3,7 +3,7 @@ use crate::{
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
         LIGHT_GREEN_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal,
-        YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
+        ModalContent, YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
     },
 };
 use bevy::{
@@ -67,6 +67,7 @@ pub fn spawn_how_to_modal(app_state: Res<State<AppState>>, mut commands: Command
             BackgroundColor(Color::BLACK)
             on(crate::ui::handle_mouse_drag_as_scroll)
             Children [
+                ModalContent
                 #Content
                 Node {
                     flex_direction: FlexDirection::Column,

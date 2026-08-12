@@ -22,6 +22,10 @@ pub use virtual_keyboard::virtual_keyboard;
 #[derive(Component, Clone, Default)]
 pub struct Modal;
 
+/// Marker component for modal content
+#[derive(Component, Clone, Default)]
+pub struct ModalContent;
+
 /// Marker component for a primary button container
 #[derive(Component, Clone, Default)]
 pub struct PrimaryButtonContainer;
