@@ -269,21 +269,14 @@ fn technical_limitations_content() -> impl SceneList {
         TextColor(MIDDLE_BLUE_COLOR)
         TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
         Children [
-            TextSpan::new("Mobile Devices cannot ")
+            TextSpan::new("Mobile Devices cannot access their soft keyboards for text inputs. ")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
             TextColor(MIDDLE_RED_COLOR),
 
-            TextSpan::new("CREATE via web browser. ")
-            pinpoint_font()
-            TextFont {
-                font_size: FontSize::Rem(1.0),
-            }
-            TextColor(MIDDLE_RED_COLOR),
-
-            TextSpan::new("Text input fields fail to bring up the virtual keyboard.\n")
+            TextSpan::new("Click the keyboard icon above text inputs to use the in-app keyboard to type.\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),

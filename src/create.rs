@@ -35,6 +35,9 @@ pub struct ClueInput;
 pub struct ClueKeyboard;
 
 #[derive(Component, Clone, Default)]
+pub struct ClueKeyboardToggle;
+
+#[derive(Component, Clone, Default)]
 pub struct ClueInputContainer;
 
 #[derive(Component, Clone, Default)]
@@ -282,6 +285,13 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
             })
         }
     };
+    let maybe_hide_keyboard_button = || -> Box<dyn Scene> {
+        if !created_round.is_draft {
+            Box::new(bsn! { Node { display: Display::None}})
+        } else {
+            Box::new(bsn! {})
+        }
+    };
 
     bsn_list! {
         Node {
@@ -301,14 +311,13 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
             TextLayout::justify(Justify::Center)
             pinpoint_font(),
 
-            // TODO display:None this icon and display:None the virtual keyboard after round has been
-            // created
             base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
             Node {
                 height: Val::Auto,
                 width: px(32),
                 min_width: Val::Auto,
             }
+            maybe_hide_keyboard_button()
             on(|_: On<Activate>,
             node_q: Single<&mut Node, With<ClueKeyboard>>,
             mut input_focus: ResMut<InputFocus>,
@@ -559,6 +568,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                         (Res<Username>, ResMut<CreatedRound>, ResMut<EncodedRound>, Res<AppTypeRegistry>),
                         mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
                         mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
+                        mut need_to_make_invis_q: Query<&mut Node, Or<(With<ClueKeyboard>, With<ClueKeyboardToggle>)>>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
                         primary_button_q: Single<Entity, With<CreatePrimaryButtonContainer>>,
                         mut commands: Commands,| {
@@ -576,6 +586,9 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                             }
                             for mut vis in need_to_show_q.iter_mut() {
                                 *vis = Visibility::Inherited;
+                            }
+                            for mut node in need_to_make_invis_q.iter_mut() {
+                                node.display = Display::None;
                             }
 
                             let new_child = commands.spawn_scene(bsn! {
