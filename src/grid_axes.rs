@@ -64,6 +64,7 @@ pub(crate) fn axes_descriptions(date: &Res<StartDateTime>) -> impl Scene {
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
             border: px(2),
+            row_gap: px(2),
             max_width: percent(100),
         }
         BorderColor::all(Color::WHITE)
@@ -124,8 +125,8 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
     bsn! {
         Node {
             flex_direction: FlexDirection::Row,
-            flex_wrap: FlexWrap::Wrap,
-            justify_content: JustifyContent::Center,
+            // flex_wrap: FlexWrap::Wrap,
+            justify_content: JustifyContent::SpaceBetween,
             align_items: AlignItems::Center,
             width: percent(100),
             column_gap: px(2),
@@ -135,9 +136,10 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
             Node {
                 flex_direction: FlexDirection::Row,
                 // flex_wrap: FlexWrap::Wrap,
-                justify_content: JustifyContent::Center,
+                width: percent(49),
+                justify_content: JustifyContent::End,
                 align_items: AlignItems::Center,
-                column_gap: px(2),
+                column_gap: px(6),
             }
             Children [
                 axis_text(left_axis),
@@ -146,10 +148,11 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
 
             Node {
                 flex_direction: FlexDirection::Row,
+                width: percent(49),
                 // flex_wrap: FlexWrap::WrapReverse,
-                justify_content: JustifyContent::Center,
+                justify_content: JustifyContent::Start,
                 align_items: AlignItems::Center,
-                column_gap: px(2),
+                column_gap: px(6),
             }
             Children [
                 arrow_image_node(3),
@@ -161,11 +164,14 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
 
 fn axis_text(axis: &'static str) -> impl Scene {
     bsn! {
-        Text::new(axis)
-        TextFont {
-            font_size: FontSize::Rem(0.7),
-        }
-        pinpoint_font()
+        Node
+        Children [
+            Text::new(axis)
+            TextFont {
+                font_size: FontSize::Rem(0.7),
+            }
+            pinpoint_font()
+        ]
     }
 }
 
