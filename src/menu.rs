@@ -83,13 +83,12 @@ pub fn setup_menu(
                 align_content: AlignContent::Default,
                 align_items: AlignItems::Center,
                 width: percent(100),
-                height: percent(97),
                 row_gap: percent(2),
-                margin: UiRect::top(percent(3)),
                 overflow: Overflow::scroll_y(),
             }
             Children [
                 Node {
+                    margin: UiRect::top(px(15)),
                     min_width: px(280),
                     width: percent(80),
                     max_height: percent(15),
@@ -103,6 +102,7 @@ pub fn setup_menu(
                 Node {
                     height: percent(75),
                     width: percent(100),
+                    margin: UiRect::bottom(px(15)),
                 }
                 Children [
                     menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
@@ -294,7 +294,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(bsn! {
                 UsernameInput
                 Node {
-                    min_width: px(200),
+                    min_width: px(280),
                     border: px(5),
                     border_radius: BorderRadius::all(px(10)),
                     padding: UiRect::axes(px(5), px(2)),
