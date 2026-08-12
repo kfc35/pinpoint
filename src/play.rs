@@ -3,7 +3,9 @@ use bevy::{
     prelude::*,
     settings::SaveSettingsSync,
     ui::InteractionDisabled,
-    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb, ValueChange},
+    ui_widgets::{
+        Activate, ControlOrientation, ScrollArea, Scrollbar, ScrollbarThumb, ValueChange,
+    },
 };
 
 use crate::{
@@ -195,6 +197,7 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
             #Content
+            ScrollArea
             Node {
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Start,

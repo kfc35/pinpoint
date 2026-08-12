@@ -180,13 +180,7 @@ fn main() {
             )
                 .chain(),
         )
-        .add_systems(
-            Update,
-            (
-                ui::update_scrollbar_visibility,
-                ui::update_scrollbar_with_scroll,
-            ),
-        )
+        .add_systems(Update, (ui::update_scrollbar_visibility,))
         .add_systems(
             OnEnter(AppState::Menu),
             (menu::show_menu, how_to_modal::spawn_how_to_modal),

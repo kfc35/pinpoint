@@ -8,7 +8,7 @@ use crate::{
 };
 use bevy::{
     prelude::*,
-    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
+    ui_widgets::{Activate, ControlOrientation, ScrollArea, Scrollbar, ScrollbarThumb},
 };
 
 #[derive(Component, Default, Clone)]
@@ -69,6 +69,7 @@ pub fn spawn_how_to_modal(app_state: Res<State<AppState>>, mut commands: Command
             Children [
                 ModalContent
                 #Content
+                ScrollArea
                 Node {
                     flex_direction: FlexDirection::Column,
                     padding: UiRect::axes(px(5), px(5)),

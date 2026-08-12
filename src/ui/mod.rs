@@ -1,7 +1,6 @@
 ///! UI utilities that make composing ui elements easier.
 use crate::{AppState, how_to_modal::on_activate_show_how_to_modal};
 use bevy::{
-    input::mouse::{AccumulatedMouseScroll, MouseScrollUnit},
     prelude::*,
     text::FontSourceTemplate,
     ui::InteractionDisabled,
@@ -372,45 +371,6 @@ pub fn update_scrollbar_visibility(
                     *visibility = Visibility::Inherited;
                 }
             }
-        }
-    }
-}
-
-/// System that interprets mouse wheel scroll as scroll.
-pub fn update_scrollbar_with_scroll(
-    accumulated_mouse_scroll: Res<AccumulatedMouseScroll>,
-    mut with_modal_scroll_query: Query<
-        (
-            &mut ScrollPosition,
-            &Node,
-            &ComputedNode,
-            &InheritedVisibility,
-        ),
-        With<Modal>,
-    >,
-    mut without_modal_scroll_query: Query<
-        (
-            &mut ScrollPosition,
-            &Node,
-            &ComputedNode,
-            &InheritedVisibility,
-        ),
-        Without<Modal>,
-    >,
-) {
-    let scroll = match accumulated_mouse_scroll.unit {
-        MouseScrollUnit::Line => {
-            accumulated_mouse_scroll.delta.y * MouseScrollUnit::SCROLL_UNIT_CONVERSION_FACTOR
-        }
-        MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y,
-    };
-
-    for (mut scroll_pos, node, computed_node, visibility) in with_modal_scroll_query
-        .iter_mut()
-        .chain(without_modal_scroll_query.iter_mut())
-    {
-        if handle_scroll(scroll, &mut scroll_pos, node, computed_node, visibility) {
-            break;
         }
     }
 }

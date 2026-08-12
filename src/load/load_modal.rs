@@ -14,8 +14,8 @@ use bevy::{
     text::{EditableText, TextCursorStyle},
     ui::{Checked, InteractionDisabled},
     ui_widgets::{
-        Activate, ControlOrientation, RadioButton, RadioGroup, Scrollbar, ScrollbarThumb,
-        ValueChange,
+        Activate, ControlOrientation, RadioButton, RadioGroup, ScrollArea, Scrollbar,
+        ScrollbarThumb, ValueChange,
     },
     window::{CursorIcon, PrimaryWindow, SystemCursorIcon},
 };
@@ -102,6 +102,7 @@ pub fn load_modal(
         GlobalZIndex(1)
         BackgroundColor({DARK_BLUE_COLOR.with_alpha(0.5)})
         Children [
+            ModalContent
             Node {
                 border: px(5),
                 padding: UiRect::axes(px(10), px(10)),
@@ -166,7 +167,7 @@ fn load_select(
         }
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
-            ModalContent
+            ScrollArea
             #Content
             RadioGroup
             LoadRadioGroup

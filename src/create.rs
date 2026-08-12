@@ -6,7 +6,7 @@ use bevy::{
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
     text::{EditableText, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
-    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
+    ui_widgets::{Activate, ControlOrientation, ScrollArea, Scrollbar, ScrollbarThumb},
 };
 
 use crate::{
@@ -165,6 +165,7 @@ fn setup_create_vertical(
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
             #Content
+            ScrollArea
             Node {
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Start,
