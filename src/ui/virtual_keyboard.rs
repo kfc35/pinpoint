@@ -133,7 +133,7 @@ fn virtual_keyboard_spacebar(editable_text_entity: EntityTemplate) -> impl Scene
     bsn! {
         Node {
             width: percent(50),
-            height: px(26),
+            height: px(34),
             border: px(1),
         }
         BorderColor::all(Color::BLACK)
