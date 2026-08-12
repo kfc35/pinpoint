@@ -41,7 +41,7 @@ pub fn virtual_keyboard(editable_text_entity: EntityTemplate) -> impl Scene {
             ],
             Node {
                 flex_direction: FlexDirection::Row,
-                justify_content: JustifyContent::Center,
+                justify_content: JustifyContent::End,
                 align_items: AlignItems::Center,
                 column_gap: px(3),
             }
@@ -50,6 +50,7 @@ pub fn virtual_keyboard(editable_text_entity: EntityTemplate) -> impl Scene {
                 virtual_keyboard_spacebar(editable_text_entity),
                 virtual_keyboard_key('.', editable_text_entity),
                 virtual_keyboard_key('_', editable_text_entity),
+                virtual_keyboard_enter(editable_text_entity),
             ]
         ]
     }
@@ -101,6 +102,27 @@ fn virtual_keyboard_backspace(editable_text_entity: EntityTemplate) -> impl Scen
         Children [
             ImageNode {
                 image: "button/keyboard/backspace_icon.png"
+            }
+        ]
+        on(key_on_activate)
+    }
+}
+
+fn virtual_keyboard_enter(editable_text_entity: EntityTemplate) -> impl Scene {
+    bsn! {
+        Node {
+            padding: UiRect::axes(px(6), px(6)),
+            border: px(1),
+        }
+        BorderColor::all(Color::BLACK)
+        Button
+        virtual_keyboard_key_inner(TextEdit::Insert(SmolStr::new("\n")), editable_text_entity)
+        Children [
+            Node {
+                height: px(20),
+            }
+            ImageNode {
+                image: "button/keyboard/enter_icon.png"
             }
         ]
         on(key_on_activate)
