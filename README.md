@@ -32,3 +32,6 @@ Thanks to Alex Crichton and contributors for making it easy to have the game wor
 
 ### bytemuck
 Thanks to Lokathor and the bytemuck contributors for making it easy for me to make rng seeds.
+
+### smol_str (rust_analyzer)
+Thanks to Aleksey Kladov, Lukas Wirth, and contributors for small strings for the virtual keyboard.

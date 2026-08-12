@@ -4,9 +4,9 @@ use bevy::{
     prelude::*,
     reflect::{Reflect, std_traits::ReflectDefault},
     settings::{ReflectSettingsGroup, SaveSettingsDeferred, SaveSettingsSync, SettingsGroup},
-    text::{EditableText, TextCursorStyle},
+    text::{EditableText, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
-    ui_widgets::Activate,
+    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
 };
 
 use crate::{
@@ -18,7 +18,7 @@ use crate::{
         DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, Modal, PrimaryButtonContainer,
         base_button, bottom_buttons, change_image_node_index, confirmation_button, location_grid,
         on_pointer_out_back_to_share, on_pointer_out_default_cursor, on_pointer_over_text_cursor,
-        pinpoint_font, share_primary_button,
+        pinpoint_font, share_primary_button, virtual_keyboard,
     },
 };
 use rand::{RngExt, SeedableRng};
@@ -30,6 +30,12 @@ pub struct AppCreate;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInput;
+
+#[derive(Component, Clone, Default)]
+pub struct ClueKeyboard;
+
+#[derive(Component, Clone, Default)]
+pub struct ClueKeyboardToggle;
 
 #[derive(Component, Clone, Default)]
 pub struct ClueInputContainer;
@@ -152,25 +158,56 @@ fn setup_create_vertical(
         AppCreate
         Visibility::Hidden
         Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
-            align_items: AlignItems::Center,
-            row_gap: px(15),
+            flex_direction: FlexDirection::Row,
             width: percent(100),
             height: percent(100),
         }
+        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
-            location_grid(Some(created_round.location), false, true),
+            #Content
+            Node {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_content: AlignContent::Default,
+                align_items: AlignItems::Center,
+                row_gap: px(15),
+                width: percent(100),
+                overflow: Overflow::scroll_y(),
+            }
+            Children [
+                location_grid(Some(created_round.location), false, true),
 
-            axes_descriptions(&start_date_time),
+                axes_descriptions(&start_date_time),
 
-            // Text Input
-            clue_input_container(created_round),
+                // Text Input
+                clue_input_container(created_round),
 
-            primary_button(created_round, encoded_round, app_type_registry),
+                primary_button(created_round, encoded_round, app_type_registry),
 
-            bottom_buttons(),
+                bottom_buttons(),
+            ]
+            ,
+
+            // This node will always have Display::None - it is an invisible scrollbar.
+            Node {
+                min_width: px(12),
+                height: percent(100),
+                display: Display::None,
+            }
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
         ]
     }
 }
@@ -180,7 +217,7 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
         ClueInputContainer
         Node {
             flex_direction: FlexDirection::Column,
-            row_gap: percent(5),
+            row_gap: px(10),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::SpaceBetween,
         }
@@ -192,7 +229,7 @@ fn clue_input_container(created_round: &CreatedRound) -> impl Scene {
 
 fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList {
     let text = if created_round.is_draft {
-        Text::new("Type in Your Clue")
+        Text::new("Type Clue Here")
     } else {
         Text::new("Your Clue")
     };
@@ -230,7 +267,6 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
                 on(on_pointer_out_default_cursor)
             })
         } else {
-            // TODO scrollbar?
             Box::new(bsn! {
                 ClueInput
                 Node {
@@ -249,9 +285,19 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
             })
         }
     };
+    let maybe_hide_keyboard_button = || -> Box<dyn Scene> {
+        if !created_round.is_draft {
+            Box::new(bsn! { Node { display: Display::None}})
+        } else {
+            Box::new(bsn! {})
+        }
+    };
 
     bsn_list! {
         Node {
+            flex_direction: FlexDirection::Row,
+            justify_content: JustifyContent::SpaceEvenly,
+            align_items: AlignItems::Center,
             width: percent(100),
         }
         Children [
@@ -263,10 +309,45 @@ fn clue_input_container_children(created_round: &CreatedRound) -> impl SceneList
                 font_size: FontSize::Rem(0.8)
             }
             TextLayout::justify(Justify::Center)
-            pinpoint_font()
+            pinpoint_font(),
+
+            base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
+            Node {
+                height: Val::Auto,
+                width: px(32),
+                min_width: Val::Auto,
+            }
+            maybe_hide_keyboard_button()
+            on(|_: On<Activate>,
+            node_q: Single<&mut Node, With<ClueKeyboard>>,
+            mut input_focus: ResMut<InputFocus>,
+            mut clue_input_q: Query<(Entity, &mut EditableText), With<ClueInput>>,| {
+                // Since the username input might not be an editable text, we have it
+                // query here. If it fails, then we just don't toggle the keyboard at all.
+                let Ok((ent, mut username_input)) = clue_input_q.single_mut() else {
+                    return;
+                };
+                let mut node = node_q.into_inner();
+                if node.display == Display::None {
+                    if input_focus.get() != Some(ent) {
+                        username_input.queue_edit(TextEdit::TextEnd(false));
+                        input_focus.set(ent, FocusCause::Navigated);
+                    }
+                    node.display = Display::Flex;
+                } else {
+                    node.display = Display::None;
+                }
+
+            })
         ],
 
-        clue_input(),
+        #KeyboardTarget
+        clue_input()
+        ,
+
+        ClueKeyboard
+        virtual_keyboard(#KeyboardTarget)
+        ,
     }
 }
 
@@ -345,7 +426,6 @@ fn primary_button(
                 // override the width because we don't care
                 width: Val::Auto,
                 max_width: px(280),
-                height: percent(7),
             }
             Children [
                 share_primary_button()
@@ -358,12 +438,18 @@ fn primary_button(
             Box::new(bsn! {
                 InteractionDisabled
                 base_button("button/done.png", UVec2::new(128, 32), 7, 50, 3, 4, 5)
+                Node {
+                    height: px(50),
+                }
                 // Override border color
                 BorderColor::all(DARK_GRAY_COLOR)
             })
         } else {
             Box::new(bsn! {
                 base_button("button/done.png", UVec2::new(128, 32), 7, 50, 0, 4, 5)
+                Node {
+                    height: px(50),
+                }
             })
         }
     };
@@ -375,7 +461,6 @@ fn primary_button(
             // override the width because we don't care
             width: Val::Auto,
             max_width: px(280),
-            height: percent(7),
         }
         Children [
             DoneButton
@@ -483,6 +568,7 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                         (Res<Username>, ResMut<CreatedRound>, ResMut<EncodedRound>, Res<AppTypeRegistry>),
                         mut need_to_hide_q: Query<&mut Visibility, (With<ConfirmationModal>, Without<ShareModal>)>,
                         mut need_to_show_q: Query<&mut Visibility, (With<ShareModal>, Without<ConfirmationModal>)>,
+                        mut need_to_make_invis_q: Query<&mut Node, Or<(With<ClueKeyboard>, With<ClueKeyboardToggle>)>>,
                         clue_input_container_q: Single<Entity, With<ClueInputContainer>>,
                         primary_button_q: Single<Entity, With<CreatePrimaryButtonContainer>>,
                         mut commands: Commands,| {
@@ -500,6 +586,9 @@ fn confirmation_modal(created_round: &CreatedRound) -> impl Scene {
                             }
                             for mut vis in need_to_show_q.iter_mut() {
                                 *vis = Visibility::Inherited;
+                            }
+                            for mut node in need_to_make_invis_q.iter_mut() {
+                                node.display = Display::None;
                             }
 
                             let new_child = commands.spawn_scene(bsn! {

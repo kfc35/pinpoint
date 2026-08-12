@@ -4,7 +4,7 @@ use crate::{
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_GREEN_COLOR,
         DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_ORANGE_COLOR, Modal,
-        base_button, confirmation_button, pinpoint_font,
+        ModalContent, base_button, confirmation_button, pinpoint_font,
     },
 };
 use bevy::{
@@ -166,6 +166,7 @@ fn load_select(
         }
         on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
+            ModalContent
             #Content
             RadioGroup
             LoadRadioGroup

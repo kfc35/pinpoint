@@ -15,9 +15,16 @@ pub use location_grid::{
     update_crosshair_pin_node_with_location, update_pin_location,
 };
 
+mod virtual_keyboard;
+pub use virtual_keyboard::virtual_keyboard;
+
 /// Marker component for modals
 #[derive(Component, Clone, Default)]
 pub struct Modal;
+
+/// Marker component for modal content
+#[derive(Component, Clone, Default)]
+pub struct ModalContent;
 
 /// Marker component for a primary button container
 #[derive(Component, Clone, Default)]
@@ -372,12 +379,24 @@ pub fn update_scrollbar_visibility(
 /// System that interprets mouse wheel scroll as scroll.
 pub fn update_scrollbar_with_scroll(
     accumulated_mouse_scroll: Res<AccumulatedMouseScroll>,
-    mut scroll_query: Query<(
-        &mut ScrollPosition,
-        &Node,
-        &ComputedNode,
-        &InheritedVisibility,
-    )>,
+    mut with_modal_scroll_query: Query<
+        (
+            &mut ScrollPosition,
+            &Node,
+            &ComputedNode,
+            &InheritedVisibility,
+        ),
+        With<Modal>,
+    >,
+    mut without_modal_scroll_query: Query<
+        (
+            &mut ScrollPosition,
+            &Node,
+            &ComputedNode,
+            &InheritedVisibility,
+        ),
+        Without<Modal>,
+    >,
 ) {
     let scroll = match accumulated_mouse_scroll.unit {
         MouseScrollUnit::Line => {
@@ -386,7 +405,10 @@ pub fn update_scrollbar_with_scroll(
         MouseScrollUnit::Pixel => accumulated_mouse_scroll.delta.y,
     };
 
-    for (mut scroll_pos, node, computed_node, visibility) in scroll_query.iter_mut() {
+    for (mut scroll_pos, node, computed_node, visibility) in with_modal_scroll_query
+        .iter_mut()
+        .chain(without_modal_scroll_query.iter_mut())
+    {
         if handle_scroll(scroll, &mut scroll_pos, node, computed_node, visibility) {
             break;
         }

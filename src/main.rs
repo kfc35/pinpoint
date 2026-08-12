@@ -172,7 +172,6 @@ fn main() {
                 create::init_created_round,
                 init_encoded_round,
                 load::init_loadable_rounds,
-                // TODO need an init_loaded_rounds,
                 #[cfg(target_arch = "wasm32")]
                 load::parse_window_url,
                 create::setup_create,

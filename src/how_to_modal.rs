@@ -3,7 +3,7 @@ use crate::{
     ui::{
         ConfirmationButtonIndex, DARK_BLUE_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR,
         LIGHT_GREEN_COLOR, MIDDLE_BLUE_COLOR, MIDDLE_GREEN_COLOR, MIDDLE_RED_COLOR, Modal,
-        YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
+        ModalContent, YELLOW_COLOR, base_button, confirmation_button, pinpoint_font,
     },
 };
 use bevy::{
@@ -67,6 +67,7 @@ pub fn spawn_how_to_modal(app_state: Res<State<AppState>>, mut commands: Command
             BackgroundColor(Color::BLACK)
             on(crate::ui::handle_mouse_drag_as_scroll)
             Children [
+                ModalContent
                 #Content
                 Node {
                     flex_direction: FlexDirection::Column,
@@ -268,21 +269,14 @@ fn technical_limitations_content() -> impl SceneList {
         TextColor(MIDDLE_BLUE_COLOR)
         TextLayout::new(Justify::Left, LineBreak::WordOrCharacter)
         Children [
-            TextSpan::new("Mobile Devices cannot ")
+            TextSpan::new("Mobile Devices cannot access their soft keyboards for text inputs. ")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
             }
             TextColor(MIDDLE_RED_COLOR),
 
-            TextSpan::new("CREATE via web browser. ")
-            pinpoint_font()
-            TextFont {
-                font_size: FontSize::Rem(1.0),
-            }
-            TextColor(MIDDLE_RED_COLOR),
-
-            TextSpan::new("Text input fields fail to bring up the virtual keyboard.\n")
+            TextSpan::new("Click the keyboard icon above text inputs to use the in-app keyboard to type.\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),

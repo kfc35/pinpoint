@@ -48,6 +48,11 @@ This project uses the following third-party packages and libraries:
   - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-APACHE
   - https://github.com/Lokathor/bytemuck/blob/v1.25.2/LICENSE-ZLIB
 
+9. smol_str
+  - smol_str is dual licensed under MIT and Apache 2.0
+  - https://github.com/rust-lang/rust-analyzer/blob/master/lib/smol_str/LICENSE-MIT
+  - https://github.com/rust-lang/rust-analyzer/blob/master/lib/smol_str/LICENSE-APACHE
+
 ## Coalesced MIT License
 
 Copyright 2018 Developers of the Rand project

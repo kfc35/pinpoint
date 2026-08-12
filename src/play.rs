@@ -3,7 +3,7 @@ use bevy::{
     prelude::*,
     settings::SaveSettingsSync,
     ui::InteractionDisabled,
-    ui_widgets::{Activate, ValueChange},
+    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb, ValueChange},
 };
 
 use crate::{
@@ -188,56 +188,86 @@ pub fn play_skeleton(start_date_time: &Res<StartDateTime>) -> impl SceneList {
         Visibility::Hidden
         BackgroundColor({DARK_COLOR})
         Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
-            align_items: AlignItems::Center,
-            row_gap: px(15),
+            flex_direction: FlexDirection::Row,
             width: percent(100),
             height: percent(100),
         }
+        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
-            header_text()
-            ,
+            #Content
+            Node {
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_content: AlignContent::Default,
+                align_items: AlignItems::Center,
+                row_gap: px(15),
+                width: percent(100),
+                overflow: Overflow::scroll_y(),
+            }
+            Children [
+                header_text()
+                ,
 
-            PlayLocationGrid
-            location_grid(None, true, true)
-            on(|event: On<ValueChange<UVec2>>,
-                mut commands: Commands,
-                mut current_guess: ResMut<CurrentGuess>,
-                done_button_q: Single<(Entity, &Hovered, &mut BorderColor), With<PlayDoneButton>>,
-                children_query: Query<&Children>,
-                mut image_q: Query<&mut ImageNode>,
-                pin_q: Single<(&mut Node, &MovablePin)>|{
-                    current_guess.0 = Some(event.value);
-                    let (entity, is_hovered, mut border_color) = done_button_q.into_inner();
-                    if is_hovered.get() {
-                        change_image_node_index(entity, 1, &children_query, &mut image_q);
-                        *border_color = BorderColor::all(DARK_ORANGE_COLOR);
-                    } else {
-                        change_image_node_index(entity, 0, &children_query, &mut image_q);
-                        *border_color = BorderColor::all(DARK_BLUE_COLOR);
-                    }
-                    commands.entity(entity)
-                        .remove::<InteractionDisabled>();
+                PlayLocationGrid
+                location_grid(None, true, true)
+                on(|event: On<ValueChange<UVec2>>,
+                    mut commands: Commands,
+                    mut current_guess: ResMut<CurrentGuess>,
+                    done_button_q: Single<(Entity, &Hovered, &mut BorderColor), With<PlayDoneButton>>,
+                    children_query: Query<&Children>,
+                    mut image_q: Query<&mut ImageNode>,
+                    pin_q: Single<(&mut Node, &MovablePin)>|{
+                        current_guess.0 = Some(event.value);
+                        let (entity, is_hovered, mut border_color) = done_button_q.into_inner();
+                        if is_hovered.get() {
+                            change_image_node_index(entity, 1, &children_query, &mut image_q);
+                            *border_color = BorderColor::all(DARK_ORANGE_COLOR);
+                        } else {
+                            change_image_node_index(entity, 0, &children_query, &mut image_q);
+                            *border_color = BorderColor::all(DARK_BLUE_COLOR);
+                        }
+                        commands.entity(entity)
+                            .remove::<InteractionDisabled>();
 
-                    update_pin_location(event.value, pin_q, true);
-            })
-            on(on_pointer_over_pointer_cursor)
-            on(on_pointer_out_default_cursor)
-            ,
+                        update_pin_location(event.value, pin_q, true);
+                })
+                on(on_pointer_over_pointer_cursor)
+                on(on_pointer_out_default_cursor)
+                ,
 
-            axes_descriptions(&start_date_time)
-            ,
+                axes_descriptions(&start_date_time)
+                ,
 
-            clue_placeholder()
-            ,
+                clue_placeholder()
+                ,
 
-            primary_button_placeholder()
-            ,
+                primary_button_placeholder()
+                ,
 
-            bottom_buttons()
-            ,
+                bottom_buttons()
+                ,
+            ],
+
+            // This node will always have Display::None - it is an invisible scrollbar.
+            Node {
+                min_width: px(12),
+                height: percent(100),
+                display: Display::None,
+            }
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
         ]
     }
 }

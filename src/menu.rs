@@ -3,8 +3,9 @@ use bevy::{
     picking::hover::Hovered,
     prelude::*,
     settings::SaveSettingsDeferred,
-    text::{EditableText, EditableTextFilter, TextCursorStyle},
+    text::{EditableText, EditableTextFilter, TextCursorStyle, TextEdit},
     ui::InteractionDisabled,
+    ui_widgets::{Activate, ControlOrientation, Scrollbar, ScrollbarThumb},
 };
 
 use crate::{
@@ -12,9 +13,10 @@ use crate::{
     how_to_modal::on_activate_show_how_to_modal,
     load::{LoadableRounds, on_activate_show_load_modal},
     ui::{
-        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, Modal, base_button,
-        change_image_node_index, on_activate_change_state, on_pointer_out_default_cursor,
-        on_pointer_over_text_cursor, pinpoint_font,
+        DARK_BLUE_COLOR, DARK_GRAY_COLOR, DARK_ORANGE_COLOR, DARK_RED_COLOR, MIDDLE_BLUE_COLOR,
+        Modal, base_button, change_image_node_index, on_activate_change_state,
+        on_pointer_out_default_cursor, on_pointer_over_text_cursor, pinpoint_font,
+        virtual_keyboard,
     },
 };
 
@@ -44,6 +46,12 @@ pub struct UsernameInputColumn;
 pub struct UsernameRequirements;
 
 #[derive(Component, Clone, Default)]
+pub struct UsernameKeyboard;
+
+#[derive(Component, Clone, Default)]
+pub struct UsernameKeyboardToggle;
+
+#[derive(Component, Clone, Default)]
 pub struct NeedsValidUsername;
 
 pub fn setup_menu(
@@ -62,43 +70,82 @@ pub fn setup_menu(
         AppMenu
         Visibility::Inherited
         Node {
-            flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Start,
-            align_content: AlignContent::Default,
-            align_items: AlignItems::Center,
+            flex_direction: FlexDirection::Row,
             width: percent(100),
-            height: percent(97),
-            row_gap: percent(2),
-            margin: UiRect::top(percent(3)),
+            height: percent(100),
         }
+        on(crate::ui::handle_mouse_drag_as_scroll)
         Children [
+            #Content
             Node {
-                min_width: px(280),
-                width: percent(80),
-                max_height: percent(15),
+                flex_direction: FlexDirection::Column,
+                justify_content: JustifyContent::Start,
+                align_content: AlignContent::Default,
                 align_items: AlignItems::Center,
-                justify_content: JustifyContent::Center,
-            }
-            Children [
-                logo()
-            ],
-
-            Node {
-                height: percent(75),
                 width: percent(100),
+                row_gap: percent(2),
+                overflow: Overflow::scroll_y(),
             }
             Children [
-                menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
-            ],
+                Node {
+                    margin: UiRect::top(px(15)),
+                    min_width: px(280),
+                    width: percent(80),
+                    max_height: percent(15),
+                    align_items: AlignItems::Center,
+                    justify_content: JustifyContent::Center,
+                }
+                Children [
+                    logo()
+                ],
+
+                Node {
+                    height: percent(75),
+                    width: percent(100),
+                    margin: UiRect::bottom(px(15)),
+                }
+                Children [
+                    menu(&username, &start_date_time, &menu_header_text, encoded_round_is_valid)
+                ],
+            ]
+            ,
+
+            // This node will always have Display::None - it is an invisible scrollbar.
+            Node {
+                min_width: px(1),
+                height: percent(100),
+                display: Display::None,
+            }
+            BackgroundColor(Color::WHITE)
+            Scrollbar {
+                orientation: ControlOrientation::Vertical,
+                target: #Content,
+                min_thumb_length: 8.0,
+            }
+            Children [
+                BorderColor::all(MIDDLE_BLUE_COLOR)
+                BackgroundColor(MIDDLE_BLUE_COLOR)
+                ScrollbarThumb {
+                    border_radius: BorderRadius::all(px(4)),
+                    border: UiRect::all(px(1)),
+                }
+            ]
         ],
     });
 }
 
 pub fn show_menu(
-    app_menu_q: Single<&mut Visibility, (With<AppMenu>, Without<UsernameRequirements>)>,
-    username_input_q: Single<Entity, With<UsernameInput>>,
+    app_menu_q: Single<&mut Visibility, With<AppMenu>>,
+    username_input_q: Query<Entity, With<UsernameInput>>,
     username_input_col_q: Single<Entity, With<UsernameInputColumn>>,
-    username_directions_q: Single<&mut Visibility, (With<UsernameRequirements>, Without<AppMenu>)>,
+    mut to_hide_q: Query<
+        &mut Node,
+        Or<(
+            With<UsernameRequirements>,
+            With<UsernameKeyboard>,
+            With<UsernameKeyboardToggle>,
+        )>,
+    >,
     username: Res<Username>,
     encoded_round: Res<EncodedRound>,
     start_date_time: Res<StartDateTime>,
@@ -108,14 +155,18 @@ pub fn show_menu(
     *app_menu_q.into_inner() = Visibility::Inherited;
 
     if encoded_round.is_valid(&start_date_time.date, &app_type_registry) {
-        commands.entity(username_input_q.entity()).despawn();
+        if let Ok(entity) = username_input_q.single() {
+            commands.entity(entity).despawn();
+        }
 
         let username_id = commands.spawn_scene(static_username(&username)).id();
         commands
             .entity(username_input_col_q.entity())
             .insert_child(1, username_id);
 
-        *username_directions_q.into_inner() = Visibility::Hidden;
+        for mut node in to_hide_q.iter_mut() {
+            node.display = Display::None;
+        }
     }
 }
 
@@ -151,7 +202,7 @@ fn menu(
     menu_header_text: &Res<MenuHeaderText>,
     encoded_round_is_valid: bool,
 ) -> impl Scene {
-    let (button_height, button_width) = (15, 50);
+    let (button_height, button_width) = (0, 50);
     bsn! {
         MenuContainer
         Node {
@@ -169,17 +220,28 @@ fn menu(
 
             needs_valid_username_button(username, "button/create.png", UVec2::new(192, 32), button_height, button_width, 4)
             on_activate_change_state(AppState::Create)
+            Node {
+                min_height: px(50),
+                height: px(50),
+            }
             ,
 
-            Node {
-                padding: px(3),
-            }
             base_button("button/load.png", UVec2::new(128, 32), button_height, button_width, 0, 4, 5)
             on(on_activate_show_load_modal)
+            Node {
+                padding: px(3),
+                min_height: px(50),
+                height: px(50),
+            }
             ,
 
             base_button("button/how_to.png", UVec2::new(170, 32), button_height, button_width, 0, 3, 5)
-            on(on_activate_show_how_to_modal),
+            on(on_activate_show_how_to_modal)
+            Node {
+                min_height: px(50),
+                height: px(50),
+            }
+            ,
 
             username_input_col(username, encoded_round_is_valid)
             ,
@@ -232,7 +294,7 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(bsn! {
                 UsernameInput
                 Node {
-                    min_width: px(250),
+                    min_width: px(280),
                     border: px(5),
                     border_radius: BorderRadius::all(px(10)),
                     padding: UiRect::axes(px(5), px(2)),
@@ -256,27 +318,82 @@ fn username_input_col(username: &Username, encoded_round_is_valid: bool) -> impl
             Box::new(static_username(username))
         }
     };
+    let maybe_hide_keyboard_button = || -> Box<dyn Scene> {
+        if encoded_round_is_valid {
+            Box::new(bsn! { Node { display: Display::None}})
+        } else {
+            Box::new(bsn! {})
+        }
+    };
 
     bsn! {
         UsernameInputColumn
         Node {
             flex_direction: FlexDirection::Column,
-            row_gap: percent(5),
+            row_gap: px(10),
             align_items: AlignItems::Center,
             justify_content: JustifyContent::SpaceBetween,
         }
         Children [
-            Node
+            Node {
+                flex_direction: FlexDirection::Row,
+                width: percent(100),
+                min_width: px(280),
+                justify_content: JustifyContent::SpaceEvenly,
+                align_items: AlignItems::Center,
+            }
             Children [
                 Node
-                username_greeting(username)
-                TextFont {
-                    font_size: FontSize::Rem(1.)
+                Children [
+                    username_greeting(username)
+                    TextFont {
+                        font_size: FontSize::Rem(1.)
+                    }
+                    pinpoint_font()
+                ]
+                ,
+
+                // TODO display:None this icon and display:None the virtual keyboard after round has been
+                // created
+                UsernameKeyboardToggle
+                base_button("button/keyboard/keyboard_icon.png", UVec2::splat(32), 0, 0, 0, 3, 2)
+                Node {
+                    height: Val::Auto,
+                    width: px(32),
+                    min_width: Val::Auto,
                 }
-                pinpoint_font()
+                maybe_hide_keyboard_button()
+                on(|_: On<Activate>,
+                node_q: Single<&mut Node, With<UsernameKeyboard>>,
+                mut input_focus: ResMut<InputFocus>,
+                mut username_input_q: Query<(Entity, &mut EditableText), With<UsernameInput>>,| {
+                    // Since the username input might not be an editable text, we have it
+                    // query here. If it fails, then we just don't toggle the keyboard at all.
+                    let Ok((ent, mut username_input)) = username_input_q.single_mut() else {
+                        return;
+                    };
+                    let mut node = node_q.into_inner();
+                    if node.display == Display::None {
+                        if input_focus.get() != Some(ent) {
+                            username_input.queue_edit(TextEdit::TextEnd(false));
+                            input_focus.set(ent, FocusCause::Navigated);
+                        }
+                        node.display = Display::Flex;
+                    } else {
+                        node.display = Display::None;
+                    }
+
+                })
+                ,
             ],
 
-            username_input(),
+            #KeyboardTarget
+            username_input()
+            ,
+
+            UsernameKeyboard
+            virtual_keyboard(#KeyboardTarget)
+            ,
 
             username_directions(username),
         ]
@@ -322,19 +439,21 @@ fn username_directions(username: &Username) -> Box<dyn Scene> {
             align_items: AlignItems::Center,
         }
         Children [
-            Text::new("Username must be:\nalphanumeric incl. _ \nbetween 1 and 10 chars.")
+            Text::new("Username must be:\nalphanumeric incl _ \nbetween 1 and 10 chars.")
             TextFont {
-                font_size: FontSize::Rem(0.8)
+                font_size: FontSize::Rem(0.7)
             }
             pinpoint_font()
-            TextLayout::justify(Justify::Center)
+            TextLayout::justify(Justify::Left)
         ]}
     };
 
     if Username::is_valid(username) {
         Box::new(bsn! {
             base_directions()
-            Visibility::Hidden
+            Node {
+                display: Display::None
+            }
         })
     } else {
         Box::new(bsn! {
@@ -349,7 +468,7 @@ fn on_changed_username_input(
         (&EditableText, &mut BorderColor),
         (With<UsernameInput>, Without<NeedsValidUsername>),
     >,
-    mut username_directions_q: Query<&mut Visibility, With<UsernameRequirements>>,
+    mut username_directions_q: Query<&mut Node, With<UsernameRequirements>>,
     mut needs_valid_username_q: Query<
         (Entity, &Hovered, &mut BorderColor),
         (With<NeedsValidUsername>, Without<UsernameInput>),
@@ -374,10 +493,10 @@ fn on_changed_username_input(
             username.0 = new_name;
             commands.queue(SaveSettingsDeferred::default());
         }
-        let Ok(mut visibility) = username_directions_q.single_mut() else {
+        let Ok(mut node) = username_directions_q.single_mut() else {
             return;
         };
-        *visibility = Visibility::Inherited;
+        node.display = Display::Flex;
 
         for (entity, _, mut border_color) in needs_valid_username_q.iter_mut() {
             commands.entity(entity).insert(InteractionDisabled);
