@@ -186,7 +186,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 22] = [
+const AXIS_SPECTRA: [AxisSpectrum; 32] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -205,19 +205,34 @@ const AXIS_SPECTRA: [AxisSpectrum; 22] = [
     // Food
     AxisSpectrum("Breakfast", "Dinner"),
     AxisSpectrum("Diet", "Indulgent"),
-    // Flavor
-    AxisSpectrum("Sweet", "Savory"),
-    AxisSpectrum("Salty", "Sour"),
     // Activities
     AxisSpectrum("Overhyped", "Secret"),
     AxisSpectrum("Fun", "Interesting"),
-    // Occupations
-    AxisSpectrum("Chore", "Job"),
-    AxisSpectrum("Use Tools", "Use Hands"),
     // Attraction
     AxisSpectrum("Cliche", "True"),
     AxisSpectrum("Attractive", "Turn off"),
+    // Flavor
+    AxisSpectrum("Sweet", "Savory"),
+    AxisSpectrum("Salty", "Sour"),
+    // Dreams
+    AxisSpectrum("Nightmare", "Pleasant Dream"),
+    AxisSpectrum("Implausible", "Plausible"),
+    // Worldly Phenomenon
+    AxisSpectrum("Aquatic", "Terrestrial"),
+    AxisSpectrum("Interactable", "Keep a Safe Distance"),
+    // Occupations
+    AxisSpectrum("Chore", "Job"),
+    AxisSpectrum("Use Tools", "Use Hands"),
     // Desires
     AxisSpectrum("Want", "Need"),
     AxisSpectrum("For World", "For Self"),
+    // Music
+    AxisSpectrum("Study Mix", "Karaoke"),
+    AxisSpectrum("Hidden Gem", "Popular"),
+    // Food (pizza / sandwich)
+    AxisSpectrum("Pizza Topping", "Sandwich Filling"),
+    AxisSpectrum("Remove", "Want More Of"),
+    // Technology related
+    AxisSpectrum("Creates Problems", "Solves Problems"),
+    AxisSpectrum("Man-made", "Natural Phenomenon"),
 ];
