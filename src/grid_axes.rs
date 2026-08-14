@@ -63,11 +63,11 @@ pub(crate) fn axes_descriptions(date: &Res<StartDateTime>) -> impl Scene {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Center,
             align_items: AlignItems::Center,
-            border: px(2),
+            // border: px(2),
             row_gap: px(2),
             max_width: percent(100),
         }
-        BorderColor::all(Color::WHITE)
+        // BorderColor::all(Color::WHITE)
         Children [
             Node
             Children [
@@ -171,6 +171,7 @@ fn axis_text(axis: &'static str) -> impl Scene {
                 font_size: FontSize::Rem(0.7),
             }
             pinpoint_font()
+            TextLayout::linebreak(LineBreak::WordOrCharacter)
         ]
     }
 }
