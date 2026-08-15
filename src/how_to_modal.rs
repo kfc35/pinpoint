@@ -296,7 +296,7 @@ fn clue_creator_content() -> impl SceneList {
         }
         TextColor(MIDDLE_BLUE_COLOR)
         Children [
-            TextSpan::new("Clue Creation Requires a Username and a Computer!\n\n")
+            TextSpan::new("Clue Creation Requires a Username!\n\n")
             pinpoint_font()
             TextFont {
                 font_size: FontSize::Rem(1.0),
