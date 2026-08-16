@@ -208,8 +208,8 @@ const AXIS_SPECTRA: [AxisSpectrum; 32] = [
     // Activities
     AxisSpectrum("Overhyped", "Secret"),
     AxisSpectrum("Fun", "Interesting"),
-    // Attraction
-    AxisSpectrum("Cliche", "True"),
+    // Attraction -- This one sucks lmao rework this one
+    AxisSpectrum("Cliche", "Unique"),
     AxisSpectrum("Attractive", "Turn off"),
     // Flavor
     AxisSpectrum("Sweet", "Savory"),
@@ -235,4 +235,8 @@ const AXIS_SPECTRA: [AxisSpectrum; 32] = [
     // Technology related
     AxisSpectrum("Creates Problems", "Solves Problems"),
     AxisSpectrum("Man-made", "Natural Phenomenon"),
+
+// Cool - Corny
+// Genuine - Performative
+// Asian - Asian American
 ];
