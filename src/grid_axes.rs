@@ -93,7 +93,8 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                width: percent(100)
+                width: percent(100),
+                max_width: px(300),
                 padding: px(5),
                 row_gap: px(5),
             }
@@ -108,7 +109,8 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 flex_direction: FlexDirection::Column,
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
-                width: percent(100)
+                width: percent(100),
+                max_width: px(300),
                 padding: px(5),
                 row_gap: px(5),
             }
@@ -186,7 +188,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 32] = [
+const AXIS_SPECTRA: [AxisSpectrum; 38] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -222,7 +224,7 @@ const AXIS_SPECTRA: [AxisSpectrum; 32] = [
     AxisSpectrum("Interactable", "Keep a Safe Distance"),
     // Occupations
     AxisSpectrum("Chore", "Job"),
-    AxisSpectrum("Use Tools", "Use Hands"),
+    AxisSpectrum("Requires Special Tools", "Use Bare Hands"),
     // Desires
     AxisSpectrum("Want", "Need"),
     AxisSpectrum("For World", "For Self"),
@@ -235,8 +237,13 @@ const AXIS_SPECTRA: [AxisSpectrum; 32] = [
     // Technology related
     AxisSpectrum("Creates Problems", "Solves Problems"),
     AxisSpectrum("Man-made", "Natural Phenomenon"),
-
-// Cool - Corny
-// Genuine - Performative
-// Asian - Asian American
+    // Spoken
+    AxisSpectrum("Cool", "Corny"),
+    AxisSpectrum("Said while Networking", "Said on a Date"),
+    // ???
+    AxisSpectrum("Genuine", "Performative"),
+    AxisSpectrum("Criticism", "Compliment"),
+    AxisSpectrum("Asian", "Asian American"),
+    AxisSpectrum("Appreciated by Westerners", "Subject to Xenophobia"),
+    // Asian - Asian American
 ];
