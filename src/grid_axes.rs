@@ -188,7 +188,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 38] = [
+const AXIS_SPECTRA: [AxisSpectrum; 42] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -210,7 +210,7 @@ const AXIS_SPECTRA: [AxisSpectrum; 38] = [
     // Activities
     AxisSpectrum("Overhyped", "Secret"),
     AxisSpectrum("Fun", "Interesting"),
-    // Attraction -- This one sucks lmao rework this one
+    // Attraction
     AxisSpectrum("Cliche", "Unique"),
     AxisSpectrum("Attractive", "Turn off"),
     // Flavor
@@ -240,10 +240,19 @@ const AXIS_SPECTRA: [AxisSpectrum; 38] = [
     // Spoken
     AxisSpectrum("Cool", "Corny"),
     AxisSpectrum("Said while Networking", "Said on a Date"),
-    // ???
+    // Recipes
+    AxisSpectrum("Quick", "Time Intensive"),
+    AxisSpectrum("Potluck Dish", "Meal for One"),
+    // Actions
     AxisSpectrum("Genuine", "Performative"),
-    AxisSpectrum("Criticism", "Compliment"),
-    AxisSpectrum("Asian", "Asian American"),
-    AxisSpectrum("Appreciated by Westerners", "Subject to Xenophobia"),
+    AxisSpectrum("Despicable", "Rewarded"),
+    // Hobbies
+    AxisSpectrum("Not Worth Doing", "Worth Doing"),
+    AxisSpectrum("Hobby", "Hustle"),
+    // Topics
+    AxisSpectrum("Everyone Agrees", "Heavily Debated"),
+    AxisSpectrum("Casual Convo", "Serious Convo"),
+    // AxisSpectrum("Asian", "Asian American"),
+    // AxisSpectrum("Appreciated by Westerners", "Subject to Xenophobia"),
     // Asian - Asian American
 ];

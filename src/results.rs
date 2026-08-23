@@ -21,14 +21,18 @@ const RESULT_BANNERS_C: [(&'static str, usize); 2] = [
     ("images/results/C/i_lift_my_pin.png", 5),
 ];
 
-const RESULT_BANNERS_D: [(&'static str, usize); 2] = [
+const RESULT_BANNERS_D: [(&'static str, usize); 3] = [
     ("images/results/D/ehh_close_enough.png", 8),
-    ("images/results/D/at_least_you_placed.png", 8),
+    ("images/results/D/at_least_you_placed.png", 13),
+    ("images/results/D/orange_you_glad.png", 7),
 ];
 
-const RESULT_BANNERS_F: [(&'static str, usize); 2] = [
+const RESULT_BANNERS_F: [(&'static str, usize); 5] = [
     ("images/results/F/where_am_i.png", 7),
     ("images/results/F/aimless.png", 8),
+    ("images/results/F/got_a_tomato.png", 14),
+    ("images/results/F/so_cold.png", 4),
+    ("images/results/F/no_mans_land.png", 14),
 ];
 
 /// Returns the result image after an imported round has been played.
