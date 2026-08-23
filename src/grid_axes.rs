@@ -99,7 +99,11 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 row_gap: px(5),
             }
             Children [
-                axis_text(axis),
+                Node
+                Children[
+                    axis_text(axis),
+                ],
+
                 arrow_image_node(image_index),
             ]
         })
@@ -117,7 +121,11 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
             Children [
                 // Ordering of children is different.
                 arrow_image_node(image_index),
-                axis_text(axis),
+
+                Node
+                Children[
+                    axis_text(axis),
+                ],
             ]
         })
     }
@@ -144,21 +152,32 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
                 column_gap: px(6),
             }
             Children [
-                axis_text(left_axis),
+                Node
+                Children[
+                    axis_text(left_axis)
+                    TextLayout {
+                        justify: Justify::End,
+                        linebreak: LineBreak::WordOrCharacter,
+                    }
+                ],
+
                 arrow_image_node(2),
             ],
 
             Node {
                 flex_direction: FlexDirection::Row,
                 width: percent(49),
-                // flex_wrap: FlexWrap::WrapReverse,
                 justify_content: JustifyContent::Start,
                 align_items: AlignItems::Center,
                 column_gap: px(6),
             }
             Children [
                 arrow_image_node(3),
-                axis_text(right_axis),
+
+                Node
+                Children[
+                    axis_text(right_axis),
+                ],
             ],
         ]
     }
@@ -166,15 +185,12 @@ fn axis_horizontal_desc(left_axis: &'static str, right_axis: &'static str) -> im
 
 fn axis_text(axis: &'static str) -> impl Scene {
     bsn! {
-        Node
-        Children [
-            Text::new(axis)
-            TextFont {
-                font_size: FontSize::Rem(0.7),
-            }
-            pinpoint_font()
-            TextLayout::linebreak(LineBreak::WordOrCharacter)
-        ]
+        Text::new(axis)
+        TextFont {
+            font_size: FontSize::Rem(0.7),
+        }
+        pinpoint_font()
+        TextLayout::linebreak(LineBreak::WordOrCharacter)
     }
 }
 
