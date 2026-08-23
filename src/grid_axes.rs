@@ -249,25 +249,25 @@ const AXIS_SPECTRA: [AxisSpectrum; 42] = [
     AxisSpectrum("Hidden Gem", "Popular"),
     // Food (pizza / sandwich)
     AxisSpectrum("Pizza Topping", "Sandwich Filling"),
-    AxisSpectrum("Remove", "Want More Of"),
+    AxisSpectrum("Want More Of", "Remove"),
     // Technology related
     AxisSpectrum("Creates Problems", "Solves Problems"),
     AxisSpectrum("Man-made", "Natural Phenomenon"),
     // Spoken
-    AxisSpectrum("Cool", "Corny"),
-    AxisSpectrum("Said while Networking", "Said on a Date"),
+    AxisSpectrum("Corny", "Cool"),
+    AxisSpectrum("Said on a Date", "Said while Networking"),
     // Recipes
     AxisSpectrum("Quick", "Time Intensive"),
     AxisSpectrum("Potluck Dish", "Meal for One"),
     // Actions
-    AxisSpectrum("Genuine", "Performative"),
-    AxisSpectrum("Despicable", "Rewarded"),
+    AxisSpectrum("Performative", "Genuine"),
+    AxisSpectrum("Rewarded", "Despicable"),
     // Hobbies
     AxisSpectrum("Not Worth Doing", "Worth Doing"),
     AxisSpectrum("Hobby", "Hustle"),
     // Topics
-    AxisSpectrum("Everyone Agrees", "Heavily Debated"),
-    AxisSpectrum("Casual Convo", "Serious Convo"),
+    AxisSpectrum("Heavily Debated", "Everyone Agrees"),
+    AxisSpectrum("Serious Convo", "Casual Convo"),
     // AxisSpectrum("Asian", "Asian American"),
     // AxisSpectrum("Appreciated by Westerners", "Subject to Xenophobia"),
     // Asian - Asian American
