@@ -16,7 +16,8 @@ const RESULT_BANNERS_B: [(&'static str, usize); 2] = [
     ("images/results/B/lollipop_rich.png", 8),
 ];
 
-const RESULT_BANNERS_C: [(&'static str, usize); 2] = [
+const RESULT_BANNERS_C: [(&'static str, usize); 3] = [
+    ("images/results/C/enjoy_a_banana.png", 21),
     ("images/results/C/in_the_neighborhood.png", 8),
     ("images/results/C/i_lift_my_pin.png", 5),
 ];
