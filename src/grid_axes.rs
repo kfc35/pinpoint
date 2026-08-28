@@ -204,7 +204,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 42] = [
+const AXIS_SPECTRA: [AxisSpectrum; 50] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -268,7 +268,22 @@ const AXIS_SPECTRA: [AxisSpectrum; 42] = [
     // Topics
     AxisSpectrum("Heavily Debated", "Everyone Agrees"),
     AxisSpectrum("Serious Convo", "Casual Convo"),
-    // AxisSpectrum("Asian", "Asian American"),
-    // AxisSpectrum("Appreciated by Westerners", "Subject to Xenophobia"),
-    // Asian - Asian American
+    // Another Diet food thing
+    AxisSpectrum("Diet Food", "Comfort Food"),
+    AxisSpectrum("Prefer Plain", "Prefer Spicy"),
+    // Time
+    AxisSpectrum("Ephemeral", "Long Lasting"),
+    AxisSpectrum("Memorable", "Forgotten"),
+    // Asian Stuff
+    AxisSpectrum("Asian", "Asian American"),
+    AxisSpectrum("Appreciated by Outsiders", "Subject to Xenophobia"),
+    // Baking/Frying
+    AxisSpectrum("Baked", "Fried"),
+    AxisSpectrum(
+        "Better to make it yourself",
+        "Someone else should make it for me",
+    ),
+    //
+    // AxisSpectrum("Easy to Understand", "Hard to Grasp"),
+    // AxisSpectrum("Pop Culture", ""),
 ];
