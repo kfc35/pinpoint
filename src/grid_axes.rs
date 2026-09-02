@@ -99,9 +99,12 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 row_gap: px(5),
             }
             Children [
-                Node
+                Node {
+                    width: px(300),
+                }
                 Children[
-                    axis_text(axis),
+                    axis_text(axis)
+                    TextLayout::justify(Justify::Center)
                 ],
 
                 arrow_image_node(image_index),
@@ -122,9 +125,12 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 // Ordering of children is different.
                 arrow_image_node(image_index),
 
-                Node
+                Node {
+                    width: px(300),
+                }
                 Children[
-                    axis_text(axis),
+                    axis_text(axis)
+                    TextLayout::justify(Justify::Center)
                 ],
             ]
         })
