@@ -204,7 +204,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 50] = [
+const AXIS_SPECTRA: [AxisSpectrum; 58] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -283,7 +283,22 @@ const AXIS_SPECTRA: [AxisSpectrum; 50] = [
         "Better to make it yourself",
         "Someone else should make it for me",
     ),
-    //
-    // AxisSpectrum("Easy to Understand", "Hard to Grasp"),
-    // AxisSpectrum("Pop Culture", ""),
+    // More Knowledge
+    AxisSpectrum("Rarely Interacted With", "Commonly Interacted With"),
+    AxisSpectrum(
+        "Easy to Understand",
+        "Hard to Grasp or Not Fully Understood",
+    ),
+    // Tools
+    AxisSpectrum("Kitchen Related", "Bathroom Related"),
+    AxisSpectrum("Non Intuitive Controls", "Easy to Use"),
+    // Statements
+    AxisSpectrum(
+        "Shared with strangers on the Internet",
+        "Shared with people IRL",
+    ),
+    AxisSpectrum("Usually Kept to Self", "No Problem Sharing with Everyone"),
+    // Music
+    AxisSpectrum("Refuse to dance to", "I will dance to it"),
+    AxisSpectrum("Earworm (derogatory)", "Earworm (affectionately)"),
 ];
