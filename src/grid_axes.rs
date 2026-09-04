@@ -300,7 +300,7 @@ const AXIS_SPECTRA: [AxisSpectrum; 62] = [
         "Hard to Grasp or Not Fully Understood",
     ),
     // Tools
-    AxisSpectrum("Kitchen Related", "Bathroom Related"),
+    AxisSpectrum("Kitchen Related", "Other Household Items"),
     AxisSpectrum("Non Intuitive Controls", "Easy to Use"),
     // Statements
     AxisSpectrum(
