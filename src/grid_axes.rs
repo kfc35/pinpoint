@@ -101,6 +101,8 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
             Children [
                 Node {
                     width: px(300),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
                 }
                 Children[
                     axis_text(axis)
@@ -127,6 +129,8 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
 
                 Node {
                     width: px(300),
+                    justify_content: JustifyContent::Center,
+                    align_items: AlignItems::Center,
                 }
                 Children[
                     axis_text(axis)
