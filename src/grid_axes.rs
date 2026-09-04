@@ -214,7 +214,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 58] = [
+const AXIS_SPECTRA: [AxisSpectrum; 62] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -311,4 +311,10 @@ const AXIS_SPECTRA: [AxisSpectrum; 58] = [
     // Music
     AxisSpectrum("Refuse to dance to", "I will dance to it"),
     AxisSpectrum("Earworm (derogatory)", "Earworm (affectionately)"),
+    // Money to Value
+    AxisSpectrum("Cheap", "Pricey"),
+    AxisSpectrum("Underestimated)", "Overestimated"),
+    // Cereal
+    AxisSpectrum("In the Children Market Only", "For Everyone"),
+    AxisSpectrum("Bad Cereal", "Good Cereal"),
 ];
