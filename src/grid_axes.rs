@@ -214,7 +214,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 62] = [
+const AXIS_SPECTRA: [AxisSpectrum; 70] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -313,8 +313,29 @@ const AXIS_SPECTRA: [AxisSpectrum; 62] = [
     AxisSpectrum("Earworm (derogatory)", "Earworm (affectionately)"),
     // Money to Value
     AxisSpectrum("Cheap", "Pricey"),
-    AxisSpectrum("Underestimated)", "Overestimated"),
+    AxisSpectrum("Underestimated", "Overestimated"),
     // Cereal
-    AxisSpectrum("In the Children Market Only", "For Everyone"),
+    AxisSpectrum("Marketed to Children Only", "For Everyone"),
     AxisSpectrum("Bad Cereal", "Good Cereal"),
+    // Drinks
+    AxisSpectrum("Special Order", "Common Order"),
+    AxisSpectrum("Frozen Drink", "Hot Drink"),
+    // Approachability
+    AxisSpectrum("Friendly Target", "Daunting Target"),
+    AxisSpectrum("Want to be closer to", "Ignore at all costs"),
+    // Must do in NYC
+    AxisSpectrum("Would never recommend", "Must do"),
+    AxisSpectrum("Northern Bronx", "Southern Brooklyn"),
+    // History
+    AxisSpectrum("Start of Human History", "Last 100 Years"),
+    AxisSpectrum("Important Event", "Insignificant Event"),
+    //
+    // AxisSpectrum("Unnecessary", "Could not live without"),
+    // AxisSpectrum("Only children ", "Only adults"),
+    // Jokes
+    // AxisSpectrum("Overdone Joke", "Clever Joke"),
+    // AxisSpectrum("Not Funny", "Most people would find funny"),
+    // Liquids
+    // AxisSpectrum("Viscous", "Runny"),
+    // AxisSpectrum("Smelly", "Solid"),
 ];
