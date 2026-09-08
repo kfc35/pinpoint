@@ -5,7 +5,7 @@ edition = "2024"
 
 [dependencies]
 base64 = "0.23.1"
-bevy = { version = "0.19.0", default-features = false, features = [
+bevy = { version = "0.19.1", default-features = false, features = [
   # ui without default_platform
   "default_app",
   # TODO remove debug after we are done dev'ing.
@@ -40,7 +40,7 @@ serde_json = "1.0.151"
 smol_str = "0.2"
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 getrandom = { version = "0.4.3", default-features = false, features = ["wasm_js"] }
-web-sys = { version = "0.3.104", default-features = false, features = [
+web-sys = { version = "0.3.105", default-features = false, features = [
   "Window",
   "Document",
 ] }
