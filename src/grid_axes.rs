@@ -321,7 +321,7 @@ const AXIS_SPECTRA: [AxisSpectrum; 70] = [
     AxisSpectrum("Special Order", "Common Order"),
     AxisSpectrum("Frozen Drink", "Hot Drink"),
     // Approachability
-    AxisSpectrum("Friendly Target", "Daunting Target"),
+    AxisSpectrum("Friendly to Approach", "Daunting to Approach"),
     AxisSpectrum("Want to be closer to", "Ignore at all costs"),
     // Must do in NYC
     AxisSpectrum("Would never recommend", "Must do"),
