@@ -61,21 +61,26 @@ pub(crate) fn axes_descriptions(date: &Res<StartDateTime>) -> impl Scene {
     bsn! {
         Node {
             flex_direction: FlexDirection::Column,
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            // border: px(2),
+            justify_content: JustifyContent::Stretch,
+            align_items: AlignItems::Stretch,
+            border: px(2),
             row_gap: px(2),
             max_width: percent(100),
         }
-        // BorderColor::all(Color::WHITE)
+        BorderColor::all(Color::WHITE)
         Children [
-            Node
+            Node {
+                justify_content: JustifyContent::Center,
+                align_items: AlignItems::Center,
+                width: percent(100),
+            }
             Children [
                 Text::new(format!("Axes for {}", date))
                 pinpoint_font()
                 TextFont {
                     font_size: FontSize::Rem(0.7)
                 }
+                TextLayout::justify(Justify::Center)
             ]
             ,
             axis_vertical_desc(axes.vertical().first(), 0),
@@ -94,7 +99,6 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 width: percent(100),
-                max_width: px(300),
                 padding: px(5),
                 row_gap: px(5),
             }
@@ -119,7 +123,6 @@ fn axis_vertical_desc(axis: &'static str, image_index: usize) -> Box<dyn Scene> 
                 justify_content: JustifyContent::Center,
                 align_items: AlignItems::Center,
                 width: percent(100),
-                max_width: px(300),
                 padding: px(5),
                 row_gap: px(5),
             }
