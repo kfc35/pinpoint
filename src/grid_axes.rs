@@ -214,7 +214,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 70] = [
+const AXIS_SPECTRA: [AxisSpectrum; 72] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -327,14 +327,20 @@ const AXIS_SPECTRA: [AxisSpectrum; 70] = [
     AxisSpectrum("Would never recommend", "Must do"),
     AxisSpectrum("Northern Bronx", "Southern Brooklyn"),
     // History
-    AxisSpectrum("Start of Human History", "Last 100 Years"),
+    AxisSpectrum(
+        "Back towards the Start of Written Human History",
+        "The Last 100 Years towards Today",
+    ),
     AxisSpectrum("Important Event", "Insignificant Event"),
+    // Exercise
+    AxisSpectrum("Does Nothing", "So Many Benefits"),
+    AxisSpectrum("Easy Exercise", "Difficult Exercise"),
     //
     // AxisSpectrum("Unnecessary", "Could not live without"),
     // AxisSpectrum("Only children ", "Only adults"),
     // Jokes
     // AxisSpectrum("Overdone Joke", "Clever Joke"),
-    // AxisSpectrum("Not Funny", "Most people would find funny"),
+    // AxisSpectrum("Not Funny", "Causes Groans"),
     // Liquids
     // AxisSpectrum("Viscous", "Runny"),
     // AxisSpectrum("Smelly", "Solid"),
