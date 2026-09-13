@@ -63,11 +63,9 @@ pub(crate) fn axes_descriptions(date: &Res<StartDateTime>) -> impl Scene {
             flex_direction: FlexDirection::Column,
             justify_content: JustifyContent::Stretch,
             align_items: AlignItems::Stretch,
-            border: px(2),
             row_gap: px(2),
             max_width: percent(100),
         }
-        BorderColor::all(Color::WHITE)
         Children [
             Node {
                 justify_content: JustifyContent::Center,
