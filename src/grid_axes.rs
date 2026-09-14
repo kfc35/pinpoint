@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 72] = [
+const AXIS_SPECTRA: [AxisSpectrum; 82] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -336,7 +336,21 @@ const AXIS_SPECTRA: [AxisSpectrum; 72] = [
     // Exercise
     AxisSpectrum("Does Nothing", "So Many Benefits"),
     AxisSpectrum("Easy Exercise", "Difficult Exercise"),
+    // Tasks
+    AxisSpectrum("Requires a short amount of time", "Requires a lot of time"),
+    AxisSpectrum("Worth it to hire someone to do", "DIY"),
+    // Books
+    AxisSpectrum("Short Novel", "Long Novel"),
+    AxisSpectrum("Critically Acclaimed", "Personally Memorable"),
+    // Forthcoming / Honesty
+    AxisSpectrum("Criticism", "Compliment"),
+    AxisSpectrum("Keep to Yourself", "Tell the Other Person"),
     //
+    AxisSpectrum("Annoying", "Satisfying"),
+    AxisSpectrum("Rare", "Common"),
+    // Partying
+    AxisSpectrum("Bar/Club Outing", "House Party"),
+    AxisSpectrum("Enjoyable Aspect", "Unenjoyable Aspect"),
     // AxisSpectrum("Unnecessary", "Could not live without"),
     // AxisSpectrum("Only children ", "Only adults"),
     // Jokes
