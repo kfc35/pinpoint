@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 82] = [
+const AXIS_SPECTRA: [AxisSpectrum; 94] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -351,12 +351,25 @@ const AXIS_SPECTRA: [AxisSpectrum; 82] = [
     // Partying
     AxisSpectrum("Bar/Club Outing", "House Party"),
     AxisSpectrum("Enjoyable Aspect", "Unenjoyable Aspect"),
-    // AxisSpectrum("Unnecessary", "Could not live without"),
-    // AxisSpectrum("Only children ", "Only adults"),
+    // Cute / Cool
+    AxisSpectrum("Cute", "Cool"),
+    AxisSpectrum("Mainstream", "Counter Culture"),
+    // The Week
+    AxisSpectrum("Monday", "Friday"),
+    AxisSpectrum("Morning", "Night"),
+    // Distraction related
+    AxisSpectrum("Fragrant", "Visually Striking"),
+    AxisSpectrum("Appreciate for a While", "Appreciate for a Second"),
+    // Personality (Big 5)
+    AxisSpectrum("More Introverted", "More Extroverted"),
+    AxisSpectrum("More Agreeable", "More Disagreeable"),
+    // Liquids
+    AxisSpectrum("Viscous", "Runny"),
+    AxisSpectrum("Would put my hand in", "Would not touch"),
+    // Wants
+    AxisSpectrum("Premature Desire", "Mature Desire"),
+    AxisSpectrum("Big Desire", "Small Desire"),
     // Jokes
     // AxisSpectrum("Overdone Joke", "Clever Joke"),
     // AxisSpectrum("Not Funny", "Causes Groans"),
-    // Liquids
-    // AxisSpectrum("Viscous", "Runny"),
-    // AxisSpectrum("Smelly", "Solid"),
 ];
