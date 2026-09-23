@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 94] = [
+const AXIS_SPECTRA: [AxisSpectrum; 102] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -369,6 +369,19 @@ const AXIS_SPECTRA: [AxisSpectrum; 94] = [
     // Wants
     AxisSpectrum("Premature Desire", "Mature Desire"),
     AxisSpectrum("Big Desire", "Small Desire"),
+    // Sport / Game
+    AxisSpectrum("Sport", "Game"),
+    AxisSpectrum("Physical", "Mental"),
+    // Numbers Related
+    AxisSpectrum("Not Enough Exist", "Too Many Exist"),
+    AxisSpectrum("Problematic for Society", "Just Personal Opinion"),
+    // D&D Alignment
+    AxisSpectrum("Lawful Alignment", "Chaotic Alignment"),
+    AxisSpectrum("Good Alignment", "Evil Alignment"),
+    // Start / Finish
+    AxisSpectrum("Easy to Start", "Difficult to Start"),
+    AxisSpectrum("Difficult to Finish", "Easy to Finish"),
+    //AxisSpectrum("Common Aspiration", "Aspiration of Clue Giver"),
     // Jokes
     // AxisSpectrum("Overdone Joke", "Clever Joke"),
     // AxisSpectrum("Not Funny", "Causes Groans"),
