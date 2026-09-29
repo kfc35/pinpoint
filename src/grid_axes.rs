@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 102] = [
+const AXIS_SPECTRA: [AxisSpectrum; 110] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -374,15 +374,38 @@ const AXIS_SPECTRA: [AxisSpectrum; 102] = [
     AxisSpectrum("Physical", "Mental"),
     // Numbers Related
     AxisSpectrum("Not Enough Exist", "Too Many Exist"),
-    AxisSpectrum("Problematic for Society", "Just Personal Opinion"),
+    AxisSpectrum(
+        "Current Quantity is Problematic for Society",
+        "Just Personal Opinion",
+    ),
     // D&D Alignment
     AxisSpectrum("Lawful Alignment", "Chaotic Alignment"),
     AxisSpectrum("Good Alignment", "Evil Alignment"),
     // Start / Finish
     AxisSpectrum("Easy to Start", "Difficult to Start"),
     AxisSpectrum("Difficult to Finish", "Easy to Finish"),
+    // Size
+    AxisSpectrum("Thin", "Thick"),
+    AxisSpectrum("Long", "Short"),
+    // Longevity of Goods
+    AxisSpectrum("Old one is fine", "Would replace with an upgrade"),
+    AxisSpectrum("Would get repaired", "Would Toss if Malfunctioning"),
+    // Popularity
+    AxisSpectrum("Lacking Popularity", "Trendy"),
+    AxisSpectrum("Should go away", "Should be more Popular"),
+    // Fruit/Vegetable Ingredients
+    AxisSpectrum("Fruit", "Vegetable"),
+    AxisSpectrum("Usually Eaten Raw", "Usually Eaten Cooked"),
     //AxisSpectrum("Common Aspiration", "Aspiration of Clue Giver"),
     // Jokes
     // AxisSpectrum("Overdone Joke", "Clever Joke"),
     // AxisSpectrum("Not Funny", "Causes Groans"),
+
+    // AxisSpectrum("Must Reserve Long in Advance",
+    //     "Can Walk In and Immediately get Serviced"),
+    // AxisSpectrum("Moist", "Juicy"),
+
+    // Truth and Lies
+    // AxisSpectrum("Truth", "Lie"),
+    // AxisSpectrum("Would Be Doubled Checked In Conversation", "Would Not Be Fact Checked"),
 ];
