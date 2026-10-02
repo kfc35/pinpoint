@@ -1,5 +1,10 @@
 # ![Pinpoint](assets/logo/logo_large.png)
-Yet Another Daily Game
+
+[![Creative Bevians badge](https://raw.githubusercontent.com/CreativeBevians/badges/refs/heads/main/rendered/creative_bevians.svg)](https://creative.bevians.com)
+
+A Daily Game similar to Wavelength, but in two dimensions. Create a round by giving a clue and share it with your friends! Axes change every Midnight ET.
+
+The code and assets in this repository were not created with AI assistance.
 
 ## License
 This software is licensed under the [Anti-Capitalist Software License (v 1.4)](https://anticapitalist.software/).
