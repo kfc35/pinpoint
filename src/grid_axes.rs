@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 110] = [
+const AXIS_SPECTRA: [AxisSpectrum; 114] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -396,6 +396,16 @@ const AXIS_SPECTRA: [AxisSpectrum; 110] = [
     // Fruit/Vegetable Ingredients
     AxisSpectrum("Fruit", "Vegetable"),
     AxisSpectrum("Usually Eaten Raw", "Usually Eaten Cooked"),
+    // Predictions
+    AxisSpectrum("Impossibility", "Will bet money will happen"),
+    AxisSpectrum("Dream come true", "Despair Scenario"),
+    // Halloween Costumes
+    AxisSpectrum("Funny Costume Idea", "Interesting Costume Idea"),
+    AxisSpectrum("High Effort", "Low Effort"),
+    //
+    // AxisSpectrum("", "Horror Movie"),
+    // AxisSpectrum("Would (re)watch", "Would not (re)watch"),
+
     //AxisSpectrum("Common Aspiration", "Aspiration of Clue Giver"),
     // Jokes
     // AxisSpectrum("Overdone Joke", "Clever Joke"),
