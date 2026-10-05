@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 114] = [
+const AXIS_SPECTRA: [AxisSpectrum; 124] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -402,9 +402,39 @@ const AXIS_SPECTRA: [AxisSpectrum; 114] = [
     // Halloween Costumes
     AxisSpectrum("Funny Costume Idea", "Interesting Costume Idea"),
     AxisSpectrum("High Effort", "Low Effort"),
-    //
-    // AxisSpectrum("", "Horror Movie"),
-    // AxisSpectrum("Would (re)watch", "Would not (re)watch"),
+    // Girl / Boy Dinner
+    AxisSpectrum("\"Boy Dinner\"", "\"Girl Dinner\""),
+    AxisSpectrum("More Protein", "More Carb"),
+    // Talents
+    AxisSpectrum("Good at Music", "Good at Acting"),
+    AxisSpectrum("Attractive", "Funny"),
+    // Restaurants / Fast Food
+    AxisSpectrum(
+        "Would patronize for Lunch",
+        "Would patronize after a night out",
+    ),
+    AxisSpectrum(
+        "Always looking for a reason to go",
+        "Only randomly crave / must be in the mood",
+    ),
+    // Instruments
+    AxisSpectrum(
+        "Instrument produces neat sound",
+        "Instrument looks Impressive to Play",
+    ),
+    AxisSpectrum(
+        "Clue Giver Always Wanted to Learn / Enjoy Playing",
+        "Clue Giver has No Interest in Playing",
+    ),
+    // Made up names
+    AxisSpectrum("Dated First Name", "Fashionable First Name"),
+    AxisSpectrum("Cool Last Name", "Boring Last Name"),
+    // Gen AI
+    // AxisSpectrum("Would not let Gen AI Do", "Would let Gen AI Do"),
+    // AxisSpectrum("Would let a Toddler Do", "Would not let a Toddler Do"),
+
+    // AxisSpectrum("Family Dealbreaker", "Friendship Dealbreaker"),
+    // AxisSpectrum("First Date Dealbreaker", ""),
 
     //AxisSpectrum("Common Aspiration", "Aspiration of Clue Giver"),
     // Jokes
