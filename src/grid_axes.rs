@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 124] = [
+const AXIS_SPECTRA: [AxisSpectrum; 128] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -429,12 +429,20 @@ const AXIS_SPECTRA: [AxisSpectrum; 124] = [
     // Made up names
     AxisSpectrum("Dated First Name", "Fashionable First Name"),
     AxisSpectrum("Cool Last Name", "Boring Last Name"),
+    // Scary
+    AxisSpectrum("Less Scary", "More Scary"),
+    AxisSpectrum("Dangerous", "Harmless"),
+    // Halloween Treat
+    AxisSpectrum("Throw Away Halloween Treat", "Coveted Halloween Treat"),
+    AxisSpectrum("Common", "Rare"),
     // Gen AI
     // AxisSpectrum("Would not let Gen AI Do", "Would let Gen AI Do"),
     // AxisSpectrum("Would let a Toddler Do", "Would not let a Toddler Do"),
 
     // AxisSpectrum("Family Dealbreaker", "Friendship Dealbreaker"),
     // AxisSpectrum("First Date Dealbreaker", ""),
+
+    // AxisSpectrum("Grosses People Out", "Spreads Germs"),
 
     //AxisSpectrum("Common Aspiration", "Aspiration of Clue Giver"),
     // Jokes
