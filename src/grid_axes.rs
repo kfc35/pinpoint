@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 128] = [
+const AXIS_SPECTRA: [AxisSpectrum; 138] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -435,6 +435,33 @@ const AXIS_SPECTRA: [AxisSpectrum; 128] = [
     // Halloween Treat
     AxisSpectrum("Throw Away Halloween Treat", "Coveted Halloween Treat"),
     AxisSpectrum("Common", "Rare"),
+    // Influencers
+    AxisSpectrum("Underrated Influencer", "Popular Influencer"),
+    AxisSpectrum("Entertaining Influencer", "Helpful Influencer"),
+    // Energy
+    AxisSpectrum("Calming", "Energizing"),
+    AxisSpectrum("Intellectually", "Physically"),
+    // Foreign/English phrases
+    AxisSpectrum(
+        "borrowed/foreign expression",
+        "well understood english idiom",
+    ),
+    AxisSpectrum(
+        "used a lot in english conversation",
+        "used little in english conversation",
+    ),
+    // Function / Aesthetics
+    AxisSpectrum("Purely Functional", "Purely Aesthetics"),
+    AxisSpectrum("Found in the Home", "Found in the Office"),
+    // Books / Reads
+    AxisSpectrum("Read for School / Jobs", "Read for Leisure"),
+    AxisSpectrum("Worthy of Reading", "Regretful Read"),
+    // Horror Movies
+    // AxisSpectrum("Gorey Horror Movie", "Horror Movie High on Thrills"),
+    // AxisSpectrum("Entertaining Watch", ""),
+
+    // AxisSpectrum("Bedroom Wall(Paper/Color)", "Bathroom Wall(Paper/Color)"),
+
     // Gen AI
     // AxisSpectrum("Would not let Gen AI Do", "Would let Gen AI Do"),
     // AxisSpectrum("Would let a Toddler Do", "Would not let a Toddler Do"),
