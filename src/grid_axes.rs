@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 138] = [
+const AXIS_SPECTRA: [AxisSpectrum; 142] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -456,6 +456,15 @@ const AXIS_SPECTRA: [AxisSpectrum; 138] = [
     // Books / Reads
     AxisSpectrum("Read for School / Jobs", "Read for Leisure"),
     AxisSpectrum("Worthy of Reading", "Regretful Read"),
+    // Waiting
+    AxisSpectrum("Uncomfortable Wait", "Comfortable Wait"),
+    AxisSpectrum("Long Wait", "Short Wait"),
+    // Sickness spreading
+    AxisSpectrum("Not considered by the common person", "Noticed by Everyone"),
+    AxisSpectrum(
+        "Will definitely spread sickness",
+        "Does not spread sickness",
+    ),
     // Horror Movies
     // AxisSpectrum("Gorey Horror Movie", "Horror Movie High on Thrills"),
     // AxisSpectrum("Entertaining Watch", ""),
