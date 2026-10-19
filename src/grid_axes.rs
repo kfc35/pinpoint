@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 142] = [
+const AXIS_SPECTRA: [AxisSpectrum; 144] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -465,6 +465,9 @@ const AXIS_SPECTRA: [AxisSpectrum; 142] = [
         "Will definitely spread sickness",
         "Does not spread sickness",
     ),
+    // Texture
+    AxisSpectrum("Moist", "Juicy"),
+    AxisSpectrum("Squishy", "Firm"),
     // Horror Movies
     // AxisSpectrum("Gorey Horror Movie", "Horror Movie High on Thrills"),
     // AxisSpectrum("Entertaining Watch", ""),
