@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 144] = [
+const AXIS_SPECTRA: [AxisSpectrum; 148] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -468,6 +468,23 @@ const AXIS_SPECTRA: [AxisSpectrum; 144] = [
     // Texture
     AxisSpectrum("Moist", "Juicy"),
     AxisSpectrum("Squishy", "Firm"),
+    // Trends & Opinions
+    AxisSpectrum("2000", "Now"),
+    AxisSpectrum(
+        "Popular and Clue Giver Likes",
+        "Popular but Clue Giver Dislikes",
+    ),
+    // Medical
+    AxisSpectrum(
+        "Scientific Medical Solution",
+        "Alternative Medical Solution",
+    ),
+    AxisSpectrum(
+        "For treating the most severe conditions",
+        "For treating the most mild condition",
+    ),
+    // AxisSpectrum("See a Doctor", "Deal with at home"),
+
     // Horror Movies
     // AxisSpectrum("Gorey Horror Movie", "Horror Movie High on Thrills"),
     // AxisSpectrum("Entertaining Watch", ""),
