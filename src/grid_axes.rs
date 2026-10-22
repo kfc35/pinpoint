@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 148] = [
+const AXIS_SPECTRA: [AxisSpectrum; 152] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -483,7 +483,35 @@ const AXIS_SPECTRA: [AxisSpectrum; 148] = [
         "For treating the most severe conditions",
         "For treating the most mild condition",
     ),
-    // AxisSpectrum("See a Doctor", "Deal with at home"),
+    // Superpowers
+    AxisSpectrum("Attractive Superpower", "Scary Superpower"),
+    AxisSpectrum("Niche Superpower", "Simple Superpower"),
+    // Outsourcing
+    AxisSpectrum(
+        "Would not outsource to a machine",
+        "Would not outsource to another human",
+    ),
+    AxisSpectrum("Things I want to do", "Things I do not want to do"),
+    // AxisSpectrum(
+    //     "Embarrassing Nickname",
+    //     "Cool Nickname",
+    // ),
+    // AxisSpectrum(
+    //     "Tomorrow",
+    //     "Today",
+    // ),
+
+    // // Dating
+    // AxisSpectrum(
+    //     "Would not match with",
+    //     "Would match with",
+    // ),
+    // AxisSpectrum(
+    //     "Dating App Green Flag",
+    //     "Dating App Red Flag",
+    // ),
+
+    //AxisSpectrum("See a Doctor", "Deal with at home"),
 
     // Horror Movies
     // AxisSpectrum("Gorey Horror Movie", "Horror Movie High on Thrills"),
