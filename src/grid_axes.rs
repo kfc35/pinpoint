@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 152] = [
+const AXIS_SPECTRA: [AxisSpectrum; 160] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -492,6 +492,29 @@ const AXIS_SPECTRA: [AxisSpectrum; 152] = [
         "Would not outsource to another human",
     ),
     AxisSpectrum("Things I want to do", "Things I do not want to do"),
+    // Halloween themed again
+    AxisSpectrum("Disgusting", "Scary"),
+    AxisSpectrum("Entertaining", "Serious"),
+    // Ghost actions
+    AxisSpectrum("A ghost must have done it", "Your rude roommate did it"),
+    AxisSpectrum("Very concerning", "Of No Concern"),
+    // Witches
+    AxisSpectrum(
+        "Makes a potion more detrimental",
+        "Makes a potion more beneficial",
+    ),
+    AxisSpectrum(
+        "Tasty Witch's Brew Ingredients",
+        "Disgusting Witch's Brew Ingredient",
+    ),
+    // Omens
+    AxisSpectrum("Bad omen", "Good omen"),
+    AxisSpectrum("Quotidian", "Esoteric"),
+    // AxisSpectrum(
+    //     "Language I want to learn",
+    //     "Language I want to ",
+    // ),
+    // AxisSpectrum("Could be a phrase in a song", "Could be a phrase in a poem",),
     // AxisSpectrum(
     //     "Embarrassing Nickname",
     //     "Cool Nickname",
