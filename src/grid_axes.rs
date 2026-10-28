@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 160] = [
+const AXIS_SPECTRA: [AxisSpectrum; 170] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -510,6 +510,33 @@ const AXIS_SPECTRA: [AxisSpectrum; 160] = [
     // Omens
     AxisSpectrum("Bad omen", "Good omen"),
     AxisSpectrum("Quotidian", "Esoteric"),
+    // Mischief
+    AxisSpectrum("Prank", "Misdemeanor"),
+    AxisSpectrum(
+        "Early Morning before people wake up",
+        "Under Cover of Night",
+    ),
+    // Twilight related
+    AxisSpectrum(
+        "More likely to be a vampire",
+        "More likely to be a werewolf",
+    ),
+    AxisSpectrum("More prone to love at first sight", "Not the romantic type"),
+    // Victims in Movies
+    AxisSpectrum("First to be off-ed", "\"Final Girl\""),
+    AxisSpectrum(
+        "Can run circles around the horror movie villain",
+        "Acts like an idiot",
+    ),
+    // hauntings
+    AxisSpectrum("has bad vibes", "has good vibes"),
+    AxisSpectrum(
+        "has many spirits haunting its grounds",
+        "no ghosts found here",
+    ),
+    // TBD
+    AxisSpectrum("", ""),
+    AxisSpectrum("", ""),
     // AxisSpectrum(
     //     "Language I want to learn",
     //     "Language I want to ",
