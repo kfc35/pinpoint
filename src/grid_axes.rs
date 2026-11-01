@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 170] = [
+const AXIS_SPECTRA: [AxisSpectrum; 172] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -534,9 +534,15 @@ const AXIS_SPECTRA: [AxisSpectrum; 170] = [
         "has many spirits haunting its grounds",
         "no ghosts found here",
     ),
-    // TBD
-    AxisSpectrum("", ""),
-    AxisSpectrum("", ""),
+    // marathon
+    AxisSpectrum("tiring to marathon", "fun to marathon"),
+    AxisSpectrum("expensive", "cheap"),
+    // daylight savings
+    AxisSpectrum("Low Effort", "High Effort"),
+    AxisSpectrum(
+        "Done during the extra hour at the end of daylight savings",
+        "Done to prepare for the loss of an hour at the start of daylight savings",
+    ),
     // AxisSpectrum(
     //     "Language I want to learn",
     //     "Language I want to ",
