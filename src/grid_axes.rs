@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 172] = [
+const AXIS_SPECTRA: [AxisSpectrum; 178] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -542,6 +542,18 @@ const AXIS_SPECTRA: [AxisSpectrum; 172] = [
     AxisSpectrum(
         "Done during the extra hour at the end of daylight savings",
         "Done to prepare for the loss of an hour at the start of daylight savings",
+    ),
+    AxisSpectrum("Warm Weather Drink", "Cool Weather Drink"),
+    AxisSpectrum(
+        "Could have it regularly without judgment",
+        "Seasonal / Restricted to certain times",
+    ),
+    AxisSpectrum("Spring", "Autumn"),
+    AxisSpectrum("Enjoyable Aspect", "Unenjoyable Aspect"),
+    AxisSpectrum("Savory", "Sweet"),
+    AxisSpectrum(
+        "Food eaten at Thanksgiving time",
+        "Food eaten at Christmas time",
     ),
     // AxisSpectrum(
     //     "Language I want to learn",
