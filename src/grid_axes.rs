@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 178] = [
+const AXIS_SPECTRA: [AxisSpectrum; 184] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -543,18 +543,34 @@ const AXIS_SPECTRA: [AxisSpectrum; 178] = [
         "Done during the extra hour at the end of daylight savings",
         "Done to prepare for the loss of an hour at the start of daylight savings",
     ),
+    // drinks
     AxisSpectrum("Warm Weather Drink", "Cool Weather Drink"),
     AxisSpectrum(
         "Could have it regularly without judgment",
         "Seasonal / Restricted to certain times",
     ),
+    // spring/autumn
     AxisSpectrum("Spring", "Autumn"),
     AxisSpectrum("Enjoyable Aspect", "Unenjoyable Aspect"),
+    // holiday foods
     AxisSpectrum("Savory", "Sweet"),
     AxisSpectrum(
         "Food eaten at Thanksgiving time",
         "Food eaten at Christmas time",
     ),
+    // soup/stew
+    AxisSpectrum("Soup", "Ste"),
+    AxisSpectrum("Max Healthy, No Flavor", "Max Flavor, Not Healthy"),
+    // entering and leaving
+    AxisSpectrum("Difficult to Leave", "Easy to Leave"),
+    AxisSpectrum("Easy to Enter", "Difficult to Enter"),
+    // belligerent acts
+    AxisSpectrum("Microaggression", "Personal Act of War"),
+    AxisSpectrum("Immediately Taken Seriously", "This must be a joke"),
+    // clue giver skills
+    // AxisSpectrum("Clue giver is not skilled at this", "Clue giver is skilled at this"),
+    // AxisSpectrum("CG is prioritizing improvements at this", "CG "),
+
     // AxisSpectrum(
     //     "Language I want to learn",
     //     "Language I want to ",
