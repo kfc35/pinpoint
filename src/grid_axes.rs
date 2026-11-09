@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 184] = [
+const AXIS_SPECTRA: [AxisSpectrum; 188] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -567,9 +567,19 @@ const AXIS_SPECTRA: [AxisSpectrum; 184] = [
     // belligerent acts
     AxisSpectrum("Microaggression", "Personal Act of War"),
     AxisSpectrum("Immediately Taken Seriously", "This must be a joke"),
-    // clue giver skills
-    // AxisSpectrum("Clue giver is not skilled at this", "Clue giver is skilled at this"),
-    // AxisSpectrum("CG is prioritizing improvements at this", "CG "),
+    // Dancing
+    AxisSpectrum("Fun", "Memorable"),
+    AxisSpectrum("Simple Dance (Move)", "Skillful Dance (Move)"),
+    // clue giver interests
+    AxisSpectrum("Clue giver does not like this", "Clue giver likes this"),
+    AxisSpectrum("Highbrow Interest", "Nerdy / Dorky / Geeky Interest"),
+    //
+    // AxisSpectrum("Extraneous Detail", "Useful to Know"),
+    // AxisSpectrum("In an online recipe", ""),
+
+    // trivia
+    // AxisSpectrum("Extraneous Detail", "Useful to Know"),
+    // AxisSpectrum("In an online recipe", ""),
 
     // AxisSpectrum(
     //     "Language I want to learn",
