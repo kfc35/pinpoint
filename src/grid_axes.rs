@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 188] = [
+const AXIS_SPECTRA: [AxisSpectrum; 194] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -573,10 +573,18 @@ const AXIS_SPECTRA: [AxisSpectrum; 188] = [
     // clue giver interests
     AxisSpectrum("Clue giver does not like this", "Clue giver likes this"),
     AxisSpectrum("Highbrow Interest", "Nerdy / Dorky / Geeky Interest"),
-    //
-    // AxisSpectrum("Extraneous Detail", "Useful to Know"),
-    // AxisSpectrum("In an online recipe", ""),
-
+    // Support
+    AxisSpectrum("Personally For", "Personally Against"),
+    AxisSpectrum("Societal Support", "Fringe Support"),
+    // Storytelling / Sentences
+    AxisSpectrum("Extraneous Detail", "Useful to Know"),
+    AxisSpectrum(
+        "Articulated often literally",
+        "Articulated rarely literally",
+    ),
+    // Lies
+    AxisSpectrum("Harmless Lie", "Harmful Lie"),
+    AxisSpectrum("No need to doubt", "Very Doubtful"),
     // trivia
     // AxisSpectrum("Extraneous Detail", "Useful to Know"),
     // AxisSpectrum("In an online recipe", ""),
