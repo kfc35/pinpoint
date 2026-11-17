@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 200] = [
+const AXIS_SPECTRA: [AxisSpectrum; 204] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -594,9 +594,15 @@ const AXIS_SPECTRA: [AxisSpectrum; 200] = [
     // Plants
     AxisSpectrum("Small Plant", "Big Plant"),
     AxisSpectrum("Should be kept outside", "Inside the Home"),
-    //
+    // Cozy /
     AxisSpectrum("Warm", "Cool"),
     AxisSpectrum("Comfortable", "Uncomfortable"),
+    // Art / Aesthetic
+    AxisSpectrum("Art", "Not Art"),
+    AxisSpectrum("Aesthetic", "Not Aesthetic"),
+    // Fashion
+    AxisSpectrum("Formal", "Informal"),
+    AxisSpectrum("Stylish", "Dated"),
     // trivia
     // AxisSpectrum("Extraneous Detail", "Useful to Know"),
     // AxisSpectrum("In an online recipe", ""),
