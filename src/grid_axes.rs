@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 204] = [
+const AXIS_SPECTRA: [AxisSpectrum; 208] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -603,6 +603,12 @@ const AXIS_SPECTRA: [AxisSpectrum; 204] = [
     // Fashion
     AxisSpectrum("Formal", "Informal"),
     AxisSpectrum("Stylish", "Dated"),
+    // Size & Quantity
+    AxisSpectrum("Microscopic", "Gargantuan"),
+    AxisSpectrum("Large Quantity", "Small Quantity"),
+    // Nutrition
+    AxisSpectrum("Junk Food", "Nutritious"),
+    AxisSpectrum("Very Addictive", "Not Addictive"),
     // trivia
     // AxisSpectrum("Extraneous Detail", "Useful to Know"),
     // AxisSpectrum("In an online recipe", ""),
