@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 212] = [
+const AXIS_SPECTRA: [AxisSpectrum; 216] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -614,6 +614,12 @@ const AXIS_SPECTRA: [AxisSpectrum; 212] = [
     // Leadership
     AxisSpectrum("Leader", "Follower"),
     AxisSpectrum("Competent", "Incompetent"),
+    // Soul
+    AxisSpectrum("Soulful", "Soulless"),
+    AxisSpectrum("Popular", "Unpopular"),
+    // Gym vs Park
+    AxisSpectrum("Gym activity", "Park Activity"),
+    AxisSpectrum("Needs rare equipment", "Can be done anywhere"),
     // trivia
     // AxisSpectrum("Extraneous Detail", "Useful to Know"),
     // AxisSpectrum("In an online recipe", ""),
