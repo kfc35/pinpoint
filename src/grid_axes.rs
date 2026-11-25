@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 216] = [
+const AXIS_SPECTRA: [AxisSpectrum; 222] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -620,6 +620,19 @@ const AXIS_SPECTRA: [AxisSpectrum; 216] = [
     // Gym vs Park
     AxisSpectrum("Gym activity", "Park Activity"),
     AxisSpectrum("Needs rare equipment", "Can be done anywhere"),
+    // Leftovers
+    AxisSpectrum("Takes up space", "Spoils faster/easier"),
+    AxisSpectrum("Makes good leftovers", "Better to have fresh"),
+    // Thanksgiving
+    AxisSpectrum("Taken for Granted", "Appreciated"),
+    AxisSpectrum("Deserving of appreciation", "Low Bar"),
+    // Shopping
+    AxisSpectrum("Small Shop", "Big Retailer"),
+    AxisSpectrum("Needs rare equipment", "Can be done anywhere"),
+    // High bar / Low bar
+
+    // AxisSpectrum("Best made ahead of time", "Best made fresh"),
+
     // trivia
     // AxisSpectrum("Extraneous Detail", "Useful to Know"),
     // AxisSpectrum("In an online recipe", ""),
