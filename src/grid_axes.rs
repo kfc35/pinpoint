@@ -627,8 +627,8 @@ const AXIS_SPECTRA: [AxisSpectrum; 222] = [
     AxisSpectrum("Taken for Granted", "Appreciated"),
     AxisSpectrum("Deserving of appreciation", "Low Bar"),
     // Shopping
-    AxisSpectrum("Small Shop", "Big Retailer"),
-    AxisSpectrum("Needs rare equipment", "Can be done anywhere"),
+    AxisSpectrum("Procure from a Small Shop", "Procure from a Big Retailer"),
+    AxisSpectrum("Buy for Self", "Buy as a Holiday Gift"),
     // High bar / Low bar
 
     // AxisSpectrum("Best made ahead of time", "Best made fresh"),
