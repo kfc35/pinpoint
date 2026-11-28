@@ -215,7 +215,7 @@ fn arrow_image_node(image_index: usize) -> impl Scene {
     }
 }
 
-const AXIS_SPECTRA: [AxisSpectrum; 222] = [
+const AXIS_SPECTRA: [AxisSpectrum; 228] = [
     // Seasons
     AxisSpectrum("Springy", "Summery"),
     AxisSpectrum("Autumnal", "Wintry"),
@@ -629,6 +629,18 @@ const AXIS_SPECTRA: [AxisSpectrum; 222] = [
     // Shopping
     AxisSpectrum("Procure from a Small Shop", "Procure from a Big Retailer"),
     AxisSpectrum("Buy for Self", "Buy as a Holiday Gift"),
+    // Another aspect of gifting
+    AxisSpectrum("Useful", "Fun"),
+    AxisSpectrum(
+        "Will personally buy at full price",
+        "A gift that could be given to you",
+    ),
+    // Ornaments
+    AxisSpectrum("Kitchy Ornament", "Tasteful Ornament"),
+    AxisSpectrum("Modern", "Retro"),
+    // Shopping
+    AxisSpectrum("", ""),
+    AxisSpectrum("", ""),
     // High bar / Low bar
 
     // AxisSpectrum("Best made ahead of time", "Best made fresh"),
